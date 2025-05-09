@@ -164,8 +164,34 @@ model.To = pyo.Param(model.Trans_Lines, doc='destination node of transmission li
 model.Dist_Z = pyo.Param(model.L, mutable=True, doc='impedance of distribution lines') # Calculado no execute.run, igual a model.Z
 model.Dist_Status = pyo.Param(model.L, doc='status of distribution lines (on/off)')
 
+# Parâmetros dos geradores conectados à transmissão (G_T)
+model.Pmax_t = pyo.Param(model.G_T, mutable=True, doc='maximum active power for transmission generator')
+model.Pmin_t = pyo.Param(model.G_T, mutable=True, doc='minimum active power for transmission generator')
+model.a_t = pyo.Param(model.G_T, mutable=True, doc='cost coefficient a for transmission generator')
+model.b_t = pyo.Param(model.G_T, mutable=True, doc='cost coefficient b for transmission generator')
+model.c_t = pyo.Param(model.G_T, doc='cost coefficient c for transmission generator') # Não modificado no execute.run
+model.G_Node = pyo.Param(model.G_T, doc='node of transmission generator')
+model.G_Owner_t = pyo.Param(model.G_T, doc='owner of transmission generator')
+model.Carbon_Cost_t = pyo.Param(model.G_T, mutable=True, doc='carbon cost for transmission generator')
 
-# TODO: Continuar com a tradução dos demais parâmetros e variáveis.
+# Parâmetros dos geradores conectados à distribuição (G_D)
+model.Pmax_d = pyo.Param(model.G_D, mutable=True, doc='maximum active power for distribution generator')
+model.Pmin_d = pyo.Param(model.G_D, mutable=True, doc='minimum active power for distribution generator')
+model.a_d = pyo.Param(model.G_D, mutable=True, doc='cost coefficient a for distribution generator')
+model.b_d = pyo.Param(model.G_D, mutable=True, doc='cost coefficient b for distribution generator')
+model.c_d = pyo.Param(model.G_D, doc='cost coefficient c for distribution generator') # Não modificado no execute.run
+model.G_Owner_d = pyo.Param(model.G_D, doc='owner of distribution generator')
+model.G_LDA = pyo.Param(model.G_D, doc='LDA mapping for distribution generator') # Verificar o significado exato de G_LDA
+model.G_LDA_Node = pyo.Param(model.G_D, doc='node associated with G_LDA for distribution generator')
+model.Carbon_Cost_d = pyo.Param(model.G_D, mutable=True, doc='carbon cost for distribution generator')
+
+# Parâmetros de carbono
+model.Carbon_Limit_Trans = pyo.Param(model.T, mutable=True, doc='carbon limit for transmission system')
+model.Carbon_Limit_Dist = pyo.Param(model.T, mutable=True, doc='carbon limit for distribution system')
+model.Emission_Weighted_Average = pyo.Param(mutable=True, doc='emission weighted average cost/factor')
+
+
+# TODO: Continuar com a tradução das variáveis.
 # A leitura dos dados (equivalente ao input.dat) será tratada posteriormente.
 # O arquivo execute.run também contém lógica que precisará ser traduzida para Python.
 
