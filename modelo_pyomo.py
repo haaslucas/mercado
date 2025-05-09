@@ -250,10 +250,37 @@ model.DSO_Revenue = pyo.Var(model.T, model.S, doc='DSO revenue, time t, scenario
 model.GenCosts_dist = pyo.Var(model.G_D, model.T, model.S, domain=pyo.NonNegativeReals, doc='generation costs for distribution generators')
 model.GenCosts_trans = pyo.Var(model.G_T, model.T, model.S, domain=pyo.NonNegativeReals, doc='generation costs for transmission generators')
 
-# As variáveis duplas (lambda, omega_U, etc.) do arquivo .mod são tipicamente
-# resultados da otimização em Pyomo (sufixos) ou variáveis explícitas se estiver
-# modelando KKTs ou problemas bi-nível. Para a tradução do problema primal,
-# não as declaramos como pyo.Var.
+#-----------------------------------------------------------------------
+# DUAL VARIABLES (Tradução das Variáveis Duplas para KKT)
+#-----------------------------------------------------------------------
+# Estas são as variáveis duplas associadas às restrições do problema de nível inferior (ISO/Transmissão)
+model.lambda_kkt = pyo.Var(model.Trans_Nodes, model.T, model.S, doc='Dual variable for Trans_Power_Balance') # Renomeado para evitar conflito com a função lambda do Python
+model.omega_U = pyo.Var(model.Trans_Lines, model.T, model.S, domain=pyo.NonNegativeReals, doc='Dual variable for Trans_Flow_Upper')
+model.omega_L = pyo.Var(model.Trans_Lines, model.T, model.S, domain=pyo.NonNegativeReals, doc='Dual variable for Trans_Flow_Lower')
+
+model.kappa_U = pyo.Var(model.T, model.S, domain=pyo.NonNegativeReals, doc='Dual variable for MAXIMUM_SE_LIMIT')
+model.kappa_L = pyo.Var(model.T, model.S, domain=pyo.NonNegativeReals, doc='Dual variable for MINIMUM_SE_LIMIT')
+model.alpha_U = pyo.Var(model.G_T, model.T, model.S, domain=pyo.NonNegativeReals, doc='Dual variable for Trans_Gen_Upper')
+model.alpha_L = pyo.Var(model.G_T, model.T, model.S, domain=pyo.NonNegativeReals, doc='Dual variable for Trans_Gen_Lower')
+
+# Duals para restrições de rampa. Definidas como NonNegativeReals com base nas constraints Omega_Lower/Upper etc.
+model.ramp_up = pyo.Var(model.G_T, model.T, model.S, domain=pyo.NonNegativeReals, doc='Dual variable for Trans_Gen_Upper_Ramp (Ramp Down Limit)')
+model.ramp_low = pyo.Var(model.G_T, model.T, model.S, domain=pyo.NonNegativeReals, doc='Dual variable for Trans_Gen_Lower_Ramp (Ramp Up Limit)')
+
+model.mu_kkt = pyo.Var(model.Trans_Lines, model.T, model.S, doc='Dual variable for Calculate_Trans_PowerFlow') # Renomeado para evitar conflito com outros usos de mu
+model.phi_kkt = pyo.Var(model.G_T, model.T, model.S, doc='Dual variable for Calculate_Footprint_Trans') # Renomeado
+model.psi_kkt = pyo.Var(model.T, model.S, doc='Dual variable for Carbon_Balance_Trans') # Renomeado
+model.psi_L_kkt = pyo.Var(model.T, model.S, doc='Dual variable (psi_L), não utilizada nas restrições KKT do Novo.mod') # Renomeado
+
+# Epsilon é usado em restrições comentadas no AMPL, declarado como free aqui.
+model.epsilon_kkt = pyo.Var(model.G_T, model.T, model.S, doc='Dual variable (epsilon), usada em KKTs comentadas') # Renomeado
+
+model.Xi_kkt = pyo.Var(model.T, model.S, domain=pyo.NonNegativeReals, doc='Dual variable for Carbon_Limits_Trans') # Renomeado
+
+# Eta_U e Eta_L são usados em restrições comentadas no AMPL, declarados como free aqui.
+model.eta_U_kkt = pyo.Var(model.T, model.S, doc='Dual variable (eta_U), usada em KKTs comentadas') # Renomeado
+model.eta_L_kkt = pyo.Var(model.T, model.S, doc='Dual variable (eta_L), usada em KKTs comentadas') # Renomeado
+
 
 #-----------------------------------------------------------------------
 # OBJECTIVE FUNCTION (Tradução da Função Objetivo)
@@ -618,7 +645,207 @@ def carbon_limits_trans_rule(model, t, s):
     return sum_total_carbon_footprint <= model.Carbon_Limit_Trans[t]
 model.Carbon_Limits_Trans = pyo.Constraint(model.T, model.S, rule=carbon_limits_trans_rule)
 
-# TODO: Continuar com a tradução das demais restrições (KKTs).
+#-----------------------------------------------------------------------
+# TRANSMISSION DUAL CONSTRAINTS (KKT Conditions)
+#-----------------------------------------------------------------------
+
+# s.t. Deriv_Potencia_with_Ramp {g in G_T, t in T, s in S}:
+#	(2*a_t[g] * P_thermal_trans[g,t,s] + b_t[g]) - lambda[G_Node[g],t,s] 
+#	-phi[g,t,s]*Carbon_Cost_t[g] 
+#	- alpha_L[g,t,s] + alpha_U[g,t,s] 
+#	+(if t<>last(T) then (ramp_up[g,t+1,s] - ramp_low[g,t+1,s]))
+#	+(if t<>first(T) then (-ramp_up[g,t,s] + ramp_low[g,t,s]))
+#	= 0;
+def deriv_potencia_with_ramp_rule(model, g, t, s):
+    expr = (2 * model.a_t[g] * model.P_thermal_trans[g,t,s] + model.b_t[g]) - \
+           model.lambda_kkt[model.G_Node[g],t,s] - \
+           model.phi_kkt[g,t,s] * model.Carbon_Cost_t[g] - \
+           model.alpha_L[g,t,s] + model.alpha_U[g,t,s]
+    
+    if t != model.T.last():
+        expr += (model.ramp_up[g,model.T.next(t),s] - model.ramp_low[g,model.T.next(t),s])
+    if t != model.T.first():
+        expr += (-model.ramp_up[g,t,s] + model.ramp_low[g,t,s])
+    return expr == 0
+model.Deriv_Potencia_with_Ramp = pyo.Constraint(model.G_T, model.T, model.S, rule=deriv_potencia_with_ramp_rule)
+
+# s.t. Deriv_Potencia_without_Ramp {g in G_T, t in T, s in S}:
+#	(2*a_t[g] * P_thermal_trans[g,t,s] + b_t[g]) - lambda[G_Node[g],t,s] 
+#	-phi[g,t,s]*Carbon_Cost_t[g] 
+#	- alpha_L[g,t,s] + alpha_U[g,t,s] 
+#	= 0;
+def deriv_potencia_without_ramp_rule(model, g, t, s):
+    return (2 * model.a_t[g] * model.P_thermal_trans[g,t,s] + model.b_t[g]) - \
+           model.lambda_kkt[model.G_Node[g],t,s] - \
+           model.phi_kkt[g,t,s] * model.Carbon_Cost_t[g] - \
+           model.alpha_L[g,t,s] + model.alpha_U[g,t,s] == 0
+model.Deriv_Potencia_without_Ramp = pyo.Constraint(model.G_T, model.T, model.S, rule=deriv_potencia_without_ramp_rule)
+
+# s.t. Deriv_Teta{n in Trans_Nodes, t in T, s in S}: -sum{l in Trans_Lines}(
+#	-Trans_Status[l] * (1/Trans_Reactance[l]) * Trans_Incidencia[n,l]*mu[l,t,s]) = 0;
+def deriv_teta_rule(model, n_node, t, s):
+    # Handle Trans_Reactance[l] == 0 carefully.
+    # Original term: Trans_Status[l] * (1/Trans_Reactance[l]) * Trans_Incidencia[n,l] * mu[l,t,s]
+    # If Trans_Reactance[l] is 0, this term is problematic.
+    # The primal constraint was: Trans_Reactance[l] * Trans_Flow[l,t,s] - Trans_Status[l] * sum_incid_theta = 0
+    # Derivative of L w.r.t Trans_Theta[n,t,s] involves:
+    # - mu[l,t,s] * Trans_Status[l] * Trans_Incidencia[n,l]
+    # This seems to be the coefficient of Trans_Theta[n,t,s] in the power flow equation, multiplied by mu.
+    # The AMPL KKT is: sum{l in Trans_Lines} (Trans_Status[l] * (1/Trans_Reactance[l]) * Trans_Incidencia[n_node,l] * model.mu_kkt[l,t,s]) == 0
+    # This assumes Trans_Reactance is not zero.
+    sum_terms = 0
+    for l_line in model.Trans_Lines:
+        if model.Trans_Reactance[l_line] != 0:
+            sum_terms += (model.Trans_Status[l_line] * (1/model.Trans_Reactance[l_line]) * 
+                          model.Trans_Incidencia[n_node,l_line] * model.mu_kkt[l_line,t,s])
+        # If Trans_Reactance is 0, and Trans_Status is 1, the original constraint implies angle equality.
+        # The derivative term might be handled differently or assumed that such lines don't exist if active.
+        # For now, skip if reactance is 0 to avoid division by zero, assuming such lines are inactive or handled.
+    return sum_terms == 0
+model.Deriv_Teta = pyo.Constraint(model.Trans_Nodes, model.T, model.S, rule=deriv_teta_rule)
+
+# s.t. Deriv_Fluxo{l in Trans_Lines, t in T, s in S}: mu[l,t,s] - omega_L[l,t,s] + omega_U[l,t,s] 
+#	-sum{n in Trans_Nodes}(Trans_Incidencia[n,l] * lambda[n,t,s]) = 0;
+def deriv_fluxo_rule(model, l_line, t, s):
+    # The term sum{n in Trans_Nodes}(Trans_Incidencia[n,l] * lambda[n,t,s]) is:
+    # Trans_Incidencia[From[l],l]*lambda[From[l],t,s] + Trans_Incidencia[To[l],l]*lambda[To[l],t,s]
+    # = 1 * lambda[From[l],t,s] - 1 * lambda[To[l],t,s]
+    # = lambda[model.From[l_line],t,s] - lambda[model.To[l_line],t,s]
+    # This is the derivative of lambda_from*Flow - lambda_to*Flow if Flow is defined from->to.
+    # The Trans_Power_Balance has -sum{l}(Trans_Incidencia[n,l]*Trans_Flow[l,t,s]).
+    # For a given l, Trans_Flow[l,t,s] is multiplied by -Trans_Incidencia[n,l].
+    # So, for node From[l], it's -1*Trans_Flow[l,t,s]. For node To[l], it's -(-1)*Trans_Flow[l,t,s] = +Trans_Flow[l,t,s].
+    # Derivative of Lagrangian w.r.t. Trans_Flow[l,t,s]:
+    # from mu_kkt: +mu_kkt[l,t,s] (from Calculate_Trans_PowerFlow)
+    # from omega_L: -omega_L[l,t,s] (from -Trans_Flow <= Capacity => Trans_Flow >= -Capacity)
+    # from omega_U: +omega_U[l,t,s] (from Trans_Flow <= Capacity)
+    # from lambda_kkt: -lambda_kkt[model.From[l_line],t,s] + lambda_kkt[model.To[l_line],t,s]
+    # The AMPL is: mu - omega_L + omega_U - (lambda_from - lambda_to) = 0
+    # This matches: mu - omega_L + omega_U - lambda_from + lambda_to = 0
+    
+    lambda_term = model.lambda_kkt[model.From[l_line],t,s] - model.lambda_kkt[model.To[l_line],t,s]
+    
+    return model.mu_kkt[l_line,t,s] - model.omega_L[l_line,t,s] + model.omega_U[l_line,t,s] - lambda_term == 0
+model.Deriv_Fluxo = pyo.Constraint(model.Trans_Lines, model.T, model.S, rule=deriv_fluxo_rule)
+
+# s.t. Deriv_PDSO{t in T, s in S}:  
+#	-Bid[t,s] + lambda[5,t,s] + kappa_U[t,s] - kappa_L[t,s] = 0;
+# Node 5 is PCC for P_DSO in Trans_Power_Balance: -(if 5 == n then P_DSO[t,s])
+# So derivative of -lambda[5,t,s]*P_DSO[t,s] is -lambda[5,t,s].
+# The objective has Bid[t,s]*P_DSO[t,s]. Derivative is Bid[t,s].
+# kappa_U for P_DSO <= SE_Capacity. Derivative +kappa_U.
+# kappa_L for -P_DSO <= SE_Capacity (P_DSO >= -SE_Capacity). Derivative -kappa_L.
+# So: Bid[t,s] - lambda[5,t,s] + kappa_U[t,s] - kappa_L[t,s] = 0.
+# AMPL has: -Bid[t,s] + lambda[5,t,s] + kappa_U[t,s] - kappa_L[t,s] = 0.
+# This implies the objective for the lower level problem (ISO) is to MINIMIZE -Bid*P_DSO + GenCosts_trans ...
+# Or the DSO's objective term Bid*P_DSO is taken as a negative cost for ISO.
+# Let's assume the AMPL KKT is derived correctly from some formulation.
+# The node 5 should be parameterized if possible. For now, hardcoding.
+PCC_Trans_Node = 5 # As per AMPL model
+def deriv_pdso_rule(model, t, s):
+    return -model.Bid[t,s] + model.lambda_kkt[PCC_Trans_Node,t,s] + model.kappa_U[t,s] - model.kappa_L[t,s] == 0
+model.Deriv_PDSO = pyo.Constraint(model.T, model.S, rule=deriv_pdso_rule)
+
+# s.t. Deriv_Footprint{g in G_T, t in T, s in S}:
+#	+phi[g,t,s]  #- epsilon[g,t,s] 
+#	+ Xi[t,s] = 0;
+def deriv_footprint_rule(model, g, t, s):
+    expr = model.phi_kkt[g,t,s] + model.Xi_kkt[t,s]
+    # if model.epsilon_kkt is part of the model and active:
+    # expr -= model.epsilon_kkt[g,t,s] 
+    return expr == 0
+model.Deriv_Footprint = pyo.Constraint(model.G_T, model.T, model.S, rule=deriv_footprint_rule)
+
+# s.t. Deriv_Carbon_T {g in G_T, t in T, s in S}:
+#	#-epsilon[g,t,s] 
+#	+ psi[t,s] + Xi[t,s] = 0;
+def deriv_carbon_t_rule(model, g, t, s):
+    expr = model.psi_kkt[t,s] + model.Xi_kkt[t,s]
+    # if model.epsilon_kkt is part of the model and active:
+    # expr -= model.epsilon_kkt[g,t,s]
+    return expr == 0
+model.Deriv_Carbon_T = pyo.Constraint(model.G_T, model.T, model.S, rule=deriv_carbon_t_rule)
+	
+# s.t. Deriv_Carbon_SE {t in T, s in S}:
+#	 -Carbon_Price[t,s] -psi[t,s] 
+#	 # + eta_U[t,s] - eta_L[t,s] 
+#	 = 0;
+# Objective has Carbon_Price[t,s] * Carbon_SE[t,s].
+# Carbon_Balance_Trans: sum(Carbon_T) - Carbon_SE = 0. Dual psi_kkt. Term: -psi_kkt * Carbon_SE.
+# So derivative w.r.t Carbon_SE is: Carbon_Price - psi_kkt = 0.
+# AMPL has: -Carbon_Price - psi = 0. This implies the objective term for ISO was -Carbon_Price*Carbon_SE or psi_kkt definition is negative.
+# Assuming AMPL KKT is correct.
+def deriv_carbon_se_rule(model, t, s):
+    expr = -model.Carbon_Price[t,s] - model.psi_kkt[t,s]
+    # if model.eta_U_kkt and model.eta_L_kkt are active:
+    # expr += model.eta_U_kkt[t,s] - model.eta_L_kkt[t,s]
+    return expr == 0
+model.Deriv_Carbon_SE = pyo.Constraint(model.T, model.S, rule=deriv_carbon_se_rule)
+
+# Non-negativity of duals already handled by domain=pyo.NonNegativeReals in Var declaration.
+# Explicit constraints for these are not strictly needed in Pyomo unless for conditional dropping.
+# e.g. model.Omega_Lower = pyo.Constraint(model.Trans_Lines, model.T, model.S, rule=lambda model,l,t,s: model.omega_L[l,t,s] >=0)
+
+#-----------------------------------------------------------------------
+# LINEAR KKT COMPLEMENTARY SLACKNESS CONDITIONS
+#-----------------------------------------------------------------------
+# s.t. slack_NL2 {l in Trans_Lines, t in T, s in S}: omega_U[l,t,s]*(-Trans_Capacity[l] + Trans_Flow[l,t,s]) = 0;
+def slack_nl2_rule(model, l, t, s):
+    return model.omega_U[l,t,s] * (-model.Trans_Capacity[l] + model.Trans_Flow[l,t,s]) == 0
+model.slack_NL2 = pyo.Constraint(model.Trans_Lines, model.T, model.S, rule=slack_nl2_rule)
+
+# s.t. slack_NL1 {l in Trans_Lines, t in T, s in S}: omega_L[l,t,s]*(-Trans_Flow[l,t,s] - Trans_Capacity[l]) = 0;
+def slack_nl1_rule(model, l, t, s):
+    return model.omega_L[l,t,s] * (-model.Trans_Flow[l,t,s] - model.Trans_Capacity[l]) == 0
+model.slack_NL1 = pyo.Constraint(model.Trans_Lines, model.T, model.S, rule=slack_nl1_rule)
+
+# s.t. slack_NL4 {g in G_T, t in T, s in S}: alpha_U[g,t,s]*(P_thermal_trans[g,t,s] - Pmax_t[g]) = 0;
+def slack_nl4_rule(model, g, t, s):
+    return model.alpha_U[g,t,s] * (model.P_thermal_trans[g,t,s] - model.Pmax_t[g]) == 0
+model.slack_NL4 = pyo.Constraint(model.G_T, model.T, model.S, rule=slack_nl4_rule)
+
+# s.t. slack_NL3 {g in G_T, t in T, s in S}: alpha_L[g,t,s]*(-P_thermal_trans[g,t,s] + Pmin_t[g]) = 0;
+def slack_nl3_rule(model, g, t, s):
+    return model.alpha_L[g,t,s] * (-model.P_thermal_trans[g,t,s] + model.Pmin_t[g]) == 0
+model.slack_NL3 = pyo.Constraint(model.G_T, model.T, model.S, rule=slack_nl3_rule)
+
+# s.t. slack_NL5 {t in T, s in S}: kappa_U[t,s]*(-SE_Capacity + P_DSO[t,s]) = 0;
+def slack_nl5_rule(model, t, s):
+    return model.kappa_U[t,s] * (-model.SE_Capacity + model.P_DSO[t,s]) == 0
+model.slack_NL5 = pyo.Constraint(model.T, model.S, rule=slack_nl5_rule)
+
+# s.t. slack_NL6 {t in T, s in S}: kappa_L[t,s]*(-P_DSO[t,s] - SE_Capacity) = 0;
+def slack_nl6_rule(model, t, s):
+    return model.kappa_L[t,s] * (-model.P_DSO[t,s] - model.SE_Capacity) == 0
+model.slack_NL6 = pyo.Constraint(model.T, model.S, rule=slack_nl6_rule)
+
+# s.t. slack_NL7 {t in T, s in S} :Xi[t,s]*(sum{g in G_T} (Footprint_trans[g,t,s] + Carbon_T[g,t,s]) - Carbon_Limit_Trans[t] ) = 0;
+def slack_nl7_rule(model, t, s):
+    sum_term = sum(model.Footprint_trans[g,t,s] + model.Carbon_T[g,t,s] for g in model.G_T)
+    return model.Xi_kkt[t,s] * (sum_term - model.Carbon_Limit_Trans[t]) == 0
+model.slack_NL7 = pyo.Constraint(model.T, model.S, rule=slack_nl7_rule)
+
+# slack_NL8 for epsilon is commented in AMPL
+
+# slack_NL9, slack_NL10 for eta are commented in AMPL
+
+# s.t. slack_NL11{g in G_T, t in T, s in S : t<>first(T)}: ramp_up[g,t,s]*(P_thermal_trans[g,t-1,s] - P_thermal_trans[g,t,s] -0.25 * Pmax_t[g]) = 0;
+def slack_nl11_rule(model, g, t, s):
+    if t == model.T.first():
+        return pyo.Constraint.Skip
+    return model.ramp_up[g,t,s] * (model.P_thermal_trans[g,model.T.prev(t),s] - model.P_thermal_trans[g,t,s] - 0.25 * model.Pmax_t[g]) == 0
+model.slack_NL11 = pyo.Constraint(model.G_T, model.T, model.S, rule=slack_nl11_rule)
+
+# s.t. slack_NL12{g in G_T, t in T, s in S : t<>first(T)}: ramp_low[g,t,s]*(-P_thermal_trans[g,t-1,s] + P_thermal_trans[g,t,s] -0.25 * Pmax_t[g]) = 0;
+def slack_nl12_rule(model, g, t, s):
+    if t == model.T.first():
+        return pyo.Constraint.Skip
+    return model.ramp_low[g,t,s] * (-model.P_thermal_trans[g,model.T.prev(t),s] + model.P_thermal_trans[g,t,s] - 0.25 * model.Pmax_t[g]) == 0
+model.slack_NL12 = pyo.Constraint(model.G_T, model.T, model.S, rule=slack_nl12_rule)
+
+
+# TODO: Implement data loading from input.dat and Scenarios.dat
+# TODO: Implement logic from execute.run (parameter adjustments, conditional constraint dropping)
 # A leitura dos dados (equivalente ao input.dat) será tratada posteriormente.
 # O arquivo execute.run também contém lógica que precisará ser traduzida para Python.
 
