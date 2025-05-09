@@ -296,6 +296,92 @@ def calculate_gen_costs_trans_rule(model, t, g, s):
                                             model.c_t[g])
 model.Calculate_GenCosts_Trans = pyo.Constraint(model.T, model.G_T, model.S, rule=calculate_gen_costs_trans_rule)
 
+# s.t. ACTIVE_POWER_BALANCE{n_node in N, t in T, s in S}:
+# 	sum{g in G_D:G_LDA_Node[g] == n_node}(P_thermal_dist[g,t,s])
+# 	-sum{(n_node,m) in L}(P[n_node,m,t,s] + R[n_node,m]*I[n_node,m,t,s])
+# 	+sum{(l,n_node) in L}(P[l,n_node,t,s])
+# 	+(if 1 == n_node then P_DSO[t,s])
+# 	-sum{i in LS:LS_Node[i] == n_node} (Dist_Shift[i,t,s])
+# 	+sum{i in ESS:ESS_Node[i] == n_node} (Dist_P_ESS[i,t,s])
+# 	= Dist_Load[n_node,t,s];
+def active_power_balance_rule(model, n_node, t, s):
+    generation_at_node = sum(model.P_thermal_dist[g,t,s] for g in model.G_D if model.G_LDA_Node[g] == n_node)
+    
+    power_exchange_dso = 0
+    # Assuming node 1 is the point of common coupling with transmission.
+    # The set N is 1-indexed based on input.dat.
+    if n_node == 1: # Or use a parameter for PCC node if it's not always 1
+        power_exchange_dso = model.P_DSO[t,s]
+        
+    load_shifting_at_node = sum(model.Dist_Shift[i,t,s] for i in model.LS if model.LS_Node[i] == n_node)
+    ess_power_at_node = sum(model.Dist_P_ESS[i,t,s] for i in model.ESS if model.ESS_Node[i] == n_node)
+
+    # Sum of power flowing out of n_node
+    # P[line,t,s] is power on line 'line' at time 't', scenario 's'.
+    # R[line]*I[line,t,s] - this term is dimensionally unusual (V not W). Translating literally.
+    power_flow_out = sum(model.P[line,t,s] + model.R[line]*model.I[line,t,s] 
+                         for line in model.L if line[0] == n_node)
+    
+    # Sum of power flowing into n_node
+    power_flow_in = sum(model.P[line,t,s] 
+                        for line in model.L if line[1] == n_node)
+
+    return (generation_at_node + 
+            power_exchange_dso + 
+            ess_power_at_node +
+            power_flow_in - # Flows into n_node are positive contributions
+            power_flow_out - # Flows out of n_node are negative contributions
+            load_shifting_at_node # Load shift can be positive (load reduction) or negative (load increase)
+            == model.Dist_Load[n_node,t,s])
+
+model.ACTIVE_POWER_BALANCE = pyo.Constraint(model.N, model.T, model.S, rule=active_power_balance_rule)
+
+# s.t. LOSS_REAL_POWER {(i,j) in L, t in T, s in S}: 
+# 	(Dist_Pfm[i,j,t,s] + Dist_Pto[i,j,t,s]) = R[i,j] *I[i,j,t,s]^2;
+def loss_real_power_rule(model, i_node, j_node, t, s): # Iterating over L directly is better
+    line = (i_node, j_node)
+    if line not in model.L: # Should not happen if rule is indexed by model.L
+        return pyo.Constraint.Skip
+    return model.Dist_Pfm[line,t,s] + model.Dist_Pto[line,t,s] == model.R[line] * model.I[line,t,s]**2
+# Correct indexing for the constraint definition:
+model.LOSS_REAL_POWER = pyo.Constraint(model.L, model.T, model.S, rule=lambda model, i,j,t,s: \
+    model.Dist_Pfm[(i,j),t,s] + model.Dist_Pto[(i,j),t,s] == model.R[(i,j)] * model.I[(i,j),t,s]**2)
+
+
+# s.t. REAL_POWER_FLOW {(i,j) in L, t in T, s in S}:
+# 	(Dist_Pfm[i,j,t,s] - Dist_Pto[i,j,t,s]) = R[i,j]/Z[i,j]^2 * (VM[i,t,s]^2 - VM[j,t,s]^2);
+def real_power_flow_rule(model, i_node, j_node, t, s):
+    line = (i_node, j_node)
+    if line not in model.L:
+        return pyo.Constraint.Skip
+    
+    # Add epsilon for numerical stability if Z might be zero
+    # If Z is zero, R must also be zero, so R / (Z^2+eps) = 0 / eps = 0.
+    denominator = model.Z[line]**2 + 1e-9 
+    
+    return (model.Dist_Pfm[line,t,s] - model.Dist_Pto[line,t,s] == 
+            model.R[line] / denominator * 
+            (model.VM[i_node,t,s]**2 - model.VM[j_node,t,s]**2))
+# Correct indexing for the constraint definition:
+model.REAL_POWER_FLOW = pyo.Constraint(model.L, model.T, model.S, rule=lambda model, i,j,t,s: \
+    model.Dist_Pfm[(i,j),t,s] - model.Dist_Pto[(i,j),t,s] == \
+    model.R[(i,j)] / (model.Z[(i,j)]**2 + 1e-9) * \
+    (model.VM[i,t,s]**2 - model.VM[j,t,s]**2))
+
+
+# s.t. CURRENT_FLOW {(i,j) in L, t in T, s in S}:
+# 	I[i,j,t,s] = (VM[i,t,s]-VM[j,t,s])/Z[i,j];
+def current_flow_rule(model, i_node, j_node, t, s):
+    line = (i_node, j_node)
+    if line not in model.L:
+        return pyo.Constraint.Skip
+    # Add epsilon for numerical stability if Z might be zero
+    denominator = model.Z[line] + 1e-9
+    return model.I[line,t,s] == (model.VM[i_node,t,s] - model.VM[j_node,t,s]) / denominator
+# Correct indexing for the constraint definition:
+model.CURRENT_FLOW = pyo.Constraint(model.L, model.T, model.S, rule=lambda model, i,j,t,s: \
+    model.I[(i,j),t,s] == (model.VM[i,t,s] - model.VM[j,t,s]) / (model.Z[(i,j)] + 1e-9))
+
 
 # TODO: Continuar com a tradução das demais restrições.
 # A leitura dos dados (equivalente ao input.dat) será tratada posteriormente.
