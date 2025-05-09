@@ -53,6 +53,64 @@ model.WS = pyo.Set(within=model.Range1_3 * model.Trans_Nodes * (model.G_T | mode
 
 model.S = pyo.Set(doc='set of scenarios')
 
+#-----------------------------------------------------------------------
+# DECLARE ITEMS TO BE READ FROM THE .bus DATA FILE (Tradução de Parâmetros Indexados)
+#-----------------------------------------------------------------------
+
+model.NBUS = pyo.Param(model.N, within=pyo.Any, doc='bus name (symbolic)')
+model.TBUS = pyo.Param(model.N, within=pyo.Any, doc='bus type')
+model.Vmax = pyo.Param(model.N, doc='maximum voltage magnitude (kV)')
+model.Vmin = pyo.Param(model.N, doc='minimum voltage magnitude (kV)')
+model.Vnom = pyo.Param(model.N, doc='nominal voltage magnitude (kV)')
+model.Ve = pyo.Param(model.N, doc='voltage magnitude (kV) - verificar uso, pode ser uma variável ou valor inicial')
+model.Pgmx = pyo.Param(model.N, doc='maximum real power (kW)')
+model.Pgmn = pyo.Param(model.N, doc='minimum real power (kW)')
+
+model.R = pyo.Param(model.L, doc='branch resistance (ohm)')
+model.X = pyo.Param(model.L, doc='branch reactance (ohm)')
+model.Z = pyo.Param(model.L, mutable=True, doc='branch impedance (ohm)') # mutable=True pois é calculado no execute.run
+model.Imax = pyo.Param(model.L, doc='branch maximum current (kA)')
+
+
+model.load1 = pyo.Param(model.S, model.T, doc='load profile 1 factor')
+model.load2 = pyo.Param(model.S, model.T, doc='load profile 2 factor')
+model.wind1 = pyo.Param(model.S, model.T, doc='wind profile 1 factor')
+model.wind2 = pyo.Param(model.S, model.T, doc='wind profile 2 factor')
+model.solar = pyo.Param(model.S, model.T, doc='solar profile factor')
+model.probability = pyo.Param(model.S, model.T, doc='probability of scenario s at time t')
+
+# Parâmetros de perfil de carga (load shape parameters)
+model.ind1 = pyo.Param(model.T, doc='industrial load profile 1 factor')
+model.ind2 = pyo.Param(model.T, doc='industrial load profile 2 factor')
+model.ind3 = pyo.Param(model.T, doc='industrial load profile 3 factor')
+
+model.res1 = pyo.Param(model.T, doc='residential load profile 1 factor')
+model.res4 = pyo.Param(model.T, doc='residential load profile 4 factor')
+model.res5 = pyo.Param(model.T, doc='residential load profile 5 factor')
+
+model.off1 = pyo.Param(model.T, doc='office load profile 1 factor')
+model.off4 = pyo.Param(model.T, doc='office load profile 4 factor')
+
+model.L2 = pyo.Param(model.T, doc='load profile L2 factor')
+model.L3 = pyo.Param(model.T, doc='load profile L3 factor')
+model.L4 = pyo.Param(model.T, doc='load profile L4 factor')
+model.L6 = pyo.Param(model.T, doc='load profile L6 factor')
+model.L8 = pyo.Param(model.T, doc='load profile L8 factor')
+
+model.PCC = pyo.Param(model.LDA, doc='Point of Common Coupling for LDA entities')
+
+# Parâmetros relacionados à transmissão
+model.Trans_Load = pyo.Param(model.Trans_Nodes, model.T, model.S, doc='load at transmission nodes')
+model.Trans_Shift_Max = pyo.Param(model.Trans_Nodes, doc='maximum load shifting at transmission nodes')
+model.Trans_Shift_Min = pyo.Param(model.Trans_Nodes, doc='minimum load shifting at transmission nodes')
+model.Trans_P_ESS_min = pyo.Param(model.Trans_Nodes, doc='minimum power from ESS at transmission nodes')
+model.Trans_P_ESS_max = pyo.Param(model.Trans_Nodes, doc='maximum power from ESS at transmission nodes')
+model.Trans_SOC_max = pyo.Param(model.Trans_Nodes, doc='maximum State Of Charge for ESS at transmission nodes')
+model.Trans_SOC_min = pyo.Param(model.Trans_Nodes, doc='minimum State Of Charge for ESS at transmission nodes')
+model.Trans_SOC_initial = pyo.Param(model.Trans_Nodes, doc='initial State Of Charge for ESS at transmission nodes')
+model.Trans_Type = pyo.Param(model.Trans_Nodes, within=pyo.Any, doc='type of transmission node (e.g., load type)')
+model.Trans_Inst_Cap = pyo.Param(model.Trans_Nodes, doc='installed capacity at transmission nodes')
+
 
 # TODO: Continuar com a tradução dos demais parâmetros e variáveis.
 # A leitura dos dados (equivalente ao input.dat) será tratada posteriormente.
