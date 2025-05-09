@@ -597,7 +597,28 @@ def minimum_se_limit_rule(model, t, s):
     return -model.P_DSO[t,s] <= model.SE_Capacity # or model.P_DSO[t,s] >= -model.SE_Capacity
 model.MINIMUM_SE_LIMIT = pyo.Constraint(model.T, model.S, rule=minimum_se_limit_rule)
 
-# TODO: Continuar com a tradução das demais restrições (carbono da transmissão, KKTs).
+#---- CARBON RELATED CONSTRAINTS (Transmission)
+# subject to Calculate_Footprint_Trans {g in G_T, t in T, s in S}:
+#	Footprint_trans[g,t,s] = Carbon_Cost_t[g] * P_thermal_trans[g,t,s];		#phi
+def calculate_footprint_trans_rule(model, g, t, s):
+    return model.Footprint_trans[g,t,s] == model.Carbon_Cost_t[g] * model.P_thermal_trans[g,t,s]
+model.Calculate_Footprint_Trans = pyo.Constraint(model.G_T, model.T, model.S, rule=calculate_footprint_trans_rule)
+
+# s.t. Carbon_Balance_Trans {t in T, s in S}:
+#	sum{g in G_T} (Carbon_T[g,t,s]) - Carbon_SE[t,s] = 0;					#psi
+def carbon_balance_trans_rule(model, t, s):
+    sum_carbon_t = sum(model.Carbon_T[g,t,s] for g in model.G_T)
+    return sum_carbon_t - model.Carbon_SE[t,s] == 0
+model.Carbon_Balance_Trans = pyo.Constraint(model.T, model.S, rule=carbon_balance_trans_rule)
+
+# s.t. Carbon_Limits_Trans {t in T, s in S}:									
+#	sum{g in G_T} (Footprint_trans[g,t,s] + Carbon_T[g,t,s]) <= Carbon_Limit_Trans[t] ;		#Xi
+def carbon_limits_trans_rule(model, t, s):
+    sum_total_carbon_footprint = sum(model.Footprint_trans[g,t,s] + model.Carbon_T[g,t,s] for g in model.G_T)
+    return sum_total_carbon_footprint <= model.Carbon_Limit_Trans[t]
+model.Carbon_Limits_Trans = pyo.Constraint(model.T, model.S, rule=carbon_limits_trans_rule)
+
+# TODO: Continuar com a tradução das demais restrições (KKTs).
 # A leitura dos dados (equivalente ao input.dat) será tratada posteriormente.
 # O arquivo execute.run também contém lógica que precisará ser traduzida para Python.
 
