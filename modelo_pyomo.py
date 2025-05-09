@@ -450,6 +450,47 @@ def zero_sum_ls_rule(model, n_ls, s):
     return sum(model.Dist_Shift[n_ls,t_period,s] for t_period in model.T) == 0
 model.ZERO_SUM_LS = pyo.Constraint(model.LS, model.S, rule=zero_sum_ls_rule)
 
+#---- ENERGY STORAGE SYSTEMS LIMITS (Distribution)
+# s.t. Dist_ESS_Limits  {n in ESS, t in T, s in S}: Dist_P_ESS[n,t,s] >= Dist_P_ESS_min[n];
+def dist_ess_limits_rule(model, n_ess, t, s):
+    return model.Dist_P_ESS[n_ess,t,s] >= model.Dist_P_ESS_min[n_ess]
+model.Dist_ESS_Limits = pyo.Constraint(model.ESS, model.T, model.S, rule=dist_ess_limits_rule)
+
+# s.t. Dist_ESS_Limits2 {n in ESS, t in T, s in S}: Dist_P_ESS[n,t,s] <= Dist_P_ESS_max[n];
+def dist_ess_limits2_rule(model, n_ess, t, s):
+    return model.Dist_P_ESS[n_ess,t,s] <= model.Dist_P_ESS_max[n_ess]
+model.Dist_ESS_Limits2 = pyo.Constraint(model.ESS, model.T, model.S, rule=dist_ess_limits2_rule)
+
+# s.t. Dispatch_Dist_SOCLimits  {n in ESS, t in T, s in S}: Dist_SOC[n,t,s] >= Dist_SOC_min[n];
+def dispatch_dist_soc_limits_rule(model, n_ess, t, s):
+    return model.Dist_SOC[n_ess,t,s] >= model.Dist_SOC_min[n_ess]
+model.Dispatch_Dist_SOCLimits = pyo.Constraint(model.ESS, model.T, model.S, rule=dispatch_dist_soc_limits_rule)
+
+# s.t. Dispatch_Dist_SOCLimits2 {n in ESS, t in T, s in S}: Dist_SOC[n,t,s] <= Dist_SOC_max[n];
+def dispatch_dist_soc_limits2_rule(model, n_ess, t, s):
+    return model.Dist_SOC[n_ess,t,s] <= model.Dist_SOC_max[n_ess]
+model.Dispatch_Dist_SOCLimits2 = pyo.Constraint(model.ESS, model.T, model.S, rule=dispatch_dist_soc_limits2_rule)
+
+# s.t. Dispatch_Dist_CalculateSOC {n in ESS, t in T, s in S}:
+# (if t = first(T) then Dist_SOC_initial[n] else Dist_SOC[n,prev(t),s]) - Dist_P_ESS[n,t,s] = Dist_SOC[n,t,s];
+def dispatch_dist_calculate_soc_rule(model, n_ess, t, s):
+    if t == model.T.first(): # model.T is 1-indexed and ordered
+        soc_previous = model.Dist_SOC_initial[n_ess]
+    else:
+        soc_previous = model.Dist_SOC[n_ess, model.T.prev(t), s]
+    # Assuming Dist_P_ESS is positive for discharge and negative for charge.
+    # The equation implies: SOC_current = SOC_previous - Power_Discharged (or + Power_Charged if P_ESS is negative for charge)
+    # If Dist_P_ESS > 0 means discharging, then SOC decreases.
+    # If Dist_P_ESS < 0 means charging, then SOC increases.
+    # The formulation SOC_prev - P_ESS = SOC_current is consistent with P_ESS > 0 for discharge.
+    return soc_previous - model.Dist_P_ESS[n_ess,t,s] == model.Dist_SOC[n_ess,t,s]
+model.Dispatch_Dist_CalculateSOC = pyo.Constraint(model.ESS, model.T, model.S, rule=dispatch_dist_calculate_soc_rule)
+
+# s.t. Dispatch_Dist_SameSOC {n in ESS, s in S}: Dist_SOC_initial[n] = Dist_SOC[n, last(T),s];
+def dispatch_dist_same_soc_rule(model, n_ess, s):
+    return model.Dist_SOC_initial[n_ess] == model.Dist_SOC[n_ess, model.T.last(), s]
+model.Dispatch_Dist_SameSOC = pyo.Constraint(model.ESS, model.S, rule=dispatch_dist_same_soc_rule)
+
 # TODO: Continuar com a tradução das demais restrições.
 # A leitura dos dados (equivalente ao input.dat) será tratada posteriormente.
 # O arquivo execute.run também contém lógica que precisará ser traduzida para Python.
