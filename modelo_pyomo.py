@@ -121,6 +121,30 @@ model.Wind_min_t = pyo.Param(model.RES_T, doc='minimum wind power output for tra
 model.Wind_max_t = pyo.Param(model.RES_T, doc='maximum wind power output for transmission RES (pu or MW)') # Verificar unidade
 model.Wind_nom_t = pyo.Param(model.RES_T, doc='nominal wind power output for transmission RES (pu or MW)') # Verificar unidade
 
+# Parâmetros do sistema de distribuição (Cargas, Load Shifting, ESS)
+model.Dist_Load = pyo.Param(model.N, model.T, model.S, doc='load at distribution nodes')
+model.LS_Node = pyo.Param(model.LS, doc='mapping of load shifting entity to distribution node N') # No .dat, LS é 1..8, LS_Node[ls] é um nó em N
+model.Dist_Shift_Max = pyo.Param(model.LS, doc='maximum load shifting at distribution nodes')
+model.Dist_Shift_Min = pyo.Param(model.LS, doc='minimum load shifting at distribution nodes')
+model.ESS_Node = pyo.Param(model.ESS, doc='mapping of ESS entity to distribution node N') # No .dat, ESS é 1..2, ESS_Node[ess] é um nó em N
+model.Dist_P_ESS_min = pyo.Param(model.ESS, doc='minimum power from ESS at distribution nodes')
+model.Dist_P_ESS_max = pyo.Param(model.ESS, doc='maximum power from ESS at distribution nodes')
+model.Dist_SOC_max = pyo.Param(model.ESS, doc='maximum State Of Charge for ESS at distribution nodes')
+model.Dist_SOC_min = pyo.Param(model.ESS, doc='minimum State Of Charge for ESS at distribution nodes')
+model.Dist_SOC_initial = pyo.Param(model.ESS, doc='initial State Of Charge for ESS at distribution nodes')
+model.Dist_Type = pyo.Param(model.N, within=pyo.Any, doc='type of distribution node (e.g., load type like IND1, RES1)')
+model.Dist_Inst_Cap = pyo.Param(model.N, doc='installed capacity at distribution nodes')
+
+# Parâmetros de fontes de energia renovável conectadas à distribuição (RES-D)
+model.Dist_Wind_Inj = pyo.Param(model.RES_D, model.T, model.S, doc='wind injection at distribution RES')
+model.Dist_Solar_Inj = pyo.Param(model.RES_D, model.T, model.S, doc='solar injection at distribution RES')
+model.RES_type_d = pyo.Param(model.RES_D, within=pyo.Any, doc='type of distribution RES (e.g., SOLAR, WIND)')
+model.RES_Node_d = pyo.Param(model.RES_D, doc='node of distribution RES') # Assumindo que mapeia para um nó em N
+model.RES_Cap_d = pyo.Param(model.RES_D, doc='capacity of distribution RES')
+model.Wind_min_d = pyo.Param(model.RES_D, doc='minimum wind power output for distribution RES (pu or MW)') # Verificar unidade
+model.Wind_max_d = pyo.Param(model.RES_D, doc='maximum wind power output for distribution RES (pu or MW)') # Verificar unidade
+model.Wind_nom_d = pyo.Param(model.RES_D, doc='nominal wind power output for distribution RES (pu or MW)') # Verificar unidade
+
 
 # TODO: Continuar com a tradução dos demais parâmetros e variáveis.
 # A leitura dos dados (equivalente ao input.dat) será tratada posteriormente.
