@@ -190,8 +190,72 @@ model.Carbon_Limit_Trans = pyo.Param(model.T, mutable=True, doc='carbon limit fo
 model.Carbon_Limit_Dist = pyo.Param(model.T, mutable=True, doc='carbon limit for distribution system')
 model.Emission_Weighted_Average = pyo.Param(mutable=True, doc='emission weighted average cost/factor')
 
+#-----------------------------------------------------------------------
+# DECLARE VARIABLES (Tradução de Variáveis)
+#-----------------------------------------------------------------------
 
-# TODO: Continuar com a tradução das variáveis.
+# Variáveis Primárias
+model.VM = pyo.Var(model.N, model.T, model.S, doc='voltage magnitude at bus n, time t, scenario s')
+model.I = pyo.Var(model.L, model.T, model.S, doc='current in branch l, time t, scenario s')
+
+model.Trans_Shift = pyo.Var(model.Trans_Nodes, model.T, model.S, doc='load shifting at transmission node, time t, scenario s')
+model.Trans_P_ESS = pyo.Var(model.Trans_Nodes, model.T, model.S, doc='power from ESS at transmission node, time t, scenario s')
+model.Trans_Flow = pyo.Var(model.Trans_Lines, model.T, model.S, doc='power flow in transmission line, time t, scenario s')
+model.Trans_Theta = pyo.Var(model.Trans_Nodes, model.T, model.S, doc='voltage angle at transmission node, time t, scenario s')
+
+model.Dist_Shift = pyo.Var(model.LS, model.T, model.S, doc='load shifting at distribution load, time t, scenario s')
+model.Dist_P_ESS = pyo.Var(model.ESS, model.T, model.S, doc='power from ESS at distribution node, time t, scenario s')
+model.Dist_SOC = pyo.Var(model.ESS, model.T, model.S, doc='state of charge of ESS at distribution node, time t, scenario s')
+# Dist_Flow não é usado nas restrições do .mod, mas P, Q, Dist_Pfm, Dist_Pto são.
+# model.Dist_Flow = pyo.Var(model.L, model.T, model.S, doc='flow in distribution line l, time t, scenario s')
+model.Dist_Pfm = pyo.Var(model.L, model.T, model.S, doc='active power flow "from" in distribution line l, time t, scenario s')
+model.Dist_Pto = pyo.Var(model.L, model.T, model.S, doc='active power flow "to" in distribution line l, time t, scenario s')
+model.Dist_Qfm = pyo.Var(model.L, model.T, model.S, doc='reactive power flow "from" in distribution line l, time t, scenario s')
+model.Dist_Qto = pyo.Var(model.L, model.T, model.S, doc='reactive power flow "to" in distribution line l, time t, scenario s')
+model.P = pyo.Var(model.L, model.T, model.S, doc='active power flow in distribution line l, time t, scenario s')
+model.Q = pyo.Var(model.L, model.T, model.S, doc='reactive power flow in distribution line l, time t, scenario s')
+
+model.P_thermal_dist = pyo.Var(model.G_D, model.T, model.S, domain=pyo.NonNegativeReals, doc='active power from distribution generator, time t, scenario s')
+model.Q_thermal_dist = pyo.Var(model.G_D, model.T, model.S, doc='reactive power from distribution generator, time t, scenario s')
+model.P_thermal_trans = pyo.Var(model.G_T, model.T, model.S, domain=pyo.NonNegativeReals, doc='active power from transmission generator, time t, scenario s')
+model.P_DSO = pyo.Var(model.T, model.S, doc='power exchanged by DSO with transmission, time t, scenario s')
+model.Q_DSO = pyo.Var(model.T, model.S, doc='reactive power exchanged by DSO with transmission, time t, scenario s')
+
+model.Footprint_trans = pyo.Var(model.G_T, model.T, model.S, doc='carbon footprint of transmission generator, time t, scenario s')
+model.Footprint_dist = pyo.Var(model.G_D, model.T, model.S, doc='carbon footprint of distribution generator, time t, scenario s')
+model.Carbon_T = pyo.Var(model.G_T, model.T, model.S, doc='carbon traded by transmission generator, time t, scenario s') # Ou emissão de carbono
+model.Carbon_SE = pyo.Var(model.T, model.S, doc='carbon exchanged at substation/SE, time t, scenario s')
+
+# Outras Variáveis (algumas com limites)
+# A variável Bid é usada na função objetivo e em Deriv_PDSO.
+# A variável Carbon_Price é usada na função objetivo e em Deriv_Carbon_SE.
+# No contexto de um problema de otimização padrão, se Bid e Carbon_Price são decisões do modelo,
+# elas devem ser variáveis. Se são preços dados (parâmetros), devem ser Params.
+# O arquivo .mod as declara como 'var' com limites, sugerindo que são variáveis de decisão.
+# No entanto, as restrições "Deriv_PDSO" e "Deriv_Carbon_SE" parecem ser condições de KKT
+# de um problema de nível inferior ou de um mercado, onde Bid e Carbon_Price poderiam ser
+# multiplicadores de Lagrange (variáveis duplas) desse problema inferior.
+# Para uma tradução inicial do problema do DSO, vou assumi-las como variáveis de decisão do DSO,
+# conforme declarado no .mod. Se este for um modelo bi-nível, a interpretação mudaria.
+
+def bid_bounds_rule(model, t, s):
+    return (None, 500.0) # (lower_bound, upper_bound)
+model.Bid = pyo.Var(model.T, model.S, bounds=bid_bounds_rule, doc='Bid price by DSO, time t, scenario s')
+
+def carbon_price_bounds_rule(model, t, s):
+    return (None, 5.0)
+model.Carbon_Price = pyo.Var(model.T, model.S, bounds=carbon_price_bounds_rule, doc='Carbon price, time t, scenario s')
+
+model.DSO_Revenue = pyo.Var(model.T, model.S, doc='DSO revenue, time t, scenario s') # Usada em restrição comentada
+model.GenCosts_dist = pyo.Var(model.G_D, model.T, model.S, domain=pyo.NonNegativeReals, doc='generation costs for distribution generators')
+model.GenCosts_trans = pyo.Var(model.G_T, model.T, model.S, domain=pyo.NonNegativeReals, doc='generation costs for transmission generators')
+
+# As variáveis duplas (lambda, omega_U, etc.) do arquivo .mod são tipicamente
+# resultados da otimização em Pyomo (sufixos) ou variáveis explícitas se estiver
+# modelando KKTs ou problemas bi-nível. Para a tradução do problema primal,
+# não as declaramos como pyo.Var.
+
+# TODO: Continuar com a tradução da função objetivo e das restrições.
 # A leitura dos dados (equivalente ao input.dat) será tratada posteriormente.
 # O arquivo execute.run também contém lógica que precisará ser traduzida para Python.
 
