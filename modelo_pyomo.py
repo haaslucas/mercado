@@ -491,6 +491,20 @@ def dispatch_dist_same_soc_rule(model, n_ess, s):
     return model.Dist_SOC_initial[n_ess] == model.Dist_SOC[n_ess, model.T.last(), s]
 model.Dispatch_Dist_SameSOC = pyo.Constraint(model.ESS, model.S, rule=dispatch_dist_same_soc_rule)
 
+#---- CARBON RELATED CONSTRAINTS (Distribution)
+# s.t. Calculate_Footprint_Dist {t in T, g in G_D, s in S}:
+#	Footprint_dist[g,t,s] = Carbon_Cost_d[g] * P_thermal_dist[g,t,s] ;
+def calculate_footprint_dist_rule(model, t, g, s):
+    return model.Footprint_dist[g,t,s] == model.Carbon_Cost_d[g] * model.P_thermal_dist[g,t,s]
+model.Calculate_Footprint_Dist = pyo.Constraint(model.T, model.G_D, model.S, rule=calculate_footprint_dist_rule)
+	
+# s.t. Dist_Carbon_Trade_Limit2 {t in T, s in S}:
+#	sum{g in G_D} (Footprint_dist[g,t,s]) - Carbon_SE[t,s] <= Carbon_Limit_Dist[t] ;	
+def dist_carbon_trade_limit2_rule(model, t, s):
+    sum_footprint_dist = sum(model.Footprint_dist[g,t,s] for g in model.G_D)
+    return sum_footprint_dist - model.Carbon_SE[t,s] <= model.Carbon_Limit_Dist[t]
+model.Dist_Carbon_Trade_Limit2 = pyo.Constraint(model.T, model.S, rule=dist_carbon_trade_limit2_rule)
+
 # TODO: Continuar com a tradução das demais restrições.
 # A leitura dos dados (equivalente ao input.dat) será tratada posteriormente.
 # O arquivo execute.run também contém lógica que precisará ser traduzida para Python.
