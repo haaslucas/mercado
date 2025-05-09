@@ -111,6 +111,16 @@ model.Trans_SOC_initial = pyo.Param(model.Trans_Nodes, doc='initial State Of Cha
 model.Trans_Type = pyo.Param(model.Trans_Nodes, within=pyo.Any, doc='type of transmission node (e.g., load type)')
 model.Trans_Inst_Cap = pyo.Param(model.Trans_Nodes, doc='installed capacity at transmission nodes')
 
+# Parâmetros de fontes de energia renovável conectadas à transmissão (RES-T)
+model.Trans_Wind_Inj = pyo.Param(model.RES_T, model.T, model.S, doc='wind injection at transmission RES')
+model.Trans_Solar_Inj = pyo.Param(model.RES_T, model.T, model.S, doc='solar injection at transmission RES')
+model.RES_type_t = pyo.Param(model.RES_T, within=pyo.Any, doc='type of transmission RES (e.g., SOLAR, WIND)')
+model.RES_Node_t = pyo.Param(model.RES_T, doc='node of transmission RES') # Assumindo que mapeia para um nó em Trans_Nodes
+model.RES_Cap_t = pyo.Param(model.RES_T, doc='capacity of transmission RES')
+model.Wind_min_t = pyo.Param(model.RES_T, doc='minimum wind power output for transmission RES (pu or MW)') # Verificar unidade
+model.Wind_max_t = pyo.Param(model.RES_T, doc='maximum wind power output for transmission RES (pu or MW)') # Verificar unidade
+model.Wind_nom_t = pyo.Param(model.RES_T, doc='nominal wind power output for transmission RES (pu or MW)') # Verificar unidade
+
 
 # TODO: Continuar com a tradução dos demais parâmetros e variáveis.
 # A leitura dos dados (equivalente ao input.dat) será tratada posteriormente.
