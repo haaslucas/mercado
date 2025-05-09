@@ -255,7 +255,28 @@ model.GenCosts_trans = pyo.Var(model.G_T, model.T, model.S, domain=pyo.NonNegati
 # modelando KKTs ou problemas bi-nível. Para a tradução do problema primal,
 # não as declaramos como pyo.Var.
 
-# TODO: Continuar com a tradução da função objetivo e das restrições.
+#-----------------------------------------------------------------------
+# OBJECTIVE FUNCTION (Tradução da Função Objetivo)
+#-----------------------------------------------------------------------
+def dso_costs_rule(model):
+    cost = 0
+    for s in model.S:
+        for t in model.T:
+            # Custo da energia comprada/vendida do DSO para o sistema de transmissão
+            energy_cost_dso_trans = model.Bid[t,s] * model.P_DSO[t,s]
+            
+            # Custos de geração dos geradores de distribuição
+            dist_gen_costs = sum(model.GenCosts_dist[g,t,s] for g in model.G_D)
+            
+            # Custos/Receitas de carbono na subestação
+            carbon_exchange_cost = model.Carbon_Price[t,s] * model.Carbon_SE[t,s]
+            
+            cost += model.probability[s,t] * (energy_cost_dso_trans + dist_gen_costs + carbon_exchange_cost)
+    return cost
+
+model.DSO_Costs = pyo.Objective(rule=dso_costs_rule, sense=pyo.minimize)
+
+# TODO: Continuar com a tradução das restrições.
 # A leitura dos dados (equivalente ao input.dat) será tratada posteriormente.
 # O arquivo execute.run também contém lógica que precisará ser traduzida para Python.
 
@@ -270,4 +291,4 @@ model.GenCosts_trans = pyo.Var(model.G_T, model.T, model.S, domain=pyo.NonNegati
 # instance = model.create_instance(data_input_dat)
 # No entanto, para modelos grandes, é mais comum carregar dados de arquivos CSV ou Excel usando Pandas.
 
-print("Modelo Pyomo inicial criado. Próximos passos: traduzir mais parâmetros, variáveis, objetivo e restrições.")
+print("Modelo Pyomo com parâmetros, variáveis e objetivo definidos. Próximo passo: traduzir restrições.")
