@@ -505,7 +505,99 @@ def dist_carbon_trade_limit2_rule(model, t, s):
     return sum_footprint_dist - model.Carbon_SE[t,s] <= model.Carbon_Limit_Dist[t]
 model.Dist_Carbon_Trade_Limit2 = pyo.Constraint(model.T, model.S, rule=dist_carbon_trade_limit2_rule)
 
-# TODO: Continuar com a tradução das demais restrições.
+#-----------------------------------------------------------------------
+# TRANSMISSION PRIMAL CONSTRAINTS
+#-----------------------------------------------------------------------
+
+# s.t. Calculate_Trans_PowerFlow {l in Trans_Lines, t in T, s in S}: 
+# 	Trans_Flow[l,t,s] - Trans_Status[l] * 1/Trans_Reactance[l] * 
+# 	sum{n in Trans_Nodes}(Trans_Incidencia[n,l]*Trans_Theta[n,t,s]) = 0;
+def calculate_trans_power_flow_rule(model, l, t, s):
+    if model.Trans_Reactance[l] == 0: # Avoid division by zero if reactance is zero
+        # If reactance is zero, for a non-zero flow, angle difference must be zero.
+        # Or, if status is 0, flow must be 0.
+        # This case might need specific handling based on model assumptions for zero reactance lines.
+        # Assuming active lines have non-zero reactance. If status is 0, flow should be 0.
+        if model.Trans_Status[l] == 0:
+            return model.Trans_Flow[l,t,s] == 0
+        else: # Status is 1, Reactance is 0. This implies theta_from == theta_to for finite flow.
+              # The sum term should be zero if flow is not infinite.
+              # For DC flow, Trans_Flow = (Theta_from - Theta_to) / X. If X=0, Theta_from must equal Theta_to unless flow is infinite.
+              # A more robust way: X * Trans_Flow = Theta_from - Theta_to
+            theta_difference = sum(model.Trans_Incidencia[n,l] * model.Trans_Theta[n,t,s] for n in model.Trans_Nodes)
+            return model.Trans_Reactance[l] * model.Trans_Flow[l,t,s] == model.Trans_Status[l] * theta_difference
+    
+    # Original formulation:
+    angle_difference_term = sum(model.Trans_Incidencia[n,l] * model.Trans_Theta[n,t,s] for n in model.Trans_Nodes)
+    return model.Trans_Flow[l,t,s] - model.Trans_Status[l] * (1/model.Trans_Reactance[l]) * angle_difference_term == 0
+model.Calculate_Trans_PowerFlow = pyo.Constraint(model.Trans_Lines, model.T, model.S, rule=calculate_trans_power_flow_rule)
+
+# s.t. Trans_Power_Balance{n_node in Trans_Nodes, t in T, s in S}: 
+# 	sum{g in G_T : G_Node[g] == n_node}(P_thermal_trans[g,t,s])
+# 	-sum{l in Trans_Lines}(Trans_Incidencia[n_node,l]*Trans_Flow[l,t,s])
+# 	-(if 5 == n_node then P_DSO[t,s]) 
+# 	= Trans_Load[n_node,t,s];
+def trans_power_balance_rule(model, n_node, t, s):
+    gen_at_node = sum(model.P_thermal_trans[g,t,s] for g in model.G_T if model.G_Node[g] == n_node)
+    
+    net_flow_out_node = sum(model.Trans_Incidencia[n_node,l] * model.Trans_Flow[l,t,s] for l in model.Trans_Lines)
+    
+    p_dso_exchange = 0
+    # Node 5 is hardcoded as the PCC with DSO in the AMPL model.
+    # Trans_Nodes in input.dat are 1 to 14.
+    if n_node == 5: # This should ideally be a parameter if it can change
+        p_dso_exchange = model.P_DSO[t,s]
+        
+    return gen_at_node - net_flow_out_node - p_dso_exchange == model.Trans_Load[n_node,t,s]
+model.Trans_Power_Balance = pyo.Constraint(model.Trans_Nodes, model.T, model.S, rule=trans_power_balance_rule)
+
+# s.t. Trans_Flow_Upper{l in Trans_Lines, t in T, s in S}:  Trans_Flow[l,t,s] <= Trans_Capacity[l];
+def trans_flow_upper_rule(model, l, t, s):
+    return model.Trans_Flow[l,t,s] <= model.Trans_Capacity[l]
+model.Trans_Flow_Upper = pyo.Constraint(model.Trans_Lines, model.T, model.S, rule=trans_flow_upper_rule)
+
+# s.t. Trans_Flow_Lower{l in Trans_Lines, t in T, s in S}: -Trans_Flow[l,t,s] <= Trans_Capacity[l];
+def trans_flow_lower_rule(model, l, t, s):
+    return -model.Trans_Flow[l,t,s] <= model.Trans_Capacity[l] # or model.Trans_Flow[l,t,s] >= -model.Trans_Capacity[l]
+model.Trans_Flow_Lower = pyo.Constraint(model.Trans_Lines, model.T, model.S, rule=trans_flow_lower_rule)
+
+# s.t. Trans_Gen_Upper{g in G_T, t in T, s in S}:  P_thermal_trans[g,t,s] <=  Pmax_t[g];
+def trans_gen_upper_rule(model, g, t, s):
+    return model.P_thermal_trans[g,t,s] <= model.Pmax_t[g]
+model.Trans_Gen_Upper = pyo.Constraint(model.G_T, model.T, model.S, rule=trans_gen_upper_rule)
+
+# s.t. Trans_Gen_Lower{g in G_T, t in T, s in S}: -P_thermal_trans[g,t,s] <= -Pmin_t[g];
+def trans_gen_lower_rule(model, g, t, s):
+    return -model.P_thermal_trans[g,t,s] <= -model.Pmin_t[g] # or model.P_thermal_trans[g,t,s] >= model.Pmin_t[g]
+model.Trans_Gen_Lower = pyo.Constraint(model.G_T, model.T, model.S, rule=trans_gen_lower_rule)
+
+# s.t. Trans_Gen_Upper_Ramp{g in G_T, t in T, s in S: t<>first(T)}:  P_thermal_trans[g,t-1,s] - P_thermal_trans[g,t,s] <=  0.25 * Pmax_t[g];
+def trans_gen_upper_ramp_rule(model, g, t, s):
+    if t == model.T.first():
+        return pyo.Constraint.Skip # No ramp constraint for the first period
+    # This is Ramp Down: P_prev - P_curr <= MaxRampDown
+    return model.P_thermal_trans[g,model.T.prev(t),s] - model.P_thermal_trans[g,t,s] <= 0.25 * model.Pmax_t[g]
+model.Trans_Gen_Upper_Ramp = pyo.Constraint(model.G_T, model.T, model.S, rule=trans_gen_upper_ramp_rule)
+
+# s.t. Trans_Gen_Lower_Ramp{g in G_T, t in T, s in S: t<>first(T)}: -P_thermal_trans[g,t-1,s] + P_thermal_trans[g,t,s] <=  0.25 * Pmax_t[g];
+def trans_gen_lower_ramp_rule(model, g, t, s):
+    if t == model.T.first():
+        return pyo.Constraint.Skip # No ramp constraint for the first period
+    # This is Ramp Up: P_curr - P_prev <= MaxRampUp
+    return model.P_thermal_trans[g,t,s] - model.P_thermal_trans[g,model.T.prev(t),s] <= 0.25 * model.Pmax_t[g]
+model.Trans_Gen_Lower_Ramp = pyo.Constraint(model.G_T, model.T, model.S, rule=trans_gen_lower_ramp_rule)
+
+# s.t. MAXIMUM_SE_LIMIT {t in T, s in S}:    P_DSO[t,s] <=   SE_Capacity;
+def maximum_se_limit_rule(model, t, s):
+    return model.P_DSO[t,s] <= model.SE_Capacity
+model.MAXIMUM_SE_LIMIT = pyo.Constraint(model.T, model.S, rule=maximum_se_limit_rule)
+											
+# s.t. MINIMUM_SE_LIMIT {t in T, s in S}:   -P_DSO[t,s] <=  SE_Capacity;
+def minimum_se_limit_rule(model, t, s):
+    return -model.P_DSO[t,s] <= model.SE_Capacity # or model.P_DSO[t,s] >= -model.SE_Capacity
+model.MINIMUM_SE_LIMIT = pyo.Constraint(model.T, model.S, rule=minimum_se_limit_rule)
+
+# TODO: Continuar com a tradução das demais restrições (carbono da transmissão, KKTs).
 # A leitura dos dados (equivalente ao input.dat) será tratada posteriormente.
 # O arquivo execute.run também contém lógica que precisará ser traduzida para Python.
 
