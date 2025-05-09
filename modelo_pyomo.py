@@ -410,6 +410,18 @@ def minimum_voltage_magnitude_rule(model, t, n, s):
     return model.VM[n,t,s] >= model.Vmin[n]
 model.MINIMUM_VOLTAGE_MAGNITUDE = pyo.Constraint(model.T, model.N, model.S, rule=minimum_voltage_magnitude_rule)												
   
+#---- ACTIVE GENERATION LIMITS (Distribution Generators)
+# s.t. MAXIMUM_DG_ACTIVE_POWER {t in T, g in G_D, s in S}:
+#     P_thermal_dist[g,t,s] <=   Pmax_d[g];
+def maximum_dg_active_power_rule(model, t, g, s):
+    return model.P_thermal_dist[g,t,s] <= model.Pmax_d[g]
+model.MAXIMUM_DG_ACTIVE_POWER = pyo.Constraint(model.T, model.G_D, model.S, rule=maximum_dg_active_power_rule)
+
+# s.t. MINIMUM_DG_ACTIVE_POWER {t in T, g in G_D, s in S}:
+#     P_thermal_dist[g,t,s] >=   Pmin_d[g];
+def minimum_dg_active_power_rule(model, t, g, s):
+    return model.P_thermal_dist[g,t,s] >= model.Pmin_d[g]
+model.MINIMUM_DG_ACTIVE_POWER = pyo.Constraint(model.T, model.G_D, model.S, rule=minimum_dg_active_power_rule)
 
 # TODO: Continuar com a tradução das demais restrições.
 # A leitura dos dados (equivalente ao input.dat) será tratada posteriormente.
