@@ -423,6 +423,33 @@ def minimum_dg_active_power_rule(model, t, g, s):
     return model.P_thermal_dist[g,t,s] >= model.Pmin_d[g]
 model.MINIMUM_DG_ACTIVE_POWER = pyo.Constraint(model.T, model.G_D, model.S, rule=minimum_dg_active_power_rule)
 
+#---- LOAD SHIFTING LIMITS
+# s.t. MAXIMUM_LS_LIMIT {t in T, n_ls in LS, s in S}:
+# 	Dist_Shift[n_ls,t,s] <= Dist_Shift_Max[n_ls] *Dist_Load[LS_Node[n_ls],t,s];
+def maximum_ls_limit_rule(model, t, n_ls, s):
+    # LS_Node[n_ls] gives the actual node in N for this load shifting entity
+    actual_node = model.LS_Node[n_ls]
+    # It's possible Dist_Load might not be defined for all (actual_node, t, s) if load is zero.
+    # However, AMPL would treat missing param values as an error during constraint generation
+    # unless 'default' is used. Pyomo would error if model.Dist_Load[actual_node,t,s] is not populated.
+    # Assuming Dist_Load is fully populated or 0 for relevant nodes.
+    return model.Dist_Shift[n_ls,t,s] <= model.Dist_Shift_Max[n_ls] * model.Dist_Load[actual_node,t,s]
+model.MAXIMUM_LS_LIMIT = pyo.Constraint(model.T, model.LS, model.S, rule=maximum_ls_limit_rule)
+
+# s.t. MINIMUM_LS_LIMIT {t in T, n_ls in LS, s in S}:
+# 	-Dist_Shift[n_ls,t,s] <= -Dist_Shift_Min[n_ls] *Dist_Load[LS_Node[n_ls],t,s];
+# This is equivalent to: Dist_Shift[n_ls,t,s] >= Dist_Shift_Min[n_ls] * Dist_Load[LS_Node[n_ls],t,s]
+def minimum_ls_limit_rule(model, t, n_ls, s):
+    actual_node = model.LS_Node[n_ls]
+    return model.Dist_Shift[n_ls,t,s] >= model.Dist_Shift_Min[n_ls] * model.Dist_Load[actual_node,t,s]
+model.MINIMUM_LS_LIMIT = pyo.Constraint(model.T, model.LS, model.S, rule=minimum_ls_limit_rule)
+
+# s.t. ZERO_SUM_LS {n_ls in LS, s in S}:
+# 	sum{t_period in T} Dist_Shift[n_ls,t_period,s] = 0;
+def zero_sum_ls_rule(model, n_ls, s):
+    return sum(model.Dist_Shift[n_ls,t_period,s] for t_period in model.T) == 0
+model.ZERO_SUM_LS = pyo.Constraint(model.LS, model.S, rule=zero_sum_ls_rule)
+
 # TODO: Continuar com a tradução das demais restrições.
 # A leitura dos dados (equivalente ao input.dat) será tratada posteriormente.
 # O arquivo execute.run também contém lógica que precisará ser traduzida para Python.
