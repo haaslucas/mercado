@@ -276,7 +276,28 @@ def dso_costs_rule(model):
 
 model.DSO_Costs = pyo.Objective(rule=dso_costs_rule, sense=pyo.minimize)
 
-# TODO: Continuar com a tradução das restrições.
+#-----------------------------------------------------------------------
+# CONSTRAINTS (Tradução das Restrições)
+#-----------------------------------------------------------------------
+
+# s.t. Calculate_GenCosts_Dist {t in T, g in G_D, s in S}:
+# 	GenCosts_dist[g,t,s] = a_d[g]*P_thermal_dist[g,t,s]^2 + b_d[g]*P_thermal_dist[g,t,s] + c_d[g];
+def calculate_gen_costs_dist_rule(model, t, g, s):
+    return model.GenCosts_dist[g,t,s] == (model.a_d[g] * model.P_thermal_dist[g,t,s]**2 +
+                                           model.b_d[g] * model.P_thermal_dist[g,t,s] +
+                                           model.c_d[g])
+model.Calculate_GenCosts_Dist = pyo.Constraint(model.T, model.G_D, model.S, rule=calculate_gen_costs_dist_rule)
+
+# s.t. Calculate_GenCosts_Trans {t in T, g in G_T, s in S}:
+# 	GenCosts_trans[g,t,s] = a_t[g]*P_thermal_trans[g,t,s]^2 + b_t[g]*P_thermal_trans[g,t,s] + c_t[g];
+def calculate_gen_costs_trans_rule(model, t, g, s):
+    return model.GenCosts_trans[g,t,s] == (model.a_t[g] * model.P_thermal_trans[g,t,s]**2 +
+                                            model.b_t[g] * model.P_thermal_trans[g,t,s] +
+                                            model.c_t[g])
+model.Calculate_GenCosts_Trans = pyo.Constraint(model.T, model.G_T, model.S, rule=calculate_gen_costs_trans_rule)
+
+
+# TODO: Continuar com a tradução das demais restrições.
 # A leitura dos dados (equivalente ao input.dat) será tratada posteriormente.
 # O arquivo execute.run também contém lógica que precisará ser traduzida para Python.
 
