@@ -1,0 +1,193 @@
+reset;
+
+model Novo.mod;
+data input.dat;
+
+param U;
+param Remove_Energy_Mkt;
+param Remove_Carbon_Mkt;
+param Remove_Ramp;
+
+let U:=1.00;
+let Remove_Energy_Mkt:=1;
+let Remove_Carbon_Mkt:=1;
+let Remove_Ramp:=0;
+
+#include adjust_data.run;
+
+
+for{l in Trans_Lines}{
+	let Trans_Capacity[l] := Trans_Capacity[l] / SBASE;
+	for{n in Trans_Nodes}{
+		let Trans_Incidencia[n,l] := 0;
+	};	
+};
+
+for{l in Trans_Lines}{
+	let Trans_Incidencia[From[l],l] :=  1;
+	let Trans_Incidencia[To[l],l]   := -1;
+};
+
+for{n in Trans_Nodes, t in T, s in S} {	
+	#let load2[s,t] := 1;
+	#let probability[s,t] := 1;
+	if (Trans_Type[n] == "L2") then
+		let Trans_Load[n,t,s] := Trans_Inst_Cap[n] * L2[t] * load2[s,t] / SBASE;
+		
+	else if (Trans_Type[n] == "L3") then
+		let Trans_Load[n,t,s] := Trans_Inst_Cap[n] * L3[t] * load2[s,t] / SBASE;
+		
+	else if (Trans_Type[n] == "L4") then
+		let Trans_Load[n,t,s] := Trans_Inst_Cap[n] * L4[t] * load2[s,t] / SBASE;
+					
+	else if (Trans_Type[n] == "L6") then
+		let Trans_Load[n,t,s] := Trans_Inst_Cap[n] * L6[t] * load2[s,t] / SBASE;
+		
+	else if (Trans_Type[n] == "L8") then
+		let Trans_Load[n,t,s] := Trans_Inst_Cap[n] * L8[t] * load2[s,t] / SBASE;
+};
+
+
+
+for{n in N, t in T, s in S} {  	
+	#let load1[s,t] := 1;
+	if (Dist_Type[n] == "IND1") then
+		let Dist_Load[n,t,s] := Dist_Inst_Cap[n] * ind1[t] * load1[s,t] / SBASE;
+	else if (Dist_Type[n] == "IND2") then
+		let Dist_Load[n,t,s] := Dist_Inst_Cap[n] * ind2[t] * load1[s,t] / SBASE;
+	else if (Dist_Type[n] == "IND3") then
+		let Dist_Load[n,t,s] := Dist_Inst_Cap[n] * ind3[t] * load1[s,t] / SBASE;
+		
+	else if (Dist_Type[n] == "RES1") then
+		let Dist_Load[n,t,s] := Dist_Inst_Cap[n] * res1[t] * load1[s,t] / SBASE;
+	else if (Dist_Type[n] == "RES4") then
+		let Dist_Load[n,t,s] := Dist_Inst_Cap[n] * res4[t] * load1[s,t] / SBASE;
+	else if (Dist_Type[n] == "RES5") then
+		let Dist_Load[n,t,s] := Dist_Inst_Cap[n] * res5[t] * load1[s,t] / SBASE;
+		
+	else if (Dist_Type[n] == "OFF1") then
+		let Dist_Load[n,t,s] := Dist_Inst_Cap[n] * off1[t] * load1[s,t] / SBASE;
+	else if (Dist_Type[n] == "OFF4") then
+		let Dist_Load[n,t,s] := Dist_Inst_Cap[n] * off4[t] * load1[s,t] / SBASE;	
+};
+
+
+
+let {n in ESS} Dist_P_ESS_min[n] := Dist_P_ESS_min[n]/SBASE;
+let {n in ESS} Dist_P_ESS_max[n] := Dist_P_ESS_max[n]/SBASE;
+let {n in ESS} Dist_SOC_min[n] := Dist_SOC_min[n]/SBASE;
+let {n in ESS} Dist_SOC_max[n] := Dist_SOC_max[n]/SBASE;
+let {n in ESS} Dist_SOC_initial[n] := Dist_SOC_initial[n]/SBASE;
+
+
+#let {(n,m) in L} R[n,m]  := R[n,m]/(VBASE^2/SBASE);
+#let {(n,m) in L} X[n,m]  := X[n,m]/(VBASE^2/SBASE);
+let {(n,m) in L} Z[n,m]  := sqrt(R[n,m]^2+X[n,m]^2);
+let {(n,m) in L} Imax[n,m] := (Imax[n,m]/(SBASE*1e3/VBASE));
+
+let {g in G_T} Pmax_t[g] := Pmax_t[g] / SBASE;
+let {g in G_T} Pmin_t[g] := Pmin_t[g] / SBASE;
+let {g in G_T} a_t[g] := a_t[g] * SBASE^2;
+let {g in G_T} b_t[g] := b_t[g] * SBASE;
+let {g in G_T} Carbon_Cost_t[g] := Carbon_Cost_t[g] * SBASE;
+
+let {g in G_D} Pmax_d[g] := Pmax_d[g] / SBASE;
+let {g in G_D} Pmin_d[g] := Pmin_d[g] / SBASE;
+let {g in G_D} a_d[g] := a_d[g] * SBASE^2;
+let {g in G_D} b_d[g] := b_d[g] * SBASE;
+let {g in G_D} Carbon_Cost_d[g] := Carbon_Cost_d[g] * SBASE;
+
+
+let Emission_Weighted_Average := sum{g in G_T}(Pmax_t[g]*Carbon_Cost_t[g])/sum{j in G_T}(Pmax_t[j]);
+let Emission_Weighted_Average := Emission_Weighted_Average * U;
+
+let {t in T} Carbon_Limit_Trans[t] := Emission_Weighted_Average * sum{n in Trans_Nodes}(max{s in S}(Trans_Load[n,t,s]));
+let {t in T} Carbon_Limit_Dist[t] := Emission_Weighted_Average * sum{n in N}(max{s in S}(Dist_Load[n,t,s]));
+
+for{t in T} {
+	let Carbon_Limit_Trans[t] := 0;
+	let Carbon_Limit_Dist[t] := 0;
+	for {n in Trans_Nodes}{
+		let Carbon_Limit_Trans[t] := Carbon_Limit_Trans[t] + Emission_Weighted_Average * max{s in S}(Trans_Load[n,t,s]);
+	};
+	for {n in N}{
+		let Carbon_Limit_Dist[t] := Carbon_Limit_Dist[t] + Emission_Weighted_Average * max{s in S}(Dist_Load[n,t,s]);#(Dist_Inst_Cap[n]);
+	};
+};
+
+if Remove_Carbon_Mkt == 1 then
+	fix {t in T, s in S} Carbon_SE[t,s] := 0;
+
+if Remove_Energy_Mkt == 1 then
+	fix {t in T, s in S} P_DSO[t,s] := 0;
+	
+if Remove_Ramp == 1 then{
+	drop Trans_Gen_Upper_Ramp;
+	drop Trans_Gen_Lower_Ramp;
+	drop Deriv_Potencia_with_Ramp;
+	drop Ramp_Upper;
+	drop Ramp_Lower;
+	drop slack_NL11;
+	drop slack_NL12;
+}
+else{
+	drop Deriv_Potencia_without_Ramp;
+};
+
+option presolve_eps 2e-10;
+option solver conopt;
+option conopt_options 'outlev=1';
+option ipopt_options 'outlev=1 maxit=10000';
+solve;
+
+display _total_solve_elapsed_time, DSO_Costs;
+
+include print_energy.inc;
+include print_carbon.inc;
+include print_injection.inc;
+
+
+printf 'DSO Total Costs: %10.2f\n', sum{t in T, s in S} (probability[s,t] *Bid[t,s] * P_DSO[t,s]) + sum{g in G_D, t in T, s in S}(probability[s,t] *GenCosts_dist[g,t,s]) + sum{t in T, s in S} (probability[s,t] *Carbon_Price[t,s] * Carbon_SE[t,s]);
+printf 'ISO Total Costs: %10.2f\n', sum{t in T, s in S} -(probability[s,t] *Bid[t,s] * P_DSO[t,s]) + sum{g in G_T, t in T, s in S}(probability[s,t] *GenCosts_trans[g,t,s]) - sum{t in T, s in S} (probability[s,t] *Carbon_Price[t,s] * Carbon_SE[t,s]);
+printf 'Total Generation Costs: %10.2f\n', sum{g in G_T, t in T, s in S}(probability[s,t] *GenCosts_trans[g,t,s]) + sum{g in G_D, t in T, s in S}(probability[s,t] *GenCosts_dist[g,t,s]);
+#printf 'Transmission Carbon Emission Daily Limit: %10.2f\n', sum{t in T} Carbon_Limit_Trans[t];
+printf '\n\n';
+
+printf 'DSO Energy Market Revenue: %10.2f\n', sum{t in T, s in S} (-probability[s,t] *Bid[t,s] * P_DSO[t,s]);
+printf 'DSO Carbon Market Revenue: %10.2f\n', sum{t in T, s in S} (-probability[s,t] *Carbon_Price[t,s] * Carbon_SE[t,s]);
+printf 'DSO Generation Costs: %10.2f\n', sum{g in G_D, t in T, s in S}(probability[s,t] *GenCosts_dist[g,t,s]);
+
+
+#for {t in T}{
+#	printf "%f\n", Carbon_Limit_Dist[t];
+#};
+#printf "\n\n\n";
+
+#for {t in T}{
+#	printf "%f\n", Carbon_Limit_Trans[t];
+#};
+#printf "\n\n\n";
+
+
+#for {t in T}{
+#	for{ s in S}{
+#		printf "%f ",sum{g in G_D} (Footprint_dist[g,t,s]);
+#	};
+#	printf "\n";
+#};
+#printf "\n\n\n";
+
+#for {t in T}{
+#	for{ s in S}{
+#		printf "%f ",sum{g in G_T} (Footprint_trans[g,t,s]);
+#	};
+#	printf "\n";
+#};
+#printf "\n\n\n";
+
+#for {t in T}{
+#	for{ s in S}{
+#		printf "%f ", Carbon_SE[t,s];
+#	};
+#	printf "\n";
+#};

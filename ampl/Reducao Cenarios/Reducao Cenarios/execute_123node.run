@@ -1,0 +1,493 @@
+reset;
+
+#option presolve_eps 2e-10;
+option presolve 0;
+
+option solver gurobi;
+#option solver HiGHS ;
+#option solver cplex;
+option cplex_options 'mipdisplay =2 iisfind =2  ';
+option gurobi_options 'outlev=1  iisfind=1 mipfocus=0 numericfocus=0';
+
+#option pl_linearize 0;
+
+model Sem_Cenario_Linear_V2.mod;
+#data input.dat;
+data input123.dat;
+
+param U;
+param Remove_Energy_Mkt;
+param Remove_Carbon_Mkt;
+param Remove_Ramp;
+
+param Average_PDSO{T}; 
+param Average_CarbonSE{T};
+param Average_EnergyPrice{T};
+param Average_CarbonPrice{T};
+
+param Average_DSO_Energy_Market;
+param Average_DSO_Carbon_Market;
+param Average_ISO_Energy_Market;
+param Average_ISO_Carbon_Market;
+
+param Average_GenCosts_trans;
+param Average_GenCosts_dist;
+
+param Average_ISO_Carbon_Emission;
+param Average_DSO_Carbon_Emission;
+
+param Average_Renewable_trans{RES_T};
+param Average_Renewable_dist{RES_D};
+
+param Average_Generation_trans{G_T};
+param Average_Generation_dist{G_D};
+
+
+param Average_Hourly_Generation_dist{G_D, T};
+param Average_Hourly_Renewable{RES_D, T};
+param Average_Shift{LS, T};
+param Average_ESS{ESS, T};
+param Average_Voltage{N, T};
+
+param OF_DSO;
+param OF_ISO;
+
+param Variable_U;
+param Remove_Renewable;
+param Remove_Carbon_Limit;
+
+let Remove_Renewable := 0;
+let U:=1.0;
+let Variable_U := 0;
+let Remove_Energy_Mkt:=0;
+let Remove_Carbon_Mkt:=0;
+let Remove_Ramp:=1;
+
+if U >= 2 then let Remove_Carbon_Limit:= 1; else let Remove_Carbon_Limit:=0;
+
+#include adjust_data.run;
+
+
+if Remove_Carbon_Limit == 1 then{
+	drop Dist_Carbon_Limit;
+	drop Dist_Carbon_SE;
+#	drop Carbon_Balance_Trans;
+	drop Carbon_Limits_Trans;
+	drop Deriv_Carbon_T;
+#	drop Deriv_Carbon_SE;
+	drop Deriv_Footprint;
+	drop slack13;
+	drop slack14;
+}
+else{
+	drop Deriv_Footprint_without_CarbonLimit;
+};
+
+
+
+if Remove_Carbon_Mkt == 1 then{
+	fix {t in T} Carbon_SE[t] := 0;
+	fix {g in G_D, t in T} Carbon_D[g,t] := 0;
+	fix {g in G_T, t in T} Carbon_T[g,t] := 0;
+};
+
+if Remove_Energy_Mkt == 1 then
+	fix {t in T} P_DSO[t] := 0;
+
+
+	
+
+
+
+for{l in Trans_Lines}{
+	let Trans_Capacity[l] := Trans_Capacity[l] / SBASE;
+	for{n in Trans_Nodes}{
+		let Trans_Incidencia[n,l] := 0;
+	};	
+};
+
+for{l in Trans_Lines}{
+	let Trans_Incidencia[From[l],l] :=  1;
+	let Trans_Incidencia[To[l],l]   := -1;
+};
+
+
+
+
+let {n in ESS} Dist_P_ESS_min[n] := Dist_P_ESS_min[n]/SBASE;
+let {n in ESS} Dist_P_ESS_max[n] := Dist_P_ESS_max[n]/SBASE;
+let {n in ESS} Dist_SOC_min[n] := Dist_SOC_min[n]/SBASE;
+let {n in ESS} Dist_SOC_max[n] := Dist_SOC_max[n]/SBASE;
+let {n in ESS} Dist_SOC_initial[n] := Dist_SOC_initial[n]/SBASE;
+
+
+let {(n,m) in L} R[n,m]  := R[n,m]/(VBASE^2/SBASE);
+let {(n,m) in L} X[n,m]  := X[n,m]/(VBASE^2/SBASE);
+let {(n,m) in L} Z[n,m]  := sqrt(R[n,m]^2+X[n,m]^2);
+let {(n,m) in L} Imax[n,m] := (Imax[n,m]/(SBASE*1e3/VBASE));
+
+#let {g in G_T} Pmax_t[g] := Pmax_t[g] / SBASE;
+#let {g in G_T} Pmin_t[g] := Pmin_t[g] / SBASE;
+#let {g in G_T} a_t[g] := a_t[g] * SBASE^2;
+#let {g in G_T} b_t[g] := b_t[g] * SBASE;
+let {g in G_T} Carbon_Cost_t[g] := Carbon_Cost_t[g] * SBASE;
+
+#let {g in G_D} Pmax_d[g] := Pmax_d[g] / SBASE;
+#let {g in G_D} Pmin_d[g] := Pmin_d[g] / SBASE;
+#let {g in G_D} a_d[g] := a_d[g] * SBASE^2;
+#let {g in G_D} b_d[g] := b_d[g] * SBASE;
+let {g in G_D} Carbon_Cost_d[g] := Carbon_Cost_d[g] * SBASE;
+
+
+
+
+include adjust_bids.par;
+
+
+
+for{n in Trans_Nodes, t in T} {
+	if (Trans_Type[n] == "L2") then
+		let Trans_Load[n,t] := Trans_Inst_Cap[n] * L2[t] / SBASE;
+		
+	else if (Trans_Type[n] == "L3") then
+		let Trans_Load[n,t] := Trans_Inst_Cap[n] * L3[t] / SBASE;
+		
+	else if (Trans_Type[n] == "L4") then
+		let Trans_Load[n,t] := Trans_Inst_Cap[n] * L4[t] / SBASE;
+					
+	else if (Trans_Type[n] == "L6") then
+		let Trans_Load[n,t] := Trans_Inst_Cap[n] * L6[t] / SBASE;
+		
+	else if (Trans_Type[n] == "L8") then
+		let Trans_Load[n,t] := Trans_Inst_Cap[n] * L8[t] / SBASE;
+};
+	
+for{n in N, t in T} {  	
+	if (Dist_Type[n] == "IND1") then
+		let Dist_Load[n,t] := Dist_Inst_Cap[n] * ind1[t] / SBASE;
+	else if (Dist_Type[n] == "IND2") then
+		let Dist_Load[n,t] := Dist_Inst_Cap[n] * ind2[t] / SBASE;
+	else if (Dist_Type[n] == "IND3") then
+		let Dist_Load[n,t] := Dist_Inst_Cap[n] * ind3[t] / SBASE;
+		
+	else if (Dist_Type[n] == "RES1") then
+		let Dist_Load[n,t] := Dist_Inst_Cap[n] * res1[t] / SBASE;
+	else if (Dist_Type[n] == "RES4") then
+		let Dist_Load[n,t] := Dist_Inst_Cap[n] * res4[t] / SBASE;
+	else if (Dist_Type[n] == "RES5") then
+		let Dist_Load[n,t] := Dist_Inst_Cap[n] * res5[t] / SBASE;
+		
+	else if (Dist_Type[n] == "OFF1") then
+		let Dist_Load[n,t] := Dist_Inst_Cap[n] * off1[t] / SBASE;
+	else if (Dist_Type[n] == "OFF4") then
+		let Dist_Load[n,t] := Dist_Inst_Cap[n] * off4[t] / SBASE;	
+};
+
+#param s;
+
+printf 'U\tDSO O.F.\tISO O.F.\tTotal Generation Costs\tElectricity Profit\tCarbon Profit\tGeneration Costs\n\n' >Variable_U.out;
+
+repeat{
+		printf '%.2f ', U >Variable_U.out;
+	
+	let Emission_Weighted_Average := sum{g in G_T}(Pmax_t[g]*Carbon_Cost_t[g])/sum{j in G_T}(Pmax_t[j]);
+	let Emission_Weighted_Average := Emission_Weighted_Average * U;
+	
+	let {t in T} Carbon_Limit_Trans[t] := Emission_Weighted_Average * sum{n in Trans_Nodes}(max{sc in S}(load2[sc,t])*Trans_Load[n,t]);
+	let {t in T} Carbon_Limit_Dist[t] := Emission_Weighted_Average * sum{n in N}(max{sc in S}(load1[sc,t])*Dist_Load[n,t]);
+	
+	
+	
+	
+	
+	
+	
+	let {t in T} Average_PDSO[t] := 0;
+	let {t in T} Average_CarbonSE[t] := 0;
+	let {t in T} Average_EnergyPrice[t] := 0;
+	let {t in T} Average_CarbonPrice[t] := 0;
+	
+	
+	let Average_DSO_Energy_Market := 0;
+	let Average_DSO_Carbon_Market := 0;
+	let Average_ISO_Energy_Market := 0;
+	let Average_ISO_Carbon_Market := 0;
+	
+	let Average_DSO_Carbon_Emission := 0;
+	let Average_ISO_Carbon_Emission := 0;
+	
+	let Average_GenCosts_trans := 0;
+	let Average_GenCosts_dist := 0;
+	
+	let {g in G_T} Average_Generation_trans[g] := 0;
+	let {g in G_D} Average_Generation_dist[g] := 0;
+	
+	let {g in RES_T} Average_Renewable_trans[g] := 0;
+	let {g in RES_D} Average_Renewable_dist[g] := 0;
+	
+	let {g in G_D, t in T} Average_Hourly_Generation_dist[g,t]  := 0;
+	let {g in RES_D, t in T} Average_Hourly_Renewable[g,t]  := 0;
+	let {i in LS, t in T} Average_Shift[i,t]  := 0;
+	let {i in ESS, t in T} Average_ESS[i,t]  := 0;
+	let {n in N, t in T} Average_Voltage[n,t] := 0;
+	
+	
+	let OF_DSO := 0;
+	let OF_ISO := 0;
+	
+		
+#	let s:=1;
+#	repeat{
+	for{s in S}{
+		let scenario := s; 
+		
+		
+		for{j in RES_T, tempo in T}{
+			if(RES_type_t[j] == "SOLAR") then{
+				let Trans_Solar_Inj[j,tempo] := RES_Cap_t[j] * solar[s,tempo] * (1-Remove_Renewable)  / SBASE;
+				let Trans_Wind_Inj[j,tempo] := 0;	
+			}
+			
+			if(RES_type_t[j] == "WIND") then{
+				let Trans_Wind_Inj[j,tempo] := RES_Cap_t[j] * wind1[s,tempo] * (1-Remove_Renewable)  / SBASE;	
+				let Trans_Solar_Inj[j,tempo] := 0;	
+			}	 
+		};
+		
+		
+		for{j in RES_D, tempo in T}{
+			if(RES_type_d[j] == "SOLAR") then{
+				let Dist_Solar_Inj[j,tempo] := RES_Cap_d[j] * solar[s,tempo] * (1-Remove_Renewable)  / SBASE;
+				let Dist_Wind_Inj[j,tempo] := 0;
+			}
+			
+			if(RES_type_d[j] == "WIND") then{
+				let Dist_Wind_Inj[j,tempo] := RES_Cap_d[j] * wind2[s,tempo] * (1-Remove_Renewable)  / SBASE;
+				let Dist_Solar_Inj[j,tempo] := 0;		
+			}	 
+		};		
+		
+		
+		
+		reset data P_thermal_trans, P_thermal_dist, P_DSO, Carbon_SE, Carbon_T, Footprint_trans, Footprint_dist,
+					VM, I, Trans_Flow, Trans_Theta, Dist_Shift, Dist_P_ESS, Dist_SOC, Dist_Flow, Dist_Pfm, Dist_Pto,
+					lambda, psi, omega_U, omega_L, kappa_U, kappa_L, alpha_U, alpha_L, mu, phi, Xi_U, Xi_L,
+					Bid, Carbon_Price, GenCosts_dist, GenCosts_trans, Block_Dispatch_t, Block_Dispatch_d;
+	
+		
+
+		fix {t in T} Carbon_SE[t] := 0;
+		fix {g in G_D, t in T} Carbon_D[g,t] := 0;
+		fix {g in G_T, t in T} Carbon_T[g,t] := 0;
+		
+		fix {t in T} P_DSO[t] := 0;
+		
+		solve;
+		
+		let Remove_Energy_Mkt:=0;
+		let Remove_Carbon_Mkt:=0;
+		
+		if Remove_Carbon_Mkt == 0 then{
+			unfix {t in T} Carbon_SE[t];
+			unfix {g in G_D, t in T} Carbon_D[g,t];
+			unfix {g in G_T, t in T} Carbon_T[g,t];
+		};
+		
+		if Remove_Energy_Mkt == 0 then
+			unfix {t in T} P_DSO[t];
+		
+		solve;
+		
+		#display _total_solve_elapsed_time, DSO_Costs;
+		
+		#include print_energy.inc;
+		#include print_carbon.inc;
+		#include print_injection.inc;
+		
+		let {t in T} Average_PDSO[t] := Average_PDSO[t] + probability[s,t] * P_DSO[t];
+		let {t in T} Average_CarbonSE[t] := Average_CarbonSE[t] + probability[s,t] * Carbon_SE[t];
+		let {t in T} Average_EnergyPrice[t] := Average_EnergyPrice[t] + probability[s,t] * Bid[t];
+		let {t in T} Average_CarbonPrice[t] := Average_CarbonPrice[t] + probability[s,t] * Carbon_Price[t];
+		
+		let Average_DSO_Energy_Market := Average_DSO_Energy_Market - sum{t in T} (probability[s,t] * P_DSO[t] * Bid[t]);
+		let Average_DSO_Carbon_Market := Average_DSO_Carbon_Market - sum{t in T} (probability[s,t] * Carbon_SE[t] * Carbon_Price[t]);
+		let Average_ISO_Energy_Market := Average_ISO_Energy_Market + sum{t in T} (probability[s,t] * P_DSO[t] * Bid[t]);
+		let Average_ISO_Carbon_Market := Average_ISO_Carbon_Market + sum{t in T} (probability[s,t] * Carbon_SE[t] * Carbon_Price[t]);
+		
+		
+		let Average_GenCosts_trans := Average_GenCosts_trans + sum{g in G_T, t in T}( probability[s,t] * (a_t[g]*P_thermal_trans[g,t]^2 + b_t[g]*P_thermal_trans[g,t] + c_t[g]));
+		let Average_GenCosts_dist := Average_GenCosts_dist + sum{g in G_D, t in T}( probability[s,t] * (a_d[g]*P_thermal_dist[g,t]^2 + b_d[g]*P_thermal_dist[g,t] + c_d[g]));
+		
+		let {g in G_T} Average_Generation_trans[g] := Average_Generation_trans[g] + sum{t in T}( probability[s,t] * P_thermal_trans[g,t]);
+		let {g in G_D} Average_Generation_dist[g]  := Average_Generation_dist[g]  + sum{t in T}( probability[s,t] * P_thermal_dist[g,t]);
+		
+		let {g in RES_T} Average_Renewable_trans[g] := Average_Renewable_trans[g] + sum{t in T}( probability[s,t] * ( Trans_Wind_Inj[g,t] + Trans_Solar_Inj[g,t]));
+		let {g in RES_D} Average_Renewable_dist[g]  := Average_Renewable_dist[g]  + sum{t in T}( probability[s,t] * ( Dist_Wind_Inj[g,t]  + Dist_Solar_Inj[g,t]));
+		
+		
+		let {g in G_D, t in T} Average_Hourly_Generation_dist[g,t]  := Average_Hourly_Generation_dist[g,t]  +( probability[s,t] * P_thermal_dist[g,t]);
+		let {g in RES_D, t in T} Average_Hourly_Renewable[g,t]  := Average_Hourly_Renewable[g,t]  + ( probability[s,t] * ( Dist_Wind_Inj[g,t]  + Dist_Solar_Inj[g,t]));
+		let {i in LS, t in T} Average_Shift[i,t]  := Average_Shift[i,t]  + ( probability[s,t] * Dist_Shift[i,t]);
+		let {i in ESS, t in T} Average_ESS[i,t]  := Average_ESS[i,t]  + ( probability[s,t] * Dist_P_ESS[i,t]);
+		let {n in N, t in T} Average_Voltage[n,t] := Average_Voltage[n,t] + ( probability[s,t] * sqrt(VM[n,t]));
+		
+				
+		let OF_DSO := OF_DSO + sum{t in T}( probability[s,t] * (P_DSO[t] * Bid[t] + Carbon_SE[t] * Carbon_Price[t] +sum{g in G_D} (a_d[g]*P_thermal_dist[g,t]^2 + b_d[g]*P_thermal_dist[g,t] + c_d[g])));
+		let OF_ISO := OF_ISO + sum{t in T}( probability[s,t] * (-P_DSO[t] * Bid[t] - Carbon_SE[t] * Carbon_Price[t] +sum{g in G_T} (a_t[g]*P_thermal_trans[g,t]^2 + b_t[g]*P_thermal_trans[g,t] + c_t[g])));
+		
+		let Average_ISO_Carbon_Emission := Average_ISO_Carbon_Emission + sum{g in G_T, t in T}(probability[s,t] * Footprint_trans[g,t]);
+		let Average_DSO_Carbon_Emission := Average_DSO_Carbon_Emission + sum{g in G_D, t in T}(probability[s,t] * Footprint_dist[g,t]);
+		
+		#printf 'DSO Total Costs: %10.2f\n', sum{t in T} (probability[s,t] *Bid[t] * P_DSO[t]) + sum{g in G_D, t in T}(probability[s,t] *GenCosts_dist[g,t]) + sum{t in T} (probability[s,t] *Carbon_Price[t] * Carbon_SE[t]);
+		#printf 'ISO Total Costs: %10.2f\n', sum{t in T} -(probability[s,t] *Bid[t] * P_DSO[t]) + sum{g in G_T, t in T}(probability[s,t] *GenCosts_trans[g,t]) - sum{t in T} (probability[s,t] *Carbon_Price[t] * Carbon_SE[t]);
+		#printf 'Total Generation Costs: %10.2f\n', sum{g in G_T, t in T}(probability[s,t] *GenCosts_trans[g,t]) + sum{g in G_D, t in T}(probability[s,t] *GenCosts_dist[g,t]);
+		#printf '\n\n';
+		
+		#printf 'DSO Energy Market Revenue: %10.2f\n', sum{t in T} (-probability[s,t] *Bid[t] * P_DSO[t]);
+		#printf 'DSO Carbon Market Revenue: %10.2f\n', sum{t in T} (-probability[s,t] *Carbon_Price[t] * Carbon_SE[t]);
+		#printf 'DSO Generation Costs: %10.2f\n', sum{g in G_D, t in T}(probability[s,t] *GenCosts_dist[g,t]);
+		
+#		let s:= s + 1;
+		
+#		if s>card(S) then
+#			break;
+			
+	};
+
+
+	printf '\n\nU=%.2f\n\n', U;
+	printf 'DSO Total Costs: %10.2f\n', OF_DSO;
+	printf 'ISO Total Costs: %10.2f\n', OF_ISO;
+	printf 'Total Generation Costs: %10.2f\n', Average_GenCosts_trans + Average_GenCosts_dist;
+	printf '\n\n';
+	
+	printf 'DSO Energy Market Revenue: %10.2f\n', Average_DSO_Energy_Market;
+	printf 'DSO Carbon Market Revenue: %10.2f\n', Average_DSO_Carbon_Market;
+	printf 'DSO Generation Costs: %10.2f\n', Average_GenCosts_dist;
+	
+	
+	printf '%10.4f %10.4f %10.4f %10.4f %10.4f %10.4f\n', OF_DSO, OF_ISO, Average_GenCosts_trans + Average_GenCosts_dist, Average_DSO_Energy_Market, Average_DSO_Carbon_Market, Average_GenCosts_dist >Variable_U.out;
+	
+	
+	
+	
+	
+	
+	
+#	printf 'Transmission Conventional Generators\n\n' > Average_Injections.out;
+#	for{g in G_T}{
+#		printf '%10.4f ', Average_Generation_trans[g] > Average_Injections.out;
+#	};
+#	
+#	printf '\n\nTransmission Renewable Generators\n\n' > Average_Injections.out;
+#	for{g in RES_T}{
+#		printf '%10.4f ', Average_Renewable_trans[g] > Average_Injections.out;
+#	};
+#	
+#	printf '\n\nDistribution Conventional Generators\n\n' > Average_Injections.out;
+#	for{g in G_D}{
+#		printf '%10.4f ', Average_Generation_dist[g] > Average_Injections.out;
+#	};
+#	
+#	printf '\n\nDistribution Renewable Generators\n\n' > Average_Injections.out;
+#	for{g in RES_D}{
+#		printf '%10.4f ', Average_Renewable_dist[g] > Average_Injections.out;
+#	};
+	
+	printf 'U=%.2f', U > Average_Injections.out;
+	
+	printf '\nSubstation Injection: \n' > Average_Injections.out;
+	for{t in T}{
+		printf '%.2f\t', Average_PDSO[t] > Average_Injections.out;
+	};
+	printf '%10.4f\n\n', sum{t in T}(Average_PDSO[t]) > Average_Injections.out; 
+	
+	
+	printf '\nWholesale Market Energy Price: \n' > Average_Injections.out;
+	for{t in T}{
+		printf '%.2f\t', Average_EnergyPrice[t] > Average_Injections.out;
+	};
+	printf '\n\n' > Average_Injections.out;
+	
+	
+	
+	printf '\nSubstation Carbon Credit Trade: \n' > Average_Injections.out;
+	for{t in T}{
+		printf '%.2f\t', Average_CarbonSE[t] > Average_Injections.out;
+	};
+	printf '%10.4f\n\n', sum{t in T}(Average_CarbonSE[t]) > Average_Injections.out; 
+	
+	
+	printf '\nWholesale Market Carbon Price: \n' > Average_Injections.out;
+	for{t in T}{
+		printf '%.2f\t', Average_CarbonPrice[t] > Average_Injections.out;
+	};
+	printf '\n\n' > Average_Injections.out;
+	
+	
+	printf 'ISO Carbon Emission: %10.4f ISO Limit: %10.4f\n', Average_ISO_Carbon_Emission, sum{t in T}(Carbon_Limit_Trans[t])  > Average_Injections.out;
+	
+	printf 'DSO Carbon Emission: %10.4f DSO Limit: %10.4f\n\n', Average_DSO_Carbon_Emission, sum{t in T}(Carbon_Limit_Dist[t]) > Average_Injections.out;
+		
+	
+	
+	
+	
+	
+	
+	if Variable_U == 0 then
+		break;
+	else{
+		if U < .8 then
+			break;
+		
+		else
+			let U := U - .01;
+		
+	};
+	
+};
+
+
+
+close  Variable_U.out;
+close Average_Injections.out;
+
+
+
+
+#for {t in T}{
+#	printf "%f\n", Carbon_Limit_Dist[t];
+#};
+#printf "\n\n\n";
+
+#for {t in T}{
+#	printf "%f\n", Carbon_Limit_Trans[t];
+#};
+#printf "\n\n\n";
+
+
+#for {t in T}{
+#	for{ s in S}{
+#		printf "%f ",sum{g in G_D} (Footprint_dist[g,t,s]);
+#	};
+#	printf "\n";
+#};
+#printf "\n\n\n";
+
+#for {t in T}{
+#	for{ s in S}{
+#		printf "%f ",sum{g in G_T} (Footprint_trans[g,t,s]);
+#	};
+#	printf "\n";
+#};
+#printf "\n\n\n";
+
+#for {t in T}{
+#	for{ s in S}{
+#		printf "%f ", Carbon_SE[t,s];
+#	};
+#	printf "\n";
+#};
+
+display _total_solve_elapsed_time;
