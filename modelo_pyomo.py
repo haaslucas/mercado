@@ -145,6 +145,25 @@ model.Wind_min_d = pyo.Param(model.RES_D, doc='minimum wind power output for dis
 model.Wind_max_d = pyo.Param(model.RES_D, doc='maximum wind power output for distribution RES (pu or MW)') # Verificar unidade
 model.Wind_nom_d = pyo.Param(model.RES_D, doc='nominal wind power output for distribution RES (pu or MW)') # Verificar unidade
 
+# Parâmetros das linhas de transmissão
+model.Trans_Incidencia = pyo.Param(model.Trans_Nodes, model.Trans_Lines, mutable=True, doc='incidence matrix for transmission lines') # Mutable pois é calculada no execute.run
+model.Trans_Reactance = pyo.Param(model.Trans_Lines, doc='reactance of transmission lines')
+model.Trans_Capacity = pyo.Param(model.Trans_Lines, mutable=True, doc='capacity of transmission lines') # Mutable pois é ajustada no execute.run
+model.Trans_Status = pyo.Param(model.Trans_Lines, doc='status of transmission lines (on/off)')
+model.From = pyo.Param(model.Trans_Lines, doc='origin node of transmission lines') # Usado para construir Trans_Incidencia
+model.To = pyo.Param(model.Trans_Lines, doc='destination node of transmission lines') # Usado para construir Trans_Incidencia
+
+# Parâmetros das linhas de distribuição
+# No input.dat, R e X são fornecidos para o conjunto L (distribuição).
+# Z é calculado no execute.run.
+# Dist_X e Dist_R não são explicitamente declarados no Novo.mod, mas R{L} e X{L} são.
+# Vou assumir que R{L} e X{L} são os parâmetros para resistência e reatância da distribuição.
+# Dist_Z e Dist_Status são declarados no Novo.mod.
+# model.Dist_X = pyo.Param(model.L, doc='reactance of distribution lines') # Já coberto por model.X
+# model.Dist_R = pyo.Param(model.L, doc='resistance of distribution lines') # Já coberto por model.R
+model.Dist_Z = pyo.Param(model.L, mutable=True, doc='impedance of distribution lines') # Calculado no execute.run, igual a model.Z
+model.Dist_Status = pyo.Param(model.L, doc='status of distribution lines (on/off)')
+
 
 # TODO: Continuar com a tradução dos demais parâmetros e variáveis.
 # A leitura dos dados (equivalente ao input.dat) será tratada posteriormente.
