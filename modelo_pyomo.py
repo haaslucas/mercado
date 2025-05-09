@@ -382,6 +382,34 @@ def current_flow_rule(model, i_node, j_node, t, s):
 model.CURRENT_FLOW = pyo.Constraint(model.L, model.T, model.S, rule=lambda model, i,j,t,s: \
     model.I[(i,j),t,s] == (model.VM[i,t,s] - model.VM[j,t,s]) / (model.Z[(i,j)] + 1e-9))
 
+#---- LINE RATING LIMITS
+# s.t. MINIMUM_CURRENT_FLOW {(n,m) in L, t in T, s in S}: 
+# 	I[n,m,t,s] >= -Imax[n,m];
+def minimum_current_flow_rule(model, n, m, t, s):
+    line = (n,m)
+    return model.I[line,t,s] >= -model.Imax[line]
+model.MINIMUM_CURRENT_FLOW = pyo.Constraint(model.L, model.T, model.S, rule=minimum_current_flow_rule)
+  
+# s.t. MAXIMUM_CURRENT_FLOW {(n,m) in L, t in T, s in S}: 
+#     I[n,m,t,s] <= Imax[n,m];
+def maximum_current_flow_rule(model, n, m, t, s):
+    line = (n,m)
+    return model.I[line,t,s] <= model.Imax[line]
+model.MAXIMUM_CURRENT_FLOW = pyo.Constraint(model.L, model.T, model.S, rule=maximum_current_flow_rule)											
+
+#---- VOLTAGE MAGNITUDE LIMITS
+# s.t. MAXIMUM_VOLTAGE_MAGNITUDE {t in T,n in N, s in S}:
+#     VM[n,t,s] <= Vmax[n];
+def maximum_voltage_magnitude_rule(model, t, n, s):
+    return model.VM[n,t,s] <= model.Vmax[n]
+model.MAXIMUM_VOLTAGE_MAGNITUDE = pyo.Constraint(model.T, model.N, model.S, rule=maximum_voltage_magnitude_rule)												
+  
+# s.t. MINIMUM_VOLTAGE_MAGNITUDE {t in T,n in N, s in S}:
+#   	VM[n,t,s] >= Vmin[n];
+def minimum_voltage_magnitude_rule(model, t, n, s):
+    return model.VM[n,t,s] >= model.Vmin[n]
+model.MINIMUM_VOLTAGE_MAGNITUDE = pyo.Constraint(model.T, model.N, model.S, rule=minimum_voltage_magnitude_rule)												
+  
 
 # TODO: Continuar com a tradução das demais restrições.
 # A leitura dos dados (equivalente ao input.dat) será tratada posteriormente.
