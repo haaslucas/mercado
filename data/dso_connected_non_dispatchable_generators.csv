@@ -1,0 +1,4 @@
+Unnamed: 0,Node,RER Type,P_max (MW),Wind min Velocity (m/s),Wind max Velocity (m/s),Wind Rated Velocity (m/s)
+1,13,SOLAR,1.5,.,.,.
+2,23,SOLAR,1.0,.,.,.
+3,33,SOLAR,0.5,.,.,.
