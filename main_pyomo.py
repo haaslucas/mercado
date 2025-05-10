@@ -211,21 +211,21 @@ def create_model_instance(data_dict):
     # For now, we are directly modifying the imported 'abstract_model' which is already Concrete.
     instance = abstract_model 
 
-    # Populate Sets
-    instance.S = pyo.Set(initialize=data_dict.get('S', []))
-    instance.T = pyo.Set(initialize=data_dict.get('T', []), ordered=True) # Ensure T is ordered
-    instance.Trans_Lines = pyo.Set(initialize=data_dict.get('Trans_Lines', []))
-    instance.Trans_Nodes = pyo.Set(initialize=data_dict.get('Trans_Nodes', []))
-    instance.N = pyo.Set(initialize=data_dict.get('N', []))
-    instance.L = pyo.Set(initialize=data_dict.get('L', []), dimen=2) # dimen=2 for pairs
-    instance.G_T = pyo.Set(initialize=data_dict.get('G_T', []))
-    instance.G_D = pyo.Set(initialize=data_dict.get('G_D', []))
-    instance.LS = pyo.Set(initialize=data_dict.get('LS', []))
-    instance.ESS = pyo.Set(initialize=data_dict.get('ESS', []))
-    instance.RES_T = pyo.Set(initialize=data_dict.get('RES_T', []))
-    instance.RES_D = pyo.Set(initialize=data_dict.get('RES_D', []))
-    instance.LDA = pyo.Set(initialize=data_dict.get('LDA', []))
-    # instance.WS = pyo.Set(initialize=data_dict.get('WS',[]), dimen=3) # If WS data is parsed
+    # Populate Sets using reconstruct to modify them in-place
+    instance.S.reconstruct(data_dict.get('S', []))
+    instance.T.reconstruct(data_dict.get('T', [])) # ordered=True is already set in model definition
+    instance.Trans_Lines.reconstruct(data_dict.get('Trans_Lines', []))
+    instance.Trans_Nodes.reconstruct(data_dict.get('Trans_Nodes', []))
+    instance.N.reconstruct(data_dict.get('N', []))
+    instance.L.reconstruct(data_dict.get('L', [])) # dimen=2 is part of model definition
+    instance.G_T.reconstruct(data_dict.get('G_T', []))
+    instance.G_D.reconstruct(data_dict.get('G_D', []))
+    instance.LS.reconstruct(data_dict.get('LS', []))
+    instance.ESS.reconstruct(data_dict.get('ESS', []))
+    instance.RES_T.reconstruct(data_dict.get('RES_T', []))
+    instance.RES_D.reconstruct(data_dict.get('RES_D', []))
+    instance.LDA.reconstruct(data_dict.get('LDA', []))
+    # instance.WS.reconstruct(data_dict.get('WS',[])) # dimen=3 is part of model definition
 
     # Populate Params
     # Scalar params like VBASE, SBASE, IBASE, SE_Capacity are already initialized in modelo_pyomo.py
