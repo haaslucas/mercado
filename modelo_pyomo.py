@@ -662,10 +662,11 @@ def deriv_potencia_with_ramp_rule(model, g, t, s):
            model.phi_kkt[g,t,s] * model.Carbon_Cost_t[g] - \
            model.alpha_L[g,t,s] + model.alpha_U[g,t,s]
     
+    # The Pmax_t[g] here should be the scaled one, as ramp constraints use scaled Pmax_t
     if t != model.T.last():
-        expr += (model.ramp_up[g,model.T.next(t),s] - model.ramp_low[g,model.T.next(t),s])
+        expr += (model.ramp_up[g,model.T.next(t),s] - model.ramp_low[g,model.T.next(t),s]) * 0.25 * model.Pmax_t[g]
     if t != model.T.first():
-        expr += (-model.ramp_up[g,t,s] + model.ramp_low[g,t,s])
+        expr += (-model.ramp_up[g,t,s] + model.ramp_low[g,t,s]) * 0.25 * model.Pmax_t[g]
     return expr == 0
 model.Deriv_Potencia_with_Ramp = pyo.Constraint(model.G_T, model.T, model.S, rule=deriv_potencia_with_ramp_rule)
 

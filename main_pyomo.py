@@ -114,6 +114,91 @@ def load_data():
     # For brevity, I'll stop here for the data loading demonstration.
     # A complete implementation would parse all tables from input.dat.
 
+    # param: G_T: table
+    gt_cols = ['g_t_idx', 'G_Node', 'a_t', 'b_t', 'c_t', 'Pmax_t', 'Pmin_t', 'Carbon_Cost_t', 'G_Owner_t']
+    data['G_T_data_rows'] = data_parser.parse_general_table(INPUT_DAT_PATH, "param: G_T:", gt_cols)
+    data['G_T'] = [int(row['g_t_idx']) for row in data['G_T_data_rows']]
+    data['G_Node'] = {int(row['g_t_idx']): int(row['G_Node']) for row in data['G_T_data_rows']}
+    data['a_t_initial'] = {int(row['g_t_idx']): float(row['a_t']) for row in data['G_T_data_rows']}
+    data['b_t_initial'] = {int(row['g_t_idx']): float(row['b_t']) for row in data['G_T_data_rows']}
+    data['c_t'] = {int(row['g_t_idx']): float(row['c_t']) for row in data['G_T_data_rows']}
+    data['Pmax_t_initial'] = {int(row['g_t_idx']): float(row['Pmax_t']) for row in data['G_T_data_rows']}
+    data['Pmin_t_initial'] = {int(row['g_t_idx']): float(row['Pmin_t']) for row in data['G_T_data_rows']}
+    data['Carbon_Cost_t_initial'] = {int(row['g_t_idx']): float(row['Carbon_Cost_t']) for row in data['G_T_data_rows']}
+    data['G_Owner_t'] = {int(row['g_t_idx']): row['G_Owner_t'] for row in data['G_T_data_rows']} # Assuming G_Owner_t can be non-integer
+
+    # param: G_D: table
+    gd_cols = ['g_d_idx', 'a_d', 'b_d', 'c_d', 'Pmax_d', 'Pmin_d', 'G_LDA', 'Carbon_Cost_d', 'G_LDA_Node', 'G_Owner_d']
+    data['G_D_data_rows'] = data_parser.parse_general_table(INPUT_DAT_PATH, "param: G_D:", gd_cols)
+    data['G_D'] = [int(row['g_d_idx']) for row in data['G_D_data_rows']]
+    data['a_d_initial'] = {int(row['g_d_idx']): float(row['a_d']) for row in data['G_D_data_rows']}
+    data['b_d_initial'] = {int(row['g_d_idx']): float(row['b_d']) for row in data['G_D_data_rows']}
+    data['c_d'] = {int(row['g_d_idx']): float(row['c_d']) for row in data['G_D_data_rows']}
+    data['Pmax_d_initial'] = {int(row['g_d_idx']): float(row['Pmax_d']) for row in data['G_D_data_rows']}
+    data['Pmin_d_initial'] = {int(row['g_d_idx']): float(row['Pmin_d']) for row in data['G_D_data_rows']}
+    data['G_LDA_val'] = {int(row['g_d_idx']): int(row['G_LDA']) for row in data['G_D_data_rows']} # temp name
+    data['Carbon_Cost_d_initial'] = {int(row['g_d_idx']): float(row['Carbon_Cost_d']) for row in data['G_D_data_rows']}
+    data['G_LDA_Node_val'] = {int(row['g_d_idx']): int(row['G_LDA_Node']) for row in data['G_D_data_rows']} # temp name
+    data['G_Owner_d'] = {int(row['g_d_idx']): row['G_Owner_d'] for row in data['G_D_data_rows']}
+
+    # param: LS: table
+    ls_cols = ['ls_idx', 'LS_Node', 'Dist_Shift_Min', 'Dist_Shift_Max']
+    data['LS_data_rows'] = data_parser.parse_general_table(INPUT_DAT_PATH, "param: LS:", ls_cols)
+    data['LS'] = [int(row['ls_idx']) for row in data['LS_data_rows']]
+    data['LS_Node_val'] = {int(row['ls_idx']): int(row['LS_Node']) for row in data['LS_data_rows']} # temp name
+    data['Dist_Shift_Min_val'] = {int(row['ls_idx']): float(row['Dist_Shift_Min']) for row in data['LS_data_rows']} # temp name
+    data['Dist_Shift_Max_val'] = {int(row['ls_idx']): float(row['Dist_Shift_Max']) for row in data['LS_data_rows']} # temp name
+
+    # param: ESS: table
+    ess_cols = ['ess_idx', 'ESS_Node', 'Dist_P_ESS_min', 'Dist_P_ESS_max', 'Dist_SOC_min', 'Dist_SOC_max', 'Dist_SOC_initial']
+    data['ESS_data_rows'] = data_parser.parse_general_table(INPUT_DAT_PATH, "param: ESS:", ess_cols)
+    data['ESS'] = [int(row['ess_idx']) for row in data['ESS_data_rows']]
+    data['ESS_Node_val'] = {int(row['ess_idx']): int(row['ESS_Node']) for row in data['ESS_data_rows']} # temp name
+    data['Dist_P_ESS_min_initial'] = {int(row['ess_idx']): float(row['Dist_P_ESS_min']) for row in data['ESS_data_rows']}
+    data['Dist_P_ESS_max_initial'] = {int(row['ess_idx']): float(row['Dist_P_ESS_max']) for row in data['ESS_data_rows']}
+    data['Dist_SOC_min_initial'] = {int(row['ess_idx']): float(row['Dist_SOC_min']) for row in data['ESS_data_rows']}
+    data['Dist_SOC_max_initial'] = {int(row['ess_idx']): float(row['Dist_SOC_max']) for row in data['ESS_data_rows']}
+    data['Dist_SOC_initial_val'] = {int(row['ess_idx']): float(row['Dist_SOC_initial']) for row in data['ESS_data_rows']} # temp name
+
+    # param: RES_T: table
+    res_t_cols = ['res_t_idx', 'RES_type_t', 'RES_Node_t', 'RES_Cap_t', 'Wind_min_t', 'Wind_max_t', 'Wind_nom_t']
+    data['RES_T_data_rows'] = data_parser.parse_general_table(INPUT_DAT_PATH, "param: RES_T:", res_t_cols)
+    data['RES_T'] = [int(row['res_t_idx']) for row in data['RES_T_data_rows']]
+    data['RES_type_t_val'] = {int(row['res_t_idx']): row['RES_type_t'] for row in data['RES_T_data_rows']}
+    data['RES_Node_t_val'] = {int(row['res_t_idx']): int(row['RES_Node_t']) for row in data['RES_T_data_rows']}
+    data['RES_Cap_t_val'] = {int(row['res_t_idx']): float(row['RES_Cap_t']) for row in data['RES_T_data_rows']}
+    # Wind_min/max/nom_t can have '.' which means None or needs specific handling.
+    # Assuming parse_general_table returns them as strings; convert to float or None.
+    def safe_float_or_none(val_str):
+        if val_str == '.': return None
+        try: return float(val_str)
+        except ValueError: return val_str # Or raise error
+
+    data['Wind_min_t_val'] = {int(row['res_t_idx']): safe_float_or_none(row['Wind_min_t']) for row in data['RES_T_data_rows']}
+    data['Wind_max_t_val'] = {int(row['res_t_idx']): safe_float_or_none(row['Wind_max_t']) for row in data['RES_T_data_rows']}
+    data['Wind_nom_t_val'] = {int(row['res_t_idx']): safe_float_or_none(row['Wind_nom_t']) for row in data['RES_T_data_rows']}
+
+    # param: RES_D: table
+    res_d_cols = ['res_d_idx', 'RES_type_d', 'RES_Node_d', 'RES_Cap_d', 'Wind_min_d', 'Wind_max_d', 'Wind_nom_d']
+    data['RES_D_data_rows'] = data_parser.parse_general_table(INPUT_DAT_PATH, "param: RES_D:", res_d_cols)
+    data['RES_D'] = [int(row['res_d_idx']) for row in data['RES_D_data_rows']]
+    data['RES_type_d_val'] = {int(row['res_d_idx']): row['RES_type_d'] for row in data['RES_D_data_rows']}
+    data['RES_Node_d_val'] = {int(row['res_d_idx']): int(row['RES_Node_d']) for row in data['RES_D_data_rows']}
+    data['RES_Cap_d_val'] = {int(row['res_d_idx']): float(row['RES_Cap_d']) for row in data['RES_D_data_rows']}
+    data['Wind_min_d_val'] = {int(row['res_d_idx']): safe_float_or_none(row['Wind_min_d']) for row in data['RES_D_data_rows']}
+    data['Wind_max_d_val'] = {int(row['res_d_idx']): safe_float_or_none(row['Wind_max_d']) for row in data['RES_D_data_rows']}
+    data['Wind_nom_d_val'] = {int(row['res_d_idx']): safe_float_or_none(row['Wind_nom_d']) for row in data['RES_D_data_rows']}
+
+    # param: LDA: PCC:=
+    lda_cols = ['lda_idx', 'PCC']
+    data['LDA_data_rows'] = data_parser.parse_general_table(INPUT_DAT_PATH, "param: LDA:", lda_cols)
+    data['LDA'] = [int(row['lda_idx']) for row in data['LDA_data_rows'] if row['lda_idx'] != '0'] # Exclude '0 0' if it's a comment or placeholder
+    data['PCC_val'] = {int(row['lda_idx']): int(row['PCC']) for row in data['LDA_data_rows'] if row['lda_idx'] != '0'}
+
+    # Set WS (Wholesale market participants) - complex set, deferring full parsing if not immediately needed for params
+    # For now, an empty set or placeholder if its structure is too complex for current parsers
+    data['WS'] = [] # Placeholder
+
     return data
 
 def create_model_instance(data_dict):
@@ -133,8 +218,14 @@ def create_model_instance(data_dict):
     instance.Trans_Nodes = pyo.Set(initialize=data_dict.get('Trans_Nodes', []))
     instance.N = pyo.Set(initialize=data_dict.get('N', []))
     instance.L = pyo.Set(initialize=data_dict.get('L', []), dimen=2) # dimen=2 for pairs
-
-    # ... (Populate other sets: G_T, G_D, LS, ESS, RES_T, RES_D, LDA)
+    instance.G_T = pyo.Set(initialize=data_dict.get('G_T', []))
+    instance.G_D = pyo.Set(initialize=data_dict.get('G_D', []))
+    instance.LS = pyo.Set(initialize=data_dict.get('LS', []))
+    instance.ESS = pyo.Set(initialize=data_dict.get('ESS', []))
+    instance.RES_T = pyo.Set(initialize=data_dict.get('RES_T', []))
+    instance.RES_D = pyo.Set(initialize=data_dict.get('RES_D', []))
+    instance.LDA = pyo.Set(initialize=data_dict.get('LDA', []))
+    # instance.WS = pyo.Set(initialize=data_dict.get('WS',[]), dimen=3) # If WS data is parsed
 
     # Populate Params
     # Scalar params like VBASE, SBASE, IBASE, SE_Capacity are already initialized in modelo_pyomo.py
@@ -183,7 +274,58 @@ def create_model_instance(data_dict):
     if 'Dist_Status_val' in data_dict: instance.Dist_Status.store_values(data_dict['Dist_Status_val'])
     if 'Imax_val' in data_dict: instance.Imax.store_values(data_dict['Imax_val'])
     
-    # ... (Populate other params)
+    # G_T related params
+    if 'G_Node' in data_dict: instance.G_Node.store_values(data_dict['G_Node'])
+    if 'a_t_initial' in data_dict: instance.a_t.store_values(data_dict['a_t_initial'])
+    if 'b_t_initial' in data_dict: instance.b_t.store_values(data_dict['b_t_initial'])
+    if 'c_t' in data_dict: instance.c_t.store_values(data_dict['c_t'])
+    if 'Pmax_t_initial' in data_dict: instance.Pmax_t.store_values(data_dict['Pmax_t_initial'])
+    if 'Pmin_t_initial' in data_dict: instance.Pmin_t.store_values(data_dict['Pmin_t_initial'])
+    if 'Carbon_Cost_t_initial' in data_dict: instance.Carbon_Cost_t.store_values(data_dict['Carbon_Cost_t_initial'])
+    if 'G_Owner_t' in data_dict: instance.G_Owner_t.store_values(data_dict['G_Owner_t'])
+
+    # G_D related params
+    if 'a_d_initial' in data_dict: instance.a_d.store_values(data_dict['a_d_initial'])
+    if 'b_d_initial' in data_dict: instance.b_d.store_values(data_dict['b_d_initial'])
+    if 'c_d' in data_dict: instance.c_d.store_values(data_dict['c_d'])
+    if 'Pmax_d_initial' in data_dict: instance.Pmax_d.store_values(data_dict['Pmax_d_initial'])
+    if 'Pmin_d_initial' in data_dict: instance.Pmin_d.store_values(data_dict['Pmin_d_initial'])
+    if 'G_LDA_val' in data_dict: instance.G_LDA.store_values(data_dict['G_LDA_val'])
+    if 'Carbon_Cost_d_initial' in data_dict: instance.Carbon_Cost_d.store_values(data_dict['Carbon_Cost_d_initial'])
+    if 'G_LDA_Node_val' in data_dict: instance.G_LDA_Node.store_values(data_dict['G_LDA_Node_val'])
+    if 'G_Owner_d' in data_dict: instance.G_Owner_d.store_values(data_dict['G_Owner_d'])
+
+    # LS related params
+    if 'LS_Node_val' in data_dict: instance.LS_Node.store_values(data_dict['LS_Node_val'])
+    if 'Dist_Shift_Min_val' in data_dict: instance.Dist_Shift_Min.store_values(data_dict['Dist_Shift_Min_val'])
+    if 'Dist_Shift_Max_val' in data_dict: instance.Dist_Shift_Max.store_values(data_dict['Dist_Shift_Max_val'])
+
+    # ESS related params
+    if 'ESS_Node_val' in data_dict: instance.ESS_Node.store_values(data_dict['ESS_Node_val'])
+    if 'Dist_P_ESS_min_initial' in data_dict: instance.Dist_P_ESS_min.store_values(data_dict['Dist_P_ESS_min_initial'])
+    if 'Dist_P_ESS_max_initial' in data_dict: instance.Dist_P_ESS_max.store_values(data_dict['Dist_P_ESS_max_initial'])
+    if 'Dist_SOC_min_initial' in data_dict: instance.Dist_SOC_min.store_values(data_dict['Dist_SOC_min_initial'])
+    if 'Dist_SOC_max_initial' in data_dict: instance.Dist_SOC_max.store_values(data_dict['Dist_SOC_max_initial'])
+    if 'Dist_SOC_initial_val' in data_dict: instance.Dist_SOC_initial.store_values(data_dict['Dist_SOC_initial_val'])
+
+    # RES_T related params
+    if 'RES_type_t_val' in data_dict: instance.RES_type_t.store_values(data_dict['RES_type_t_val'])
+    if 'RES_Node_t_val' in data_dict: instance.RES_Node_t.store_values(data_dict['RES_Node_t_val'])
+    if 'RES_Cap_t_val' in data_dict: instance.RES_Cap_t.store_values(data_dict['RES_Cap_t_val'])
+    if 'Wind_min_t_val' in data_dict: instance.Wind_min_t.store_values({k:v for k,v in data_dict['Wind_min_t_val'].items() if v is not None})
+    if 'Wind_max_t_val' in data_dict: instance.Wind_max_t.store_values({k:v for k,v in data_dict['Wind_max_t_val'].items() if v is not None})
+    if 'Wind_nom_t_val' in data_dict: instance.Wind_nom_t.store_values({k:v for k,v in data_dict['Wind_nom_t_val'].items() if v is not None})
+    
+    # RES_D related params
+    if 'RES_type_d_val' in data_dict: instance.RES_type_d.store_values(data_dict['RES_type_d_val'])
+    if 'RES_Node_d_val' in data_dict: instance.RES_Node_d.store_values(data_dict['RES_Node_d_val'])
+    if 'RES_Cap_d_val' in data_dict: instance.RES_Cap_d.store_values(data_dict['RES_Cap_d_val'])
+    if 'Wind_min_d_val' in data_dict: instance.Wind_min_d.store_values({k:v for k,v in data_dict['Wind_min_d_val'].items() if v is not None})
+    if 'Wind_max_d_val' in data_dict: instance.Wind_max_d.store_values({k:v for k,v in data_dict['Wind_max_d_val'].items() if v is not None})
+    if 'Wind_nom_d_val' in data_dict: instance.Wind_nom_d.store_values({k:v for k,v in data_dict['Wind_nom_d_val'].items() if v is not None})
+
+    # LDA related params
+    if 'PCC_val' in data_dict: instance.PCC.store_values(data_dict['PCC_val'])
 
     return instance
 
@@ -281,12 +423,89 @@ def apply_execute_run_logic(model_instance, data_dict):
     for line_key in model_instance.L:
         if model_instance.R[line_key] is not None and model_instance.X[line_key] is not None:
             model_instance.Z[line_key] = (model_instance.R[line_key].value**2 + model_instance.X[line_key].value**2)**0.5
-        if model_instance.Imax[line_key] is not None and model_instance.IBASE.value != 0:
+        if model_instance.Imax[line_key] is not None and model_instance.Imax[line_key].value is not None and model_instance.IBASE.value != 0:
              model_instance.Imax[line_key] = model_instance.Imax[line_key].value / model_instance.IBASE.value
              
-    # ... (Implement scaling for ESS params, Generator params, Carbon Costs)
-    # ... (Implement Emission_Weighted_Average, Carbon_Limit_Trans, Carbon_Limit_Dist calculations)
+    # Scale ESS parameters
+    sbase_val = model_instance.SBASE.value
+    if sbase_val != 0:
+        for n_ess in model_instance.ESS:
+            if model_instance.Dist_P_ESS_min[n_ess].value is not None:
+                model_instance.Dist_P_ESS_min[n_ess] = model_instance.Dist_P_ESS_min[n_ess].value / sbase_val
+            if model_instance.Dist_P_ESS_max[n_ess].value is not None:
+                model_instance.Dist_P_ESS_max[n_ess] = model_instance.Dist_P_ESS_max[n_ess].value / sbase_val
+            if model_instance.Dist_SOC_min[n_ess].value is not None:
+                model_instance.Dist_SOC_min[n_ess] = model_instance.Dist_SOC_min[n_ess].value / sbase_val
+            if model_instance.Dist_SOC_max[n_ess].value is not None:
+                model_instance.Dist_SOC_max[n_ess] = model_instance.Dist_SOC_max[n_ess].value / sbase_val
+            if model_instance.Dist_SOC_initial[n_ess].value is not None:
+                model_instance.Dist_SOC_initial[n_ess] = model_instance.Dist_SOC_initial[n_ess].value / sbase_val
+
+    # Scale Generator parameters (G_T)
+    if sbase_val != 0:
+        for g in model_instance.G_T:
+            if model_instance.Pmax_t[g].value is not None:
+                model_instance.Pmax_t[g] = model_instance.Pmax_t[g].value / sbase_val
+            if model_instance.Pmin_t[g].value is not None:
+                model_instance.Pmin_t[g] = model_instance.Pmin_t[g].value / sbase_val
+            if model_instance.a_t[g].value is not None:
+                model_instance.a_t[g] = model_instance.a_t[g].value * (sbase_val**2)
+            if model_instance.b_t[g].value is not None:
+                model_instance.b_t[g] = model_instance.b_t[g].value * sbase_val
+            if model_instance.Carbon_Cost_t[g].value is not None:
+                model_instance.Carbon_Cost_t[g] = model_instance.Carbon_Cost_t[g].value * sbase_val
+                
+    # Scale Generator parameters (G_D)
+    if sbase_val != 0:
+        for g in model_instance.G_D:
+            if model_instance.Pmax_d[g].value is not None:
+                model_instance.Pmax_d[g] = model_instance.Pmax_d[g].value / sbase_val
+            if model_instance.Pmin_d[g].value is not None:
+                model_instance.Pmin_d[g] = model_instance.Pmin_d[g].value / sbase_val
+            if model_instance.a_d[g].value is not None:
+                model_instance.a_d[g] = model_instance.a_d[g].value * (sbase_val**2)
+            if model_instance.b_d[g].value is not None:
+                model_instance.b_d[g] = model_instance.b_d[g].value * sbase_val
+            if model_instance.Carbon_Cost_d[g].value is not None:
+                model_instance.Carbon_Cost_d[g] = model_instance.Carbon_Cost_d[g].value * sbase_val
+
+    # Calculate Emission_Weighted_Average
+    # Pmax_t and Carbon_Cost_t are now scaled.
+    sum_pmax_carbon_cost_t = sum(model_instance.Pmax_t[g].value * model_instance.Carbon_Cost_t[g].value 
+                                 for g in model_instance.G_T 
+                                 if model_instance.Pmax_t[g].value is not None and model_instance.Carbon_Cost_t[g].value is not None)
+    sum_pmax_t = sum(model_instance.Pmax_t[j].value for j in model_instance.G_T if model_instance.Pmax_t[j].value is not None)
     
+    if sum_pmax_t != 0:
+        ewa = (sum_pmax_carbon_cost_t / sum_pmax_t) * U_param
+    else:
+        ewa = 0 # Avoid division by zero
+    model_instance.Emission_Weighted_Average = ewa
+
+    # Calculate Carbon_Limit_Trans and Carbon_Limit_Dist
+    for t_period in model_instance.T:
+        # Carbon_Limit_Trans
+        sum_max_trans_load_s = 0
+        for n_node in model_instance.Trans_Nodes:
+            max_load_s = 0
+            if any(model_instance.Trans_Load[n_node, t_period, s_scenario].value is not None for s_scenario in model_instance.S):
+                 max_load_s = max(model_instance.Trans_Load[n_node, t_period, s_scenario].value 
+                                 for s_scenario in model_instance.S 
+                                 if model_instance.Trans_Load[n_node, t_period, s_scenario].value is not None)
+            sum_max_trans_load_s += max_load_s
+        model_instance.Carbon_Limit_Trans[t_period] = model_instance.Emission_Weighted_Average.value * sum_max_trans_load_s
+
+        # Carbon_Limit_Dist
+        sum_max_dist_load_s = 0
+        for n_node in model_instance.N:
+            max_load_s = 0
+            if any(model_instance.Dist_Load[n_node, t_period, s_scenario].value is not None for s_scenario in model_instance.S):
+                max_load_s = max(model_instance.Dist_Load[n_node, t_period, s_scenario].value 
+                                for s_scenario in model_instance.S
+                                if model_instance.Dist_Load[n_node, t_period, s_scenario].value is not None)
+            sum_max_dist_load_s += max_load_s
+        model_instance.Carbon_Limit_Dist[t_period] = model_instance.Emission_Weighted_Average.value * sum_max_dist_load_s
+        
     # Conditional logic
     if Remove_Carbon_Mkt_param == 1:
         for t_period in model_instance.T:
