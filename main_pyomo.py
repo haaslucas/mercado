@@ -211,21 +211,32 @@ def create_model_instance(data_dict):
     # For now, we are directly modifying the imported 'abstract_model' which is already Concrete.
     instance = abstract_model 
 
-    # Populate Sets using reconstruct to modify them in-place
-    instance.S.reconstruct(data_dict.get('S', []))
-    instance.T.reconstruct(data_dict.get('T', [])) # ordered=True is already set in model definition
-    instance.Trans_Lines.reconstruct(data_dict.get('Trans_Lines', []))
-    instance.Trans_Nodes.reconstruct(data_dict.get('Trans_Nodes', []))
-    instance.N.reconstruct(data_dict.get('N', []))
-    instance.L.reconstruct(data_dict.get('L', [])) # dimen=2 is part of model definition
-    instance.G_T.reconstruct(data_dict.get('G_T', []))
-    instance.G_D.reconstruct(data_dict.get('G_D', []))
-    instance.LS.reconstruct(data_dict.get('LS', []))
-    instance.ESS.reconstruct(data_dict.get('ESS', []))
-    instance.RES_T.reconstruct(data_dict.get('RES_T', []))
-    instance.RES_D.reconstruct(data_dict.get('RES_D', []))
-    instance.LDA.reconstruct(data_dict.get('LDA', []))
-    # instance.WS.reconstruct(data_dict.get('WS',[])) # dimen=3 is part of model definition
+    # Populate Sets by clearing and adding new elements
+    set_initialization_map = {
+        instance.S: data_dict.get('S', []),
+        instance.T: data_dict.get('T', []), # ordered=True is already set in model definition
+        instance.Trans_Lines: data_dict.get('Trans_Lines', []),
+        instance.Trans_Nodes: data_dict.get('Trans_Nodes', []),
+        instance.N: data_dict.get('N', []),
+        instance.L: data_dict.get('L', []), # dimen=2 is part of model definition
+        instance.G_T: data_dict.get('G_T', []),
+        instance.G_D: data_dict.get('G_D', []),
+        instance.LS: data_dict.get('LS', []),
+        instance.ESS: data_dict.get('ESS', []),
+        instance.RES_T: data_dict.get('RES_T', []),
+        instance.RES_D: data_dict.get('RES_D', []),
+        instance.LDA: data_dict.get('LDA', []),
+        # instance.WS: data_dict.get('WS',[]), # dimen=3 is part of model definition
+    }
+
+    for set_component, set_data in set_initialization_map.items():
+        set_component.clear()
+        if set_data is not None:
+            for item in set_data:
+                set_component.add(item)
+        # For ordered sets, ensure the order is preserved if necessary,
+        # though adding in order usually suffices.
+        # If T was not ordered, we might need: instance.T.ordered = pyo.Set.SortedOrder
 
     # Populate Params
     # Scalar params like VBASE, SBASE, IBASE, SE_Capacity are already initialized in modelo_pyomo.py
