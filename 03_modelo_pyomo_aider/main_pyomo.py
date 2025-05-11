@@ -25,7 +25,15 @@ def load_data():
     data = {}
     
     # Load from Scenarios.dat
-    data['S'] = data_parser.parse_ampl_set(SCENARIOS_DAT_PATH, "S")
+    # Assuming S contains integer-like scenario numbers that might be parsed as strings.
+    s_values_from_parser = data_parser.parse_ampl_set(SCENARIOS_DAT_PATH, "S")
+    try:
+        data['S'] = [int(s) for s in s_values_from_parser]
+        # print(f"DEBUG: Set S loaded as integers: {data['S'][:5]}...") # Optional: for debugging
+    except ValueError:
+        print(f"Warning: Could not convert all elements of set S to integers. Using original values: {s_values_from_parser[:5]}...")
+        data['S'] = s_values_from_parser # Fallback to original if conversion fails
+
     data['wind1'] = data_parser.parse_ampl_simple_param_2d(SCENARIOS_DAT_PATH, "wind1", ['s', 't'], 'val')
     data['wind2'] = data_parser.parse_ampl_simple_param_2d(SCENARIOS_DAT_PATH, "wind2", ['s', 't'], 'val')
     data['load1'] = data_parser.parse_ampl_simple_param_2d(SCENARIOS_DAT_PATH, "load1", ['s', 't'], 'val')
@@ -37,7 +45,14 @@ def load_data():
     # param: T: table
     t_table_cols = ['res1', 'res4', 'res5', 'off1', 'off4', 'ind1', 'ind2', 'ind3', 'L2', 'L3', 'L4', 'L6', 'L8']
     t_data_rows = data_parser.parse_ampl_indexed_table(INPUT_DAT_PATH, "param:	T:", "T_idx", t_table_cols)
-    data['T'] = list(t_data_rows.keys()) # Set T
+    # Assuming T contains integer-like period numbers that might be parsed as strings from table keys.
+    t_keys_from_parser = list(t_data_rows.keys())
+    try:
+        data['T'] = [int(t) for t in t_keys_from_parser]
+        # print(f"DEBUG: Set T loaded as integers: {data['T'][:5]}...") # Optional: for debugging
+    except ValueError:
+        print(f"Warning: Could not convert all elements of set T to integers. Using original values: {t_keys_from_parser[:5]}...")
+        data['T'] = t_keys_from_parser # Fallback to original if conversion fails
     # Store individual parameters like model.ind1, model.res1, etc.
     for col_name in t_table_cols:
         data[col_name] = {idx: row_data[col_name] for idx, row_data in t_data_rows.items()}
