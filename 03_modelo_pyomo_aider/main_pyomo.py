@@ -212,26 +212,28 @@ def create_model_instance(data_dict):
     instance = abstract_model 
 
     # Populate Sets by clearing and adding new elements
-    set_initialization_map = {
-        instance.S: data_dict.get('S', []),
-        instance.T: data_dict.get('T', []), # ordered=True is already set in model definition
-        instance.Trans_Lines: data_dict.get('Trans_Lines', []),
-        instance.Trans_Nodes: data_dict.get('Trans_Nodes', []),
-        instance.N: data_dict.get('N', []),
-        instance.L: data_dict.get('L', []), # dimen=2 is part of model definition
-        instance.G_T: data_dict.get('G_T', []),
-        instance.G_D: data_dict.get('G_D', []),
-        instance.LS: data_dict.get('LS', []),
-        instance.ESS: data_dict.get('ESS', []),
-        instance.RES_T: data_dict.get('RES_T', []),
-        instance.RES_D: data_dict.get('RES_D', []),
-        instance.LDA: data_dict.get('LDA', []),
-        # instance.WS: data_dict.get('WS',[]), # dimen=3 is part of model definition
-    }
+    # Using a list of tuples (set_component, data_key) to avoid hashing issues with Set objects as dict keys.
+    set_initialization_list = [
+        (instance.S, 'S'),
+        (instance.T, 'T'), # ordered=True is already set in model definition
+        (instance.Trans_Lines, 'Trans_Lines'),
+        (instance.Trans_Nodes, 'Trans_Nodes'),
+        (instance.N, 'N'),
+        (instance.L, 'L'), # dimen=2 is part of model definition
+        (instance.G_T, 'G_T'),
+        (instance.G_D, 'G_D'),
+        (instance.LS, 'LS'),
+        (instance.ESS, 'ESS'),
+        (instance.RES_T, 'RES_T'),
+        (instance.RES_D, 'RES_D'),
+        (instance.LDA, 'LDA'),
+        # (instance.WS, 'WS'), # dimen=3 is part of model definition
+    ]
 
-    for set_component, set_data in set_initialization_map.items():
+    for set_component, data_key in set_initialization_list:
+        set_data = data_dict.get(data_key, [])
         set_component.clear()
-        if set_data is not None:
+        if set_data is not None: # data_dict.get with default [] makes this check somewhat redundant for None
             for item in set_data:
                 set_component.add(item)
         # For ordered sets, ensure the order is preserved if necessary,
