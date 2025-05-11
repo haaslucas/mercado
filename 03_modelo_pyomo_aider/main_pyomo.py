@@ -14,7 +14,7 @@ Remove_Ramp_param = 0
 # Assuming the script is run from the root of the repository
 BASE_DIR = os.path.dirname(os.path.abspath(__file__)) # Or adjust if main_pyomo.py is elsewhere
 INPUT_DAT_PATH = os.path.join(BASE_DIR, "input.dat")
-SCENARIOS_DAT_PATH = os.path.join(BASE_DIR, "Reducao_Cenarios","Scenarios.dat")
+SCENARIOS_DAT_PATH = os.path.join(BASE_DIR, "Reducao Cenarios","Scenarios.dat") # Corrected "Reducao_Cenarios" to "Reducao Cenarios"
 
 
 def load_data():
