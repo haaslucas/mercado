@@ -5,8 +5,10 @@ import pandas as pd
 I_t = pd.read_csv('data/matriz_incidencia_transmissao.csv')
 I_t = I_t.values.tolist()
 
-SBASE = 100 #MVA
-VBASE = 24.9 #kV
+SBASE = 100               # MVA
+VBASE = 24.9              # kV
+IBASE = 100 * 1e3 / 24.90 # A
+SE_Capacity = 50
 
 #nó de conexão entre a rede de distribuição e a rede de transmissão
 N_INF_d = 1
