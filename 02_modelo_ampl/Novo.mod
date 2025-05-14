@@ -52,7 +52,7 @@ param probability{S,T};
 
 
 
-
+#load_shape_data.csv	
 param ind1{T};
 param ind2{T};
 param ind3{T};
@@ -72,7 +72,7 @@ param L8{T};
 
 param PCC{LDA};
 
-
+#transmission_node_data.csv
 param Trans_Load{Trans_Nodes, T, S};
 param Trans_Shift_Max{Trans_Nodes};
 param Trans_Shift_Min{Trans_Nodes};
@@ -246,6 +246,8 @@ s.t. Calculate_GenCosts_Trans {t in T, g in G_T, s in S}:
 #								+ sum{g in G_T, n in LDA} (Carbon_Price[t] * Carbon_SE[n,g,t]);
 
 s.t. ACTIVE_POWER_BALANCE{n in N, t in T, s in S}: 
+#soma dos geradores nos nós G_LDA_Node[g] para os g no set G_D quando g é igual a n
+
 	sum{g in G_D:G_LDA_Node[g] == n}(P_thermal_dist[g,t,s])
 	-sum{(n,m) in L}(P[n,m,t,s] + R[n,m]*I[n,m,t,s])
 	+sum{(l,n) in L}(P[l,n,t,s]) 

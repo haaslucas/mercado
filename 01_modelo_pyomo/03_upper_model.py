@@ -2,19 +2,29 @@ import pyomo.environ as pyo
 import pyomo.opt as opt
 import pandas as pd
 
-I_t = pd.read_csv('data/matriz_incidencia_transmissao.csv')
+pasta = './01_modelo_pyomo/data/'
+I_t = pd.read_csv(pasta + 'matriz_incidencia_transmissao.csv')
 I_t = I_t.values.tolist()
+
+dlines  = pd.read_csv(pasta + 'distribution_line_data.csv')
+tnodes = pd.read_csv(pasta + 'transmission_node_data.csv')
+dnodes = pd.read_csv(pasta + 'distribution_node_data.csv')
+
+g_t_nd = pd.read_csv(pasta + 'transmission_connected_non_dispatchable_generators.csv')
+g_t_d  = pd.read_csv(pasta + 'transmission_connected_dispatchable_generators.csv')
+g_d_nd = pd.read_csv(pasta + 'dso_connected_non_dispatchable_generators.csv')
+g_d_d  = pd.read_csv(pasta + 'dso_connected_dispatchable_generators.csv')
 
 SBASE = 100               # MVA
 VBASE = 24.9              # kV
 IBASE = 100 * 1e3 / 24.90 # A
-SE_Capacity = 50
-
+SE_Capacity = 50          # MWh
+U=1                       # Rigidez da regulação de emissões de carbono   
 #nó de conexão entre a rede de distribuição e a rede de transmissão
 N_INF_d = 1
 N_INF_t = 5
 
-Umodel, LLmodel = pyo.ConcreteModel(), pyo.ConcreteModel()
+um, LLmodel = pyo.ConcreteModel(), pyo.ConcreteModel()
 
 #################### Índices ####################   
 b = range(0,5)  # Índice para bloco de oferta  
@@ -26,103 +36,122 @@ s = range(0,5)  # Índice para cenários
 t = range(0,24) # Índice para períodos de tempo  
 
 #################### Conjuntos ####################
-Umodel.B_g = pyo.Set()          # Set of bids provided by generator g
-Umodel.G_D = pyo.Set()          # Set of distribution-connected generators
-Umodel.G_i = pyo.Set()          # Set of generators connected to node i
-Umodel.G_T = pyo.Set()          # Set of transmission-connected generators
-Umodel.D = pyo.Set()            # Set of distribution lines
-Umodel.T = pyo.Set()            # Set of transmission lines
-Umodel.N_D = pyo.Set()          # Set of distribution nodes
-Umodel.N_T = pyo.Set()          # Set of transmission nodes
-Umodel.N_INF = pyo.Set()        # Set of interface nodes
-Umodel.S = pyo.Set()            # Set of scenarios
-Umodel.T = pyo.Set()            # Set of time periods
+um.B_g = pyo.Set()          # Set of bids provided by generator g
+um.G_D = pyo.Set()          # Set of distribution-connected generators
+um.G_i = pyo.Set()          # Set of generators connected to node i
+um.G_T = pyo.Set()          # Set of transmission-connected generators
+um.D = pyo.Set()            # Set of distribution lines
+um.T = pyo.Set()            # Set of transmission lines
+
+um.d_nodes = pyo.RangeSet(1, 34) # Set of distribution nodes
+um.d_lines = pyo.RangeSet(1, 33)          # Set of distribution lines
+
+um.N_T = pyo.Set()          # Set of transmission nodes
+um.N_INF = pyo.Set()        # Set of interface nodes
+um.S = pyo.Set()            # Set of scenarios
+um.T = pyo.Set()            # Set of time periods
 
 
 #################### Parametros ####################
 
 # Parâmetros relacionados a geradores
-Umodel.A_i_l = pyo.Param(i,l,initialize= lambda m,col,lin: I_t[lin][col])# Incidence matrix of transmission lines
-Umodel.C_D_g_b = pyo.Param(g, b, initialize=lambda m, g, b: 1)           # Distribution-connected generators' bids
-Umodel.C_T_g_b = pyo.Param(g, b, initialize=lambda m, g, b: 1)           # Transmission-connected generators' bids
-Umodel.P_D_g_b = pyo.Param(g, b, initialize=lambda m, g, b: 1)           # Size of the generator's electricity block bid
-Umodel.P_T_g_b = pyo.Param(g, b, initialize=lambda m, g, b: 1)           # Size of the generator's electricity block bid
-Umodel.S_D_g = pyo.Param(g, initialize=lambda m, g: 1)                   # Maximum power injection of generators
-Umodel.S_T_g = pyo.Param(g, initialize=lambda m, g: 1)                   # Maximum power injection of generators
-Umodel.gamma_D_g = pyo.Param(g, initialize=lambda m, g: 1)               # Generator's carbon intensity
-Umodel.gamma_T_g = pyo.Param(g, initialize=lambda m, g: 1)               # Generator's carbon intensity
-Umodel.nu_D_g_t_s = pyo.Param(g, t, s, initialize=lambda m, g, t, s: 1)  # Generator's carbon emission
-Umodel.nu_T_g_t_s = pyo.Param(g, t, s, initialize=lambda m, g, t, s: 1)  # Generator's carbon emission
+um.A_i_l = pyo.Param(i,l,initialize= lambda m,col,lin: I_t[lin][col])# Incidence matrix of transmission lines
+
+# Parâmetros relacionados a lances de geradores
+um.C_D_g_b = pyo.Param(g, b, initialize=lambda m, g, b: 1)           # Distribution-connected generators' bids
+um.C_T_g_b = pyo.Param(g, b, initialize=lambda m, g, b: 1)           # Transmission-connected generators' bids
+um.P_D_g_b = pyo.Param(g, b, initialize=lambda m, g, b: 1)           # Size of the generator's electricity block bid
+um.P_T_g_b = pyo.Param(g, b, initialize=lambda m, g, b: 1)           # Size of the generator's electricity block bid
+
+# Parâmetros relacionados a geradores
+um.S_D_g = pyo.Param(g, initialize=lambda m, g: 1)                   # Maximum power injection of generators
+um.S_T_g = pyo.Param(g, initialize=lambda m, g: 1)                   # Maximum power injection of generators
+um.gamma_D_g = pyo.Param(g, initialize=lambda m, g: 1)               # Generator's carbon intensity
+um.gamma_T_g = pyo.Param(g, initialize=lambda m, g: 1)               # Generator's carbon intensity
+um.nu_D_g_t_s = pyo.Param(g, t, s, initialize=lambda m, g, t, s: 1)  # Generator's carbon emission
+um.nu_T_g_t_s = pyo.Param(g, t, s, initialize=lambda m, g, t, s: 1)  # Generator's carbon emission
 
 # Parâmetros relacionados a demanda e disponibilidade
-Umodel.L_D_i_t_s = pyo.Param(i, t, s, initialize=lambda m, i, t, s: 1)   # Power demand of a distribution node
-Umodel.L_T_i_t_s = pyo.Param(i, t, s, initialize=lambda m, i, t, s: 1)   # Power demand of a transmission node
-Umodel.r_g_t_s = pyo.Param(g, t, s, initialize=lambda m, g, t, s: 1)     # Renewable-based power availability
+um.L_D_i_t_s = pyo.Param(i, t, s, initialize=lambda m, i, t, s: 1)   # Power demand of a distribution node
+um.L_T_i_t_s = pyo.Param(i, t, s, initialize=lambda m, i, t, s: 1)   # Power demand of a transmission node
+um.r_g_t_s = pyo.Param(g, t, s, initialize=lambda m, g, t, s: 1)     # Renewable-based power availability
 
 # Parâmetros relacionados a linhas e capacidades
-Umodel.I_ij = pyo.Param(ij, initialize=lambda m, ij: 1)                  # Capacity of distribution lines
-Umodel.PF_l = pyo.Param(l, initialize=lambda m, l: 1)                    # Power flow capacity of transmission lines
-Umodel.R_ij = pyo.Param(ij, initialize=lambda m, ij: 1)                  # Resistance of distribution lines
-Umodel.X_l = pyo.Param(l, initialize=lambda m, l: 1)                     # Reactance of transmission lines
-Umodel.X_ij = pyo.Param(ij, initialize=lambda m, ij: 1)                  # Reactance of distribution lines
+um.I_ij = pyo.Param(ij, initialize=lambda m, ij: 1)                  # Capacity of distribution lines
+um.PF_l = pyo.Param(l, initialize=lambda m, l: 1)                    # Power flow capacity of transmission lines
+um.R_ij = pyo.Param(ij, initialize=lambda m, ij: 1)                  # Resistance of distribution lines
+um.X_l = pyo.Param(l, initialize=lambda m, l: 1)                     # Reactance of transmission lines
+um.X_ij = pyo.Param(ij, initialize=lambda m, ij: 1)                  # Reactance of distribution lines
 
-# Parâmetros relacionados a armazenamento e flexibilidade
-Umodel.P_ESS_i = pyo.Param(i, initialize=lambda m, i: 1)                 # Maximum charging and discharging power of storage systems
-Umodel.SOC_ESS_i = pyo.Param(i, initialize=lambda m, i: 1)               # Maximum and minimum state of charge of the storage systems
-Umodel.SOC_0_i = pyo.Param(i, initialize=lambda m, i: 1)                 # Initial state of charge of the storage systems
-Umodel.P_LS_i = pyo.Param(i, initialize=lambda m, i: 1)                  # Maximum nodal load increase/reduction
 
 # Parâmetros de mercado e regulação
-Umodel.p_s_t = pyo.Param(s, t, initialize=lambda m, s, t: 1)             # Weight of scenario s at period t
-Umodel.pi_E_i_t_s = pyo.Param(i, t, s, initialize=lambda m, i, t, s: 1)  # Bids on the electricity market
-Umodel.pi_C_t_s = pyo.Param(t, s, initialize=lambda m, t, s: 1)          # Bids on the carbon market
-Umodel.U = pyo.Param(initialize=lambda m: 1)                             # Rigidity of the carbon emission regulation
-Umodel.Lambda = pyo.Param(initialize=lambda m: 1)                        # Average carbon intensity of the entire power system
+um.p_s_t = pyo.Param(s, t, initialize=lambda m, s, t: 1)             # Weight of scenario s at period t
+um.pi_E_i_t_s = pyo.Param(i, t, s, initialize=lambda m, i, t, s: 1)  # Bids on the electricity market
+um.pi_C_t_s = pyo.Param(t, s, initialize=lambda m, t, s: 1)          # Bids on the carbon market
+um.U = pyo.Param(initialize=lambda m: 1)                             # Rigidity of the carbon emission regulation
+um.Lambda = pyo.Param(initialize=lambda m: 1)                        # Average carbon intensity of the entire power system
 
+# Parâmetros das linhas de distribuição dlines = distribution_line_data.csv
+um.R = pyo.Param(i, initialize=lambda m,i: dlines['R (pu)'])                 # branch resistance (ohm)
+um.X = pyo.Param(i, initialize=lambda m,i: dlines['X (pu)'])                 # branch reactance (ohm)
+#um.Z = pyo.Param(i, initialize=lambda m,i: dlines['X (pu)'])                 # branch reactance (ohm)
+um.Imax = pyo.Param(i, initialize=lambda m,i: dlines['Line Ampacity (A)'])   # branch maximum current (kA)
+
+# Parâmetros relacionados a BESS do sistema de distribuição ESS
+um.ESS_P_max_charge = pyo.Param(i, initialize=lambda m,i: dr['Max ESS Charge (MW)']) # Max charging power of BESS
+um.ESS_P_max_discha = pyo.Param(i, initialize=lambda m,i: dr['Max ESS Discharge (MW)']) # Max discharging power of BESS
+um.ESS_SOC_min = pyo.Param(i, initialize=lambda m,i: dr['Min ESS SOC (MWh)']) # Min SOC of BESS
+um.ESS_SOC_max = pyo.Param(i, initialize=lambda m,i: dr['Max ESS SOC (MWh)']) # Max SOC of BESS
+um.ESS_SOC_0   = pyo.Param(i, initialize=lambda m,i: dr['Ini ESS SOC (MWh)']) # Initial SOC of BESS
+
+um.P_LS_i = pyo.Param(i, initialize=lambda m, i: 1)                  # Maximum nodal load increase/reduction
 
 
 #################### Variáveis de decisão ####################
 
 # Variáveis relacionadas à distribuição
-Umodel.P_D_g_t_s = pyo.Var()   # Generator active power dispatch
-Umodel.Q_D_g_t_s = pyo.Var()   # Generator reactive power dispatch
-Umodel.P_ij_t_s = pyo.Var()    # Active power flow on distribution lines
-Umodel.Q_ij_t_s = pyo.Var()    # Reactive power flow on distribution lines
-Umodel.P_ESS_i_t_s = pyo.Var() # Power charge/discharge of storage systems
-Umodel.P_LS_i_t_s = pyo.Var()  # Nodal load shift
-Umodel.V_SQ_i_t_s = pyo.Var()  # Nodal voltage magnitude squared
-Umodel.SOC_i_t_s = pyo.Var()   # State of charge of energy storage systems
-Umodel.rho_D_g_b_t_s = pyo.Var() # Accepted bid of block b
-Umodel.upsilon_D_g_t_s = pyo.Var() # Carbon allowances absorbed/provided by generator g
+
+um.P_D_g_t_s = pyo.Var(um.G_D, um.T, um.S) # Active power dispatch of distribution-connected generators
+um.Q_D_g_t_s = pyo.Var()   # Generator reactive power dispatch
+
+um.P_ij_t_s = pyo.Var(um.d_lines, um.d_lines, um.T, um.S) # Active power flow on distribution lines
+
+um.Q_ij_t_s = pyo.Var()    # Reactive power flow on distribution lines
+um.P_ESS_i_t_s = pyo.Var() # Power charge/discharge of storage systems
+um.P_LS_i_t_s = pyo.Var()  # Nodal load shift
+um.V_SQ_i_t_s = pyo.Var()  # Nodal voltage magnitude squared
+um.SOC_i_t_s = pyo.Var()   # State of charge of energy storage systems
+um.rho_D_g_b_t_s = pyo.Var() # Accepted bid of block b
+um.upsilon_D_g_t_s = pyo.Var() # Carbon allowances absorbed/provided by generator g
 
 # Variáveis relacionadas à transmissão
-Umodel.P_T_g_t_s = pyo.Var()    # Generator's total power dispatch
-Umodel.PF_l_t_s = pyo.Var()     # Power flow on transmission lines
-Umodel.P_SE_i_t_s = pyo.Var()   # Active power trades in the wholesale market
-Umodel.Q_SE_i_t_s = pyo.Var()   # Reactive power trades in the wholesale market
-Umodel.upsilon_SE_t_s = pyo.Var() # Carbon allowance trades in the wholesale market
-Umodel.delta_i_t_s = pyo.Var()  # Voltage angle of transmission nodes
-Umodel.nu_T_g_t_s = pyo.Var()   # Generator's carbon emission
-Umodel.rho_T_g_b_t_s = pyo.Var() # Accepted bid of block b
-Umodel.upsilon_T_g_t_s = pyo.Var() # Carbon allowances absorbed/provided by generator g
+um.P_T_g_t_s = pyo.Var()    # Generator's total power dispatch
+um.PF_l_t_s = pyo.Var()     # Power flow on transmission lines
+um.P_SE_i_t_s = pyo.Var()   # Active power trades in the wholesale market
+um.Q_SE_i_t_s = pyo.Var()   # Reactive power trades in the wholesale market
+um.upsilon_SE_t_s = pyo.Var() # Carbon allowance trades in the wholesale market
+um.delta_i_t_s = pyo.Var()  # Voltage angle of transmission nodes
+um.nu_T_g_t_s = pyo.Var()   # Generator's carbon emission
+um.rho_T_g_b_t_s = pyo.Var() # Accepted bid of block b
+um.upsilon_T_g_t_s = pyo.Var() # Carbon allowances absorbed/provided by generator g
 
 
 # Função Objetivo para o DSO (Upper-level problem)
-Umodel.objective = pyo.Objective(
+um.objective = pyo.Objective(
     expr=sum(
-        Umodel.p_s_t * (
+        um.p_s_t * (
             # Custos de geração dos geradores conectados à rede de distribuição
             sum(
-                Umodel.C_D_g_b[g, b] * Umodel.rho_D_g_b_t_s[g, b, t, s] 
+                um.C_D_g_b[g, b] * um.rho_D_g_b_t_s[g, b, t, s] 
                 for g in g 
                 for b in b
             ) +
             # Receita de troca de allowances de carbono com o ISO
-            Umodel.upsilon_SE_t_s[t, s] +
+            um.upsilon_SE_t_s[t, s] +
             # Receita de intercâmbio de energia com o ISO nos nós de interface
             sum(
-                Umodel.P_SE_i_t_s[i, t, s] 
-                for i in Umodel.N_INF
+                um.P_SE_i_t_s[i, t, s] 
+                for i in um.N_INF
             )
         )
         for s in s 
@@ -131,8 +160,25 @@ Umodel.objective = pyo.Objective(
     sense=pyo.minimize
 )
 
+####################################################
+#################### RESTRIÇÕES ####################
+####################################################
 
-#################### Restrições ####################
+
+#################### Distribuição ##################
+
+"""
+Eq. (2): Garante o balanço de potência ativa nos nós da rede de distribuição, 
+considerando geração, fluxo de potência, armazenamento e intercâmbio com o sistema de transmissão.
+"""
+def active_power_balance_distribution_rule(um, n, m, t, s):
+    pot_geradores = sum(um.P_D_g_t_s[g, t, s] for g in g_d_d['Node'] if g in um.dist_nodes[n])
+    pot_entrando = sum(um.P_ij_t_s[n, m, t, s] + dlines['R (pu)'][n,m]*um.I[n, m, t, s])
+    
+      
+    return pot_geradores - pot_entrando
+um.active_power_balance_distribution = pyo.Constraint(um.dist_nodes, um.T, um.S, rule=active_power_balance_distribution_rule)
+
 
 """
 Eq. (2): Garante o balanço de potência ativa nos nós da rede de distribuição, 
@@ -140,26 +186,27 @@ considerando geração, fluxo de potência, armazenamento e intercâmbio com o s
 """
 def active_power_balance_distribution_rule(model, i, t, s):
     return (
-        sum(Umodel.P_D_g_t_s[g, t, s] for g in Umodel.G_i[i]) -
-        sum(Umodel.P_ij_t_s[ij, t, s] for ij in Umodel.D if ij in Umodel.N_D[i]) +
-        Umodel.P_ESS_i_t_s[i, t, s] + Umodel.P_SE_i_t_s[i, t, s]
-        == Umodel.P_LS_i_t_s[i, t, s] + Umodel.L_D_i_t_s[i, t, s]
+        sum(um.P_D_g_t_s[g, t, s] for g in um.G_i[i]) -
+        sum(um.P_ij_t_s[ij, t, s] for ij in um.D if ij in um.N_D[i]) +
+        um.P_ESS_i_t_s[i, t, s] + um.P_SE_i_t_s[i, t, s]
+        == um.P_LS_i_t_s[i, t, s] + um.L_D_i_t_s[i, t, s]
     )
-Umodel.active_power_balance_distribution = pyo.Constraint(Umodel.N_D, Umodel.T, Umodel.S, rule=active_power_balance_distribution_rule)
+um.active_power_balance_distribution = pyo.Constraint(um.N_D, um.T, um.S, rule=active_power_balance_distribution_rule)
 
 
+ 
 """
 Eq. (3): Garante o balanço de potência reativa nos nós da rede de distribuição, 
 considerando geração, fluxo de potência e intercâmbio com o sistema de transmissão.
 """
 def reactive_power_balance_distribution_rule(model, i, t, s):
     return (
-        sum(Umodel.Q_D_g_t_s[g, t, s] for g in Umodel.G_i[i]) -
-        sum(Umodel.Q_ij_t_s[ij, t, s] for ij in Umodel.D if ij in Umodel.N_D[i]) +
-        Umodel.Q_SE_i_t_s[i, t, s]
-        == Umodel.L_i * (Umodel.P_LS_i_t_s[i, t, s] + Umodel.L_D_i_t_s[i, t, s])
+        sum(um.Q_D_g_t_s[g, t, s] for g in um.G_i[i]) -
+        sum(um.Q_ij_t_s[ij, t, s] for ij in um.D if ij in um.dist_nodes[i]) +
+        um.Q_SE_i_t_s[i, t, s]
+        == um.L_i * (um.P_LS_i_t_s[i, t, s] + um.L_D_i_t_s[i, t, s])
     )
-Umodel.reactive_power_balance_distribution = pyo.Constraint(Umodel.N_D, Umodel.T, Umodel.S, rule=reactive_power_balance_distribution_rule)
+um.reactive_power_balance_distribution = pyo.Constraint(um.dist_nodes, um.T, um.S, rule=reactive_power_balance_distribution_rule)
 
 
 """ Eq. (4): Garante o balanço de potência reativa nos nós da rede de distribuição, 
@@ -167,13 +214,13 @@ considerando geração, fluxo de potência reativa e intercâmbio com o sistema 
 
 def reactive_power_balance_rule(model, i, t, s):
     return (
-        sum(Umodel.Q_D_g_t_s[g, t, s] for g in Umodel.G_i[i]) +
-        sum(Umodel.Q_ki_t_s[ki, t, s] for ki in Umodel.D if ki in Umodel.N_D[i]) -
-        sum(Umodel.Q_ij_t_s[ij, t, s] + Umodel.X_ij[ij] * Umodel.ISQ_ij_t_s[ij, t, s] for ij in Umodel.D if ij in Umodel.N_D[i]) +
-        Umodel.Q_SE_i_t_s[i, t, s]
-        == Umodel.L_i * (Umodel.P_LS_i_t_s[i, t, s] + Umodel.L_D_i_t_s[i, t, s])
+        sum(um.Q_D_g_t_s[g, t, s] for g in um.G_i[i]) +
+        sum(um.Q_ki_t_s[ki, t, s] for ki in um.D if ki in um.dist_nodes[i]) -
+        sum(um.Q_ij_t_s[ij, t, s] + um.X_ij[ij] * um.ISQ_ij_t_s[ij, t, s] for ij in um.D if ij in um.dist_nodes[i]) +
+        um.Q_SE_i_t_s[i, t, s]
+        == um.L_i * (um.P_LS_i_t_s[i, t, s] + um.L_D_i_t_s[i, t, s])
     )
-Umodel.reactive_power_balance = pyo.Constraint(Umodel.N_D, Umodel.T, Umodel.S, rule=reactive_power_balance_rule)
+um.reactive_power_balance = pyo.Constraint(um.dist_nodes, um.T, um.S, rule=reactive_power_balance_rule)
 
 
 """ Eq. (5): Modela a queda de tensão nas linhas de distribuição 
@@ -181,11 +228,11 @@ usando uma formulação de programação cônica de segunda ordem. """
 
 def voltage_drop_rule(model, ij, t, s):
     return (
-        Umodel.V_SQ_i_t_s[ij[0], t, s] - Umodel.V_SQ_i_t_s[ij[1], t, s] ==
-        2 * (Umodel.P_ij_t_s[ij, t, s] * Umodel.R_ij[ij] + Umodel.Q_ij_t_s[ij, t, s] * Umodel.X_ij[ij]) +
-        (Umodel.R_ij[ij]**2 + Umodel.X_ij[ij]**2) * Umodel.ISQ_ij_t_s[ij, t, s]
+        um.V_SQ_i_t_s[ij[0], t, s] - um.V_SQ_i_t_s[ij[1], t, s] ==
+        2 * (um.P_ij_t_s[ij, t, s] * um.R_ij[ij] + um.Q_ij_t_s[ij, t, s] * um.X_ij[ij]) +
+        (um.R_ij[ij]**2 + um.X_ij[ij]**2) * um.ISQ_ij_t_s[ij, t, s]
     )
-Umodel.voltage_drop = pyo.Constraint(Umodel.D, Umodel.T, Umodel.S, rule=voltage_drop_rule)
+um.voltage_drop = pyo.Constraint(um.D, um.T, um.S, rule=voltage_drop_rule)
 
 
 """ Eq. (6): Modela a queda de tensão considerando resistência, reatância 
@@ -193,11 +240,11 @@ e corrente quadrática nas linhas de distribuição. """
 
 def voltage_drop_distribution_rule(model, ij, t, s):
     return (
-        Umodel.V_SQ_i_t_s[ij[0], t, s] - Umodel.V_SQ_i_t_s[ij[1], t, s] ==
-        2 * (Umodel.P_ij_t_s[ij, t, s] * Umodel.R_ij[ij] + Umodel.Q_ij_t_s[ij, t, s] * Umodel.X_ij[ij]) +
-        (Umodel.R_ij[ij]**2 + Umodel.X_ij[ij]**2) * Umodel.ISQ_ij_t_s[ij, t, s]
+        um.V_SQ_i_t_s[ij[0], t, s] - um.V_SQ_i_t_s[ij[1], t, s] ==
+        2 * (um.P_ij_t_s[ij, t, s] * um.R_ij[ij] + um.Q_ij_t_s[ij, t, s] * um.X_ij[ij]) +
+        (um.R_ij[ij]**2 + um.X_ij[ij]**2) * um.ISQ_ij_t_s[ij, t, s]
     )
-Umodel.voltage_drop_distribution = pyo.Constraint(Umodel.D, Umodel.T, Umodel.S, rule=voltage_drop_distribution_rule)
+um.voltage_drop_distribution = pyo.Constraint(um.D, um.T, um.S, rule=voltage_drop_distribution_rule)
 
 
 """
@@ -206,11 +253,13 @@ garantindo a operação dentro de faixas seguras.
 """
 def current_voltage_limit_distribution_rule(model, ij, t, s):
     return (
-        Umodel.P_ij_t_s[ij, t, s]**2 + Umodel.Q_ij_t_s[ij, t, s]**2 <=
-        Umodel.ISQ_ij_t_s[ij, t, s] * Umodel.V_SQ_i_t_s[ij[1], t, s]
+        um.P_ij_t_s[ij, t, s]**2 + um.Q_ij_t_s[ij, t, s]**2 <=
+        um.ISQ_ij_t_s[ij, t, s] * um.V_SQ_i_t_s[ij[1], t, s]
     )
-Umodel.current_voltage_limit_distribution = pyo.Constraint(Umodel.D, Umodel.T, Umodel.S, rule=current_voltage_limit_distribution_rule)
+um.current_voltage_limit_distribution = pyo.Constraint(um.D, um.T, um.S, rule=current_voltage_limit_distribution_rule)
 
+
+#################### Geradores ##################
 
 """
 Eq. (8): Estabelece os limites de geração para geradores convencionais, 
@@ -218,11 +267,11 @@ considerando potência ativa e reativa.
 """
 def conventional_generator_limit_rule(model, g, t, s):
     return (
-        Umodel.P_D_g_t_s[g, t, s]**2 + Umodel.Q_D_g_t_s[g, t, s]**2 <= Umodel.S_D_g[g]**2
+        um.P_D_g_t_s[g, t, s]**2 + um.Q_D_g_t_s[g, t, s]**2 <= um.S_D_g[g]**2
     )
-Umodel.conventional_generator_limit = pyo.Constraint(
-    [g for g in Umodel.G_D if g == 'Conventional'], 
-    Umodel.T, Umodel.S, 
+um.conventional_generator_limit = pyo.Constraint(
+    [g for g in um.G_D if g == 'Conventional'], 
+    um.T, um.S, 
     rule=conventional_generator_limit_rule
 )
 
@@ -233,12 +282,12 @@ considerando a disponibilidade de energia renovável.
 """
 def renewable_generator_limit_rule(model, g, t, s):
     return (
-        Umodel.P_D_g_t_s[g, t, s]**2 + Umodel.Q_D_g_t_s[g, t, s]**2 <= 
-        Umodel.r_g_t_s[g, t, s] * Umodel.S_D_g[g]**2
+        um.P_D_g_t_s[g, t, s]**2 + um.Q_D_g_t_s[g, t, s]**2 <= 
+        um.r_g_t_s[g, t, s] * um.S_D_g[g]**2
     )
-Umodel.renewable_generator_limit = pyo.Constraint(
-    [g for g in Umodel.G_D if g == 'Renewable'], 
-    Umodel.T, Umodel.S, 
+um.renewable_generator_limit = pyo.Constraint(
+    [g for g in um.G_D if g == 'Renewable'], 
+    um.T, um.S, 
     rule=renewable_generator_limit_rule
 )
 
@@ -249,11 +298,11 @@ para cada gerador em cada período e cenário seja igual à geração total.
 """
 def generation_bid_block_balance_rule(model, g, t, s):
     return (
-        sum(Umodel.rho_D_g_b_t_s[g, b, t, s] for b in Umodel.B_g[g]) == 
-        Umodel.P_D_g_t_s[g, t, s]
+        sum(um.rho_D_g_b_t_s[g, b, t, s] for b in um.B_g[g]) == 
+        um.P_D_g_t_s[g, t, s]
     )
-Umodel.generation_bid_block_balance = pyo.Constraint(
-    Umodel.G_D, Umodel.T, Umodel.S, 
+um.generation_bid_block_balance = pyo.Constraint(
+    um.G_D, um.T, um.S, 
     rule=generation_bid_block_balance_rule
 )
 
@@ -264,10 +313,10 @@ impedindo que um bloco ultrapasse sua capacidade predefinida.
 """
 def generation_bid_block_limit_rule(model, g, b, t, s):
     return (
-        Umodel.rho_D_g_b_t_s[g, b, t, s] <= Umodel.P_D_g_b[g, b]
+        um.rho_D_g_b_t_s[g, b, t, s] <= um.P_D_g_b[g, b]
     )
-Umodel.generation_bid_block_limit = pyo.Constraint(
-    Umodel.G_D, Umodel.B_g, Umodel.T, Umodel.S, 
+um.generation_bid_block_limit = pyo.Constraint(
+    um.G_D, um.B_g, um.T, um.S, 
     rule=generation_bid_block_limit_rule
 )
 
@@ -277,8 +326,8 @@ Eq. (12): Garante que a soma dos blocos de oferta aceitos para um gerador
 seja igual à sua geração total de potência ativa.
 """
 def bid_block_generation_rule(model, g, t, s):
-    return sum(Umodel.rho_D_g_b_t_s[g, b, t, s] for b in b) == Umodel.P_D_g_t_s[g, t, s]
-Umodel.bid_block_generation = pyo.Constraint(Umodel.G_D, Umodel.T, Umodel.S, rule=bid_block_generation_rule)
+    return sum(um.rho_D_g_b_t_s[g, b, t, s] for b in b) == um.P_D_g_t_s[g, t, s]
+um.bid_block_generation = pyo.Constraint(um.G_D, um.T, um.S, rule=bid_block_generation_rule)
 
 
 """
@@ -286,8 +335,8 @@ Eq. (13): Limita o bloco de oferta aceito ao tamanho máximo definido
 para aquele bloco específico.
 """
 def bid_block_limit_rule(model, g, b, t, s):
-    return Umodel.rho_D_g_b_t_s[g, b, t, s] <= Umodel.P_D_g_b[g, b]
-Umodel.bid_block_limit = pyo.Constraint(Umodel.G_D, b, Umodel.T, Umodel.S, rule=bid_block_limit_rule)
+    return um.rho_D_g_b_t_s[g, b, t, s] <= um.P_D_g_b[g, b]
+um.bid_block_limit = pyo.Constraint(um.G_D, b, um.T, um.S, rule=bid_block_limit_rule)
 
 
 """
@@ -295,8 +344,8 @@ Eq. (14): Define os limites inferiores e superiores para o deslocamento
 de carga em cada nó.
 """
 def load_shifting_limit_rule(model, i, t, s):
-    return (-Umodel.P_LS_i[i], Umodel.P_LS_i_t_s[i, t, s], Umodel.P_LS_i[i])
-Umodel.load_shifting_limit = pyo.Constraint(Umodel.N_D, Umodel.T, Umodel.S, rule=load_shifting_limit_rule)
+    return (-um.P_LS_i[i], um.P_LS_i_t_s[i, t, s], um.P_LS_i[i])
+um.load_shifting_limit = pyo.Constraint(um.dist_nodes, um.T, um.S, rule=load_shifting_limit_rule)
 
 
 """
@@ -304,17 +353,18 @@ Eq. (15): Garante que o deslocamento total de carga para cada nó ao
 longo de todos os períodos seja zero.
 """
 def load_shifting_balance_rule(model, i, s):
-    return sum(Umodel.P_LS_i_t_s[i, t, s] for t in Umodel.T) == 0
-Umodel.load_shifting_balance = pyo.Constraint(Umodel.N_D, Umodel.S, rule=load_shifting_balance_rule)
+    return sum(um.P_LS_i_t_s[i, t, s] for t in um.T) == 0
+um.load_shifting_balance = pyo.Constraint(um.dist_nodes, um.S, rule=load_shifting_balance_rule)
 
 
+#################### Armazenamento ##################
 """
 Eq. (16): Define os limites de carga e descarga para os sistemas 
 de armazenamento de energia.
 """
 def storage_power_limit_rule(model, i, t, s):
-    return (-Umodel.P_ESS_i[i], Umodel.P_ESS_i_t_s[i, t, s], Umodel.P_ESS_i[i])
-Umodel.storage_power_limit = pyo.Constraint(Umodel.N_D, Umodel.T, Umodel.S, rule=storage_power_limit_rule)
+    return (-um.P_ESS_i[i], um.P_ESS_i_t_s[i, t, s], um.P_ESS_i[i])
+um.storage_power_limit = pyo.Constraint(um.dist_nodes, um.T, um.S, rule=storage_power_limit_rule)
 
 
 """
@@ -323,10 +373,10 @@ dos sistemas de armazenamento de energia para cada nó.
 """
 def ess_soc_limit_rule(model, i, t, s):
     return (
-        Umodel.SOC_ESS_MIN[i] <= Umodel.SOC_i_t_s[i, t, s] <= 
-        Umodel.SOC_ESS_MAX[i]
+        um.SOC_ESS_MIN[i] <= um.SOC_i_t_s[i, t, s] <= 
+        um.SOC_ESS_MAX[i]
     )
-Umodel.ess_soc_limit = pyo.Constraint(Umodel.N_D, Umodel.T, Umodel.S, rule=ess_soc_limit_rule)
+um.ess_soc_limit = pyo.Constraint(um.dist_nodes, um.T, um.S, rule=ess_soc_limit_rule)
 
 
 """
@@ -334,16 +384,16 @@ Eq. (18-19): Calcula a evolução do Estado de Carga (SOC)
 dos sistemas de armazenamento ao longo do tempo.
 """
 def ess_soc_update_rule(model, i, t, s):
-    if t == Umodel.T.first():
-        return Umodel.SOC_i_t_s[i, t, s] == Umodel.SOC_i_0[i]
+    if t == um.T.first():
+        return um.SOC_i_t_s[i, t, s] == um.SOC_i_0[i]
     else:
         return (
-            Umodel.SOC_i_t_s[i, t, s] == 
-            Umodel.SOC_i_t_s[i, t-1, s] + 
-            Umodel.PESS_i_t_s[i, t, s] * Umodel.eta_charge - 
-            Umodel.PESS_i_t_s[i, t, s] / Umodel.eta_discharge
+            um.SOC_i_t_s[i, t, s] == 
+            um.SOC_i_t_s[i, t-1, s] + 
+            um.PESS_i_t_s[i, t, s] * um.eta_charge - 
+            um.PESS_i_t_s[i, t, s] / um.eta_discharge
         )
-Umodel.ess_soc_update = pyo.Constraint(Umodel.N_D, Umodel.T, Umodel.S, rule=ess_soc_update_rule)
+um.ess_soc_update = pyo.Constraint(um.dist_nodes, um.T, um.S, rule=ess_soc_update_rule)
 
 
 """
@@ -352,10 +402,12 @@ seja igual ao valor inicial para cada sistema de armazenamento.
 """
 def ess_final_soc_balance_rule(model, i, s):
     return (
-        Umodel.SOC_i_t_s[i, Umodel.T.last(), s] == Umodel.SOC_i_0[i]
+        um.SOC_i_t_s[i, um.T.last(), s] == um.SOC_i_0[i]
     )
-Umodel.ess_final_soc_balance = pyo.Constraint(Umodel.N_D, Umodel.S, rule=ess_final_soc_balance_rule)
+um.ess_final_soc_balance = pyo.Constraint(um.dist_nodes, um.S, rule=ess_final_soc_balance_rule)
 
+
+#################### Carbono ##################
 
 """
 Eq. (21): Calcula as emissões de carbono dos geradores 
@@ -363,10 +415,10 @@ conectados ao sistema de distribuição.
 """
 def carbon_emission_distribution_rule(model, g, t, s):
     return (
-        Umodel.nu_D_g_t_s[g, t, s] == 
-        Umodel.gamma_D_g[g] * Umodel.P_D_g_t_s[g, t, s]
+        um.nu_D_g_t_s[g, t, s] == 
+        um.gamma_D_g[g] * um.P_D_g_t_s[g, t, s]
     )
-Umodel.carbon_emission_distribution = pyo.Constraint(Umodel.G_D, Umodel.T, Umodel.S, rule=carbon_emission_distribution_rule)
+um.carbon_emission_distribution = pyo.Constraint(um.G_D, um.T, um.S, rule=carbon_emission_distribution_rule)
 
 
 """
@@ -374,10 +426,10 @@ Eq. (22): Estabelece o balanço de carbono para o sistema de distribuição.
 """
 def carbon_balance_distribution_rule(model, t, s):
     return (
-        sum(Umodel.rho_D_g_t_s[g, t, s] for g in Umodel.G_D) == 
-        -Umodel.rho_SE_t_s[t, s]
+        sum(um.rho_D_g_t_s[g, t, s] for g in um.G_D) == 
+        -um.rho_SE_t_s[t, s]
     )
-Umodel.carbon_balance_distribution = pyo.Constraint(Umodel.T, Umodel.S, rule=carbon_balance_distribution_rule)
+um.carbon_balance_distribution = pyo.Constraint(um.T, um.S, rule=carbon_balance_distribution_rule)
 
 
 """
@@ -385,7 +437,7 @@ Eq. (23): Define o limite de emissões de carbono para o sistema de distribuiç�
 """
 def carbon_emission_limit_distribution_rule(model, t, s):
     return (
-        sum(Umodel.nu_D_g_t_s[g, t, s] + Umodel.rho_D_g_t_s[g, t, s] for g in Umodel.G_D) <= 
-        Umodel.Gamma_D_t
+        sum(um.nu_D_g_t_s[g, t, s] + um.rho_D_g_t_s[g, t, s] for g in um.G_D) <= 
+        um.Gamma_D_t
     )
-Umodel.carbon_emission_limit_distribution = pyo.Constraint(Umodel.T, Umodel.S, rule=carbon_emission_limit_distribution_rule)
+um.carbon_emission_limit_distribution = pyo.Constraint(um.T, um.S, rule=carbon_emission_limit_distribution_rule)
