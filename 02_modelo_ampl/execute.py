@@ -2,6 +2,7 @@ from amplpy import AMPL, Environment
 import pathlib
 import amplpy
 
+
 # (1) Onde estão Novo.mod, input.dat, execute.run, *.inc…?
 basedir = pathlib.Path(".")   # ajuste o caminho
 
@@ -12,6 +13,21 @@ ampl.setOption('solver', 'ipopt')            # ou ipopt, cplex, gurobi…
 # (3) EXECUTA exatamente o que você faria no prompt AMPL ↓↓↓
 ampl.eval('include execute.run;')             # chama o .run
 
+#expand the objective function 'DSO_Costs'
+ampl.eval('expand DSO_Costs;')               # expande a função objetivo
+#expand the variable 'Bid'
+ampl.eval('expand Bid;')                     # expande a variável Bid
+#atribute the variable 'Bid' to a python object
+Bid = ampl.getVariable('Bid')
+
+import io
+from contextlib import redirect_stdout
+
+buf = io.StringIO()
+with redirect_stdout(buf):
+    ampl.eval('expand Bid;')
+
+expanded_bid = buf.getvalue()
 # -----------------------------------------------
 # Se o .run já contém 'solve', acabou!
 # Podemos coletar qualquer coisa que ele calculou:

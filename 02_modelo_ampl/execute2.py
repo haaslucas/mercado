@@ -12,7 +12,7 @@ ampl.setOption('solver', 'ipopt')            # ou ipopt, cplex, gurobi…
 ampl.eval("""
 reset;
 model Novo.mod;
-data  input.dat;
+data input.dat;
 """)
 
 # muda parâmetros direto no Python

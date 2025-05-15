@@ -137,7 +137,7 @@ else{
 option presolve_eps 2e-10;
 option solver ipopt;
 #option conopt_options 'outlev=1';
-option ipopt_options 'outlev=1 maxit=10000';
+option ipopt_options 'outlev=1 maxit=10';
 solve;
 
 display _total_solve_elapsed_time, DSO_Costs;

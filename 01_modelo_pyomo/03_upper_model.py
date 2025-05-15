@@ -9,7 +9,7 @@ I_t = I_t.values.tolist()
 dlines  = pd.read_csv(pasta + 'distribution_line_data.csv')
 tnodes = pd.read_csv(pasta + 'transmission_node_data.csv')
 dnodes = pd.read_csv(pasta + 'distribution_node_data.csv')
-
+dload = pd.read_csv(pasta + 'load_shape_data.csv')
 g_t_nd = pd.read_csv(pasta + 'transmission_connected_non_dispatchable_generators.csv')
 g_t_d  = pd.read_csv(pasta + 'transmission_connected_dispatchable_generators.csv')
 g_d_nd = pd.read_csv(pasta + 'dso_connected_non_dispatchable_generators.csv')
@@ -20,6 +20,7 @@ VBASE = 24.9              # kV
 IBASE = 100 * 1e3 / 24.90 # A
 SE_Capacity = 50          # MWh
 U=1                       # Rigidez da regulação de emissões de carbono   
+
 #nó de conexão entre a rede de distribuição e a rede de transmissão
 N_INF_d = 1
 N_INF_t = 5
@@ -40,6 +41,7 @@ um.B_g = pyo.Set()          # Set of bids provided by generator g
 um.G_D = pyo.Set()          # Set of distribution-connected generators
 um.G_i = pyo.Set()          # Set of generators connected to node i
 um.G_T = pyo.Set()          # Set of transmission-connected generators
+um.L_D = pyo.Set()          # Set of load shifting nodes
 um.D = pyo.Set()            # Set of distribution lines
 um.T = pyo.Set()            # Set of transmission lines
 
@@ -114,8 +116,8 @@ um.P_LS_i = pyo.Param(i, initialize=lambda m, i: 1)                  # Maximum n
 um.P_D_g_t_s = pyo.Var(um.G_D, um.T, um.S) # Active power dispatch of distribution-connected generators
 um.Q_D_g_t_s = pyo.Var()   # Generator reactive power dispatch
 
-um.P_ij_t_s = pyo.Var(um.d_lines, um.d_lines, um.T, um.S) # Active power flow on distribution lines
-
+um.P_ki_t_s = pyo.Var(um.d_lines, um.d_lines, um.T, um.S) # Distibution active power flow of comming lines
+um.P_ij_t_s = pyo.Var(um.d_lines, um.d_lines, um.T, um.S) # Distibution active power flow of going lines
 um.Q_ij_t_s = pyo.Var()    # Reactive power flow on distribution lines
 um.P_ESS_i_t_s = pyo.Var() # Power charge/discharge of storage systems
 um.P_LS_i_t_s = pyo.Var()  # Nodal load shift
@@ -172,11 +174,22 @@ Eq. (2): Garante o balanço de potência ativa nos nós da rede de distribuiçã
 considerando geração, fluxo de potência, armazenamento e intercâmbio com o sistema de transmissão.
 """
 def active_power_balance_distribution_rule(um, n, m, t, s):
+
     pot_geradores = sum(um.P_D_g_t_s[g, t, s] for g in g_d_d['Node'] if g in um.dist_nodes[n])
-    pot_entrando = sum(um.P_ij_t_s[n, m, t, s] + dlines['R (pu)'][n,m]*um.I[n, m, t, s])
+    pot_entrando  = sum(um.P_ij_t_s[n, m, t, s])
+
+    pot_saindo    = sum(um.P_ij_t_s[l, n, t, s] + dlines['R (pu)'][l,n]*um.I[l,n,t,s])
+    pot_ess       = sum(um.P_ESS_i_t_s[i, t, s] for i in um.dist_nodes[n] if i in um.dist_nodes[n])
+    pot_LS       = sum(um.P_LS_i_t_s[i, t, s] for i in um.dist_nodes[n] if i in um.dist_nodes[n])
+    pot_LD       = sum(um.L_D_i_t_s[i, t, s] for i in um.dist_nodes[n] if i in um.dist_nodes[n])
+
+    return pot_geradores + pot_entrando - pot_saindo + pot_ess == pot_LS + pot_LD
     
-      
-    return pot_geradores - pot_entrando
+    '''if n == N_INF_d:
+        return balanco_dist == 1
+    else:
+        return balanco_dist == 1'''
+
 um.active_power_balance_distribution = pyo.Constraint(um.dist_nodes, um.T, um.S, rule=active_power_balance_distribution_rule)
 
 
@@ -186,7 +199,8 @@ considerando geração, fluxo de potência, armazenamento e intercâmbio com o s
 """
 def active_power_balance_distribution_rule(model, i, t, s):
     return (
-        sum(um.P_D_g_t_s[g, t, s] for g in um.G_i[i]) -
+        sum(um.P_D_g_t_s[g, t, s] for g in um.G_i[i]) +
+        sum(um.P_ki_t_s[ki, t, s] for ki in um.D if ij in um.dist_nodes[i]) +
         sum(um.P_ij_t_s[ij, t, s] for ij in um.D if ij in um.N_D[i]) +
         um.P_ESS_i_t_s[i, t, s] + um.P_SE_i_t_s[i, t, s]
         == um.P_LS_i_t_s[i, t, s] + um.L_D_i_t_s[i, t, s]
@@ -194,7 +208,7 @@ def active_power_balance_distribution_rule(model, i, t, s):
 um.active_power_balance_distribution = pyo.Constraint(um.N_D, um.T, um.S, rule=active_power_balance_distribution_rule)
 
 
- 
+
 """
 Eq. (3): Garante o balanço de potência reativa nos nós da rede de distribuição, 
 considerando geração, fluxo de potência e intercâmbio com o sistema de transmissão.

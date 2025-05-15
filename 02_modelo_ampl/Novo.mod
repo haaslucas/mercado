@@ -249,7 +249,8 @@ s.t. ACTIVE_POWER_BALANCE{n in N, t in T, s in S}:
 #soma dos geradores nos nós G_LDA_Node[g] para os g no set G_D quando g é igual a n
 
 	sum{g in G_D:G_LDA_Node[g] == n}(P_thermal_dist[g,t,s])
-	-sum{(n,m) in L}(P[n,m,t,s] + R[n,m]*I[n,m,t,s])
+	-sum{(n,m) in L}(P[n,m,t,s] 
+	+R[n,m]*I[n,m,t,s])
 	+sum{(l,n) in L}(P[l,n,t,s]) 
 	#-sum{(n,m) in L}(Dist_Pfm[n,m,t,s])
 	#-sum{(m,n) in L}(Dist_Pto[m,n,t,s])
