@@ -42,15 +42,12 @@ param X    {L};          # branch reactance (ohm)
 param Z    {L};          # branch impedance (ohm)
 param Imax {L};          # branch maximum current (kA)
 
-
 param load1{S,T};
 param load2{S,T};
 param wind1{S,T};
 param wind2{S,T};
 param solar{S,T};
 param probability{S,T};
-
-
 
 #load_shape_data.csv	
 param ind1{T};
@@ -248,17 +245,22 @@ s.t. Calculate_GenCosts_Trans {t in T, g in G_T, s in S}:
 s.t. ACTIVE_POWER_BALANCE{n in N, t in T, s in S}: 
 #soma dos geradores nos nós G_LDA_Node[g] para os g no set G_D quando g é igual a n
 
-	sum{g in G_D:G_LDA_Node[g] == n}(P_thermal_dist[g,t,s])
-	-sum{(n,m) in L}(P[n,m,t,s] 
+	sum{g in G_D:G_LDA_Node[g] == n}(P_thermal_dist[g,t,s]) # pot geradores
+
+	-sum{(n,m) in L}(P[n,m,t,s] # pot saindo
 	+R[n,m]*I[n,m,t,s])
-	+sum{(l,n) in L}(P[l,n,t,s]) 
-	#-sum{(n,m) in L}(Dist_Pfm[n,m,t,s])
-	#-sum{(m,n) in L}(Dist_Pto[m,n,t,s])
-	+(if 1 == n then P_DSO[t,s])
-	-sum{i in LS:LS_Node[i] == n} (Dist_Shift[i,t,s]) 
-	+sum{i in ESS:ESS_Node[i] == n} (Dist_P_ESS[i,t,s])
-	= Dist_Load[n,t,s];
+
+	+sum{(l,n) in L}(P[l,n,t,s]) # pot entrando
+
+	+(if 1 == n then P_DSO[t,s]) # pot intercambio
+
+	-sum{i in LS:LS_Node[i] == n} (Dist_Shift[i,t,s]) # load shifting 
+
+	+sum{i in ESS:ESS_Node[i] == n} (Dist_P_ESS[i,t,s]) # pot ESS
 	
+	= Dist_Load[n,t,s];
+
+
 #s.t. REACTIVE_POWER_BALANCE{n in N, t in T, s in S}: 
 #	sum{g in G_D:G_LDA_Node[g] == n}(Q_thermal_dist[g,t,s])
 #	-sum{(n,m) in L}(Q[n,m,t,s] + X[n,m]*I[n,m,t,s])

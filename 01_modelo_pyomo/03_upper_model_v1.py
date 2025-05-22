@@ -47,11 +47,11 @@ model.G_i = pyo.Set()          # Set of generators connected to node i
 model.G_T = pyo.Set()          # Set of transmission-connected generators
 model.L_D = pyo.Set()          # Set of load shifting nodes
 model.D = pyo.Set()            # Set of distribution lines
-model.T = pyo.Set()            # Set of transmission lines
+model.T = pyo.RangeSet(1,24)            # Set of transmission lines
 model.N_D = pyo.Set()          # Set of distribution nodes
 model.N_T = pyo.Set()          # Set of transmission nodes
 model.N_INF = pyo.Set()        # Set of interface nodes
-model.S = pyo.Set()   
+model.S = pyo.RangeSet(1,5)   
 # Set of scenarios
 model.T = pyo.Set()            # Set of time periods
 
