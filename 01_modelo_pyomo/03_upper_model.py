@@ -16,17 +16,26 @@ dnodes = pd.read_csv(pasta + 'distribution_node_data.csv')
 ess = pd.read_csv(pasta + 'ess.csv',index_col=0)
 
 dload = pd.read_csv(pasta + 'load_shape_data.csv')
+dload_scn = pd.read_csv(pasta + 'scenario_distribution_connected_loads.csv')
+dload2 = pd.read_csv(pasta + 'dist_load.csv')
+
+a=1
+SBASE = 100               # MVA
+VBASE = 24.9              # kV
+IBASE = 100 * 1e3 / 24.90 # A
+SE_Capacity = 50          # MWh
+U=1                       # Rigidez da regulação de emissões de carbono   
+
+
+
+
 g_t_nd = pd.read_csv(pasta + 'transmission_connected_non_dispatchable_generators.csv')
 g_t_d  = pd.read_csv(pasta + 'transmission_connected_dispatchable_generators.csv')
 g_d_nd = pd.read_csv(pasta + 'dso_connected_non_dispatchable_generators.csv')
 g_d_d  = pd.read_csv(pasta + 'dso_connected_dispatchable_generators.csv')
 ls = pd.read_csv(pasta + 'ls.csv')
 
-SBASE = 100               # MVA
-VBASE = 24.9              # kV
-IBASE = 100 * 1e3 / 24.90 # A
-SE_Capacity = 50          # MWh
-U=1                       # Rigidez da regulação de emissões de carbono   
+
 
 #nó de conexão entre a rede de distribuição e a rede de transmissão
 N_INF_d = 1
@@ -50,12 +59,13 @@ um.Lfrom = pyo.Set(initialize=dlines.index.get_level_values(0).tolist()) # Set o
 um.Lto = pyo.Set(initialize=dlines.index.get_level_values(1).tolist()) # Set of distribution lines
 um.N = pyo.RangeSet(1,34) # Set of transmission nodes
 um.B_g = pyo.Set()          # Set of bids provided by generator g
-um.G_D = pyo.RangeSet(1, 5)      # Set of distribution-connected generators
+#um.G_D = pyo.Set(list(g_d_d['Node'].values))      # Set of distribution-connected generators
+um.G_D = pyo.Set(initialize=g_d_d['Node'].tolist())      # Set of distribution-connected generators
 um.G_T = pyo.RangeSet(1, 5)      # Set of transmission-connected generators
 um.G_i = pyo.Set()          # Set of generators connected to node i
 um.L_D = pyo.Set()          # Set of load shifting nodes
 um.D = pyo.Set()            # Set of distribution lines
-
+um.ess = pyo.RangeSet(1, 2)      # Set of energy storage systems
 um.d_nodes = pyo.RangeSet(1, 34) # Set of distribution nodes
 
 
@@ -139,8 +149,8 @@ um.Q_D_g_t_s = pyo.Var()   # Generator reactive power dispatch
 um.P_ki_t_s = pyo.Var(um.L, um.T, um.S) # Distibution active power flow of comming lines
 um.P_ij_t_s = pyo.Var(um.L, um.T, um.S) # Distibution active power flow of going lines
 um.Q_ij_t_s = pyo.Var()    # Reactive power flow on distribution lines
-um.P_ESS_i_t_s = pyo.Var() # Power charge/discharge of storage systems
-um.P_LS_i_t_s = pyo.Var()  # Nodal load shift
+um.P_ESS_i_t_s = pyo.Var(um.ess, um.T, um.S) # Power charge/discharge of storage systems
+um.P_LS_i_t_s = pyo.Var(um.N, um.T, um.S)  # Nodal load shift
 um.V_SQ_i_t_s = pyo.Var()  # Nodal voltage magnitude squared
 um.SOC_i_t_s = pyo.Var()   # State of charge of energy storage systems
 
@@ -175,27 +185,26 @@ um.objective = pyo.Objective(
 Eq. (2): Garante o balanço de potência ativa nos nós da rede de distribuição, 
 considerando geração, fluxo de potência, armazenamento e intercâmbio com o sistema de transmissão.
 """
-def active_power_balance_distribution_rule(um, lfrom, lto, n, t, s):
+def active_power_balance_distribution_rule(um, lfrom, lto, n, t, s, e):
     l = (lfrom,lto)
     
-    pot_Geradores = sum(um.P_D_g_t_s[g, t, s] for g in g_d_d['Node'] if g == n)
+    pot_Geradores   = sum(um.P_D_g_t_s[g, t, s] for g in g_d_d['Node'] if g == n)
     
-    pot_Entrando  = sum(um.P_ij_t_s[l, t, s] for l in um.L if l[1] == n) 
+    pot_Entrando    = sum(um.P_ij_t_s[l, t, s] for l in um.L if l[1] == n) 
 
-    pot_Saindo    = sum(um.P_ij_t_s[l, t, s]   + dlines['R (pu)'].loc[l] * um.I[l,t,s] for l in um.L )
+    pot_Saindo      = sum(um.P_ij_t_s[l, t, s]   + dlines['R (pu)'].loc[l] * um.I[l,t,s] for l in um.L )
 
-    pot_ESS       = sum(um.P_ESS_i_t_s[i, t, s] for bess in ess['Node'] if bess == n)
+    pot_ESS         = sum(um.P_ESS_i_t_s[e , t, s] for bess in ess['Node'] if bess == n)
     
-    pot_Intercambio= sum(um.P_SE_i_t_s[i, t, s] for i in um.N_INF if i == n)
+    pot_Intercambio = sum(um.P_SE_i_t_s[i, t, s] for i in um.N_INF if i == n)
     
-    pot_LoadDemand       = sum(um.L_D_i_t_s[i, t, s] for i in um.dist_nodes[n] if i in um.dist_nodes[n])
+    pot_LoadShift   = sum(um.P_LS_i_t_s[i, t, s] for i in ls['Node'] if i == n)
     
-    pot_LoadShift       = sum(um.P_LS_i_t_s[i, t, s] for i in ls['Node'] if i == n)
+    pot_LoadDemand  = dload2['Load'][(dload2['Node'] == n) & (dload2['Hour'] == t) & (dload2['Scenario'] == s)].iloc[0]
     
-
     return pot_Geradores + pot_Entrando - pot_Saindo + pot_ESS + pot_Intercambio == pot_LoadDemand + pot_LoadShift 
 
-um.active_power_balance_distribution = pyo.Constraint(um.L, um.N, um.T, um.S, rule=active_power_balance_distribution_rule)
+um.active_power_balance_distribution = pyo.Constraint(um.L, um.N, um.T, um.S, um.ess,  rule=active_power_balance_distribution_rule)
 
 
 

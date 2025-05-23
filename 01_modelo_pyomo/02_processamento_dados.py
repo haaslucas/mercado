@@ -118,3 +118,62 @@ def create_superior_model():
 if __name__ == "__main__":
     model = create_superior_model()
     # Aqui você pode adicionar a resolução do modelo
+
+
+'''
+função pra criar o dist_load_df
+
+
+# Supondo que Dist_Load seja um dicionário para armazenar os valores
+Dist_Load = {}
+
+for n in dnodes['Node'].unique():  # Acesse valores únicos de 'Node'
+    for t in dload['Hour'].unique():
+        for s in dload_scn['#Scenario'].unique():
+            # Obtenha o tipo de nó e a demanda máxima
+            node_type = dnodes['Load Shape'][dnodes['Node'] == n].values[0]
+            max_demand = dnodes['Maximum Demand (MW)'][dnodes['Node'] == n].values[0]
+
+            if node_type == 'IND1':
+                Dist_Load[(n, t, s)] = max_demand * dload['ind1'][dload['Hour'] == t].values[0] * dload_scn['Loading Factor'][dload_scn['#Scenario'] == s].values[0] / SBASE
+            elif node_type == 'IND2':
+                Dist_Load[(n, t, s)] = max_demand * dload['ind2'][dload['Hour'] == t].values[0] * dload_scn['Loading Factor'][dload_scn['#Scenario'] == s].values[0] / SBASE
+            elif node_type == 'IND3':
+                Dist_Load[(n, t, s)] = max_demand * dload['ind3'][dload['Hour'] == t].values[0] * dload_scn['Loading Factor'][dload_scn['#Scenario'] == s].values[0] / SBASE
+            elif node_type == 'RES1':
+                Dist_Load[(n, t, s)] = max_demand * dload['res1'][dload['Hour'] == t].values[0] * dload_scn['Loading Factor'][dload_scn['#Scenario'] == s].values[0] / SBASE
+            elif node_type == 'RES4':
+                Dist_Load[(n, t, s)] = max_demand * dload['res4'][dload['Hour'] == t].values[0] * dload_scn['Loading Factor'][dload_scn['#Scenario'] == s].values[0] / SBASE
+            elif node_type == 'RES5':
+                Dist_Load[(n, t, s)] = max_demand * dload['res5'][dload['Hour'] == t].values[0] * dload_scn['Loading Factor'][dload_scn['#Scenario'] == s].values[0] / SBASE
+            elif node_type == 'OFF1':
+                Dist_Load[(n, t, s)] = max_demand * dload['off1'][dload['Hour'] == t].values[0] * dload_scn['Loading Factor'][dload_scn['#Scenario'] == s].values[0] / SBASE
+            elif node_type == 'OFF4':
+                Dist_Load[(n, t, s)] = max_demand * dload['off4'][dload['Hour'] == t].values[0] * dload_scn['Loading Factor'][dload_scn['#Scenario'] == s].values[0] / SBASE
+                
+# Converter o dicionário Dist_Load para um DataFrame
+dist_load_df = pd.DataFrame.from_dict(
+    Dist_Load,
+    orient='index',  # Os índices do dicionário se tornam as linhas do DataFrame
+    columns=['Load']  # Coluna para os valores do dicionário
+)
+
+# Adiciona colunas adicionais de Node, Hour e Scenario
+dist_load_df.reset_index(inplace=True)
+dist_load_df[['Node', 'Hour', 'Scenario']] = pd.DataFrame(dist_load_df['index'].tolist(), index=dist_load_df.index)
+dist_load_df.drop(columns='index', inplace=True)
+
+# Reorganiza as colunas
+dist_load_df = dist_load_df[['Node', 'Hour', 'Scenario', 'Load']]
+
+# sort dist_load_df by Scenario, Node and Hour
+dist_load_df.sort_values(by=['Scenario', 'Hour', 'Node'], inplace=True)
+dist_load_df.to_csv(pasta + 'dist_load.csv', index=False)
+
+df = pd.DataFrame.from_dict(Dist_Load, orient='index', columns=['Dist_Load'])
+df.reset_index(inplace=True)
+
+
+
+
+'''
