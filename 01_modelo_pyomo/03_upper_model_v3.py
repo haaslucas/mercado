@@ -36,6 +36,10 @@ g_d_nd = pd.read_csv(pasta + 'dso_connected_non_dispatchable_generators.csv')
 g_d_d  = pd.read_csv(pasta + 'dso_connected_dispatchable_generators.csv')
 ls = pd.read_csv(pasta + 'ls.csv')
 
+# Precompute data structures for faster rule construction
+ess_node_map_dict = ess['Node'].to_dict()
+dload_dict_actual = dload2.set_index(['Node', 'Hour', 'Scenario'])['Load'].to_dict()
+ls_nodes_actual_set = set(ls['Node'].unique())
 
 
 #nó de conexão entre a rede de distribuição e a rede de transmissão
@@ -191,22 +195,43 @@ considerando geração, fluxo de potência, armazenamento e intercâmbio com o s
 
 
 
-def active_power_balance_distribution_rule(um, n, t, s, e):
-    pot_Geradores = sum(um.P_D_g_t_s[g, t, s] for g in g_d_d['Node'] if g == n)
+def active_power_balance_distribution_rule(model, n, t, s, e): # 'model' is 'um'
+    # pot_Geradores: Assumes P_D_g_t_s[n,t,s] is total power if node n has a generator.
+    # model.G_D is a Set of nodes with distribution generators.
+    pot_Geradores = model.P_D_g_t_s[n, t, s] if n in model.G_D else 0.0
     
-    # Calcular pot_Entrando e pot_Saindo em uma única iteração através de L
-    pot_Entrando = 0
-    pot_Saindo = 0
-    pot_ESS = sum(um.P_ESS_i_t_s[e, t, s] for bess in ess['Node'] if bess == n)
+    # pot_Entrando and pot_Saindo
+    pot_Entrando = 0.0
+    # These sums are over all lines in model.L as per original logic
+    pot_Saindo_P_ij_sum = 0.0
+    pot_Saindo_losses_sum = 0.0
 
-    for l in um.L:
-        if l[1] == n:
-            pot_Entrando += um.P_ij_t_s[l, t, s]
-        pot_Saindo += um.P_ij_t_s[l, t, s] + dlines['R (pu)'].loc[l] * um.I[l, t, s]
+    for l_tuple in model.L: # l_tuple is (from_node, to_node)
+        if l_tuple[1] == n: # If line l_tuple terminates at node n
+            pot_Entrando += model.P_ij_t_s[l_tuple, t, s]
+        
+        # Summing P_ij and losses for ALL lines in model.L for the pot_Saindo term
+        pot_Saindo_P_ij_sum += model.P_ij_t_s[l_tuple, t, s]
+        pot_Saindo_losses_sum += dlines.loc[l_tuple, 'R (pu)'] * model.I[l_tuple, t, s]
 
-    pot_LoadDemand = dload2['Load'][(dload2['Node'] == n) & (dload2['Hour'] == t) & (dload2['Scenario'] == s)].iloc[0]
-    pot_LoadShift = sum(um.P_LS_i_t_s[i, t, s] for i in ls['Node'] if i == n)
-    pot_Intercambio = sum(um.P_SE_i_t_s[i, t, s] for i in um.N_INF if i == n)
+    pot_Saindo = pot_Saindo_P_ij_sum + pot_Saindo_losses_sum
+            
+    # pot_ESS: Power from specific ESS unit 'e' if it's at node 'n'.
+    # ess_node_map_dict maps ess_idx (which is 'e' here) to its node_num.
+    pot_ESS = model.P_ESS_i_t_s[e, t, s] if ess_node_map_dict.get(e) == n else 0.0
+
+    # pot_LoadDemand: Load at (n, t, s) from precomputed dict.
+    pot_LoadDemand = dload_dict_actual.get((n, t, s), 0.0)
+
+    # pot_LoadShift: Load shift at node 'n' if 'n' is a load shifting node.
+    # model.P_LS_i_t_s is indexed by (node from model.N, t, s).
+    pot_LoadShift = model.P_LS_i_t_s[n, t, s] if n in ls_nodes_actual_set else 0.0
+    
+    # pot_Intercambio: Power exchange if node 'n' is an interface node.
+    # Assumes P_SE_i_t_s is indexed by node, t, s.
+    pot_Intercambio = model.P_SE_i_t_s[n, t, s] if n in model.N_INF else 0.0
+    # If P_SE_i_t_s is defined only on (T,S) as per Var def, then:
+    # pot_Intercambio = model.P_SE_i_t_s[t, s] if n in model.N_INF else 0.0
 
     return pot_Geradores + pot_Entrando - pot_Saindo + pot_ESS + pot_Intercambio == pot_LoadDemand + pot_LoadShift
 
