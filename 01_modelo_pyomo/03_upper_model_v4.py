@@ -118,6 +118,16 @@ um.pi_C_t_s = pyo.Param(um.T, um.S, initialize=lambda m, t, s: 1)          # Bid
 um.U = pyo.Param(initialize=lambda m: 1)                             # Rigidity of the carbon emission regulation
 um.Lambda = pyo.Param(initialize=lambda m: 1)                        # Average carbon intensity of the entire power system
 
+# Cost parameters for distribution generators
+um.a_d = pyo.Param(um.G_D, initialize=lambda m, g_node: g_d_d.loc[g_d_d['Node'] == g_node, 'a'].iloc[0])
+um.b_d = pyo.Param(um.G_D, initialize=lambda m, g_node: g_d_d.loc[g_d_d['Node'] == g_node, 'b'].iloc[0])
+um.c_d = pyo.Param(um.G_D, initialize=lambda m, g_node: 0.0) # Assuming c_d is 0 as it's not in the CSV
+
+# Cost parameters for transmission generators (um.G_T is 1-based RangeSet, g_t_d is 0-indexed)
+um.a_t = pyo.Param(um.G_T, initialize=lambda m, g_id: g_t_d.iloc[g_id-1]['a'])
+um.b_t = pyo.Param(um.G_T, initialize=lambda m, g_id: g_t_d.iloc[g_id-1]['b'])
+um.c_t = pyo.Param(um.G_T, initialize=lambda m, g_id: 0.0) # Assuming c_t is 0 as it's not in the CSV
+
 # Parâmetros das linhas de distribuição dlines = distribution_line_data.csv
 um.R = pyo.Param(i, initialize=lambda m,i: dlines['R (pu)'])                 # branch resistance (ohm)
 um.X = pyo.Param(i, initialize=lambda m,i: dlines['X (pu)'])                 # branch reactance (ohm)
@@ -139,11 +149,21 @@ um.P_LS_i = pyo.Param(i, initialize=lambda m, i: 1)                  # Maximum n
 # Variáveis relacionadas à distribuição
 
 um.I = pyo.Var(um.L,  um.T, um.S) # Distibution current flow of lines
-um.C_D_g_b = pyo.Var(um.T, um.S)           # Distribution-connected generators' bids
-um.C_T_g_b = pyo.Var(um.T, um.S)           # Transmission-connected generators' bids
+# um.C_D_g_b = pyo.Var(um.T, um.S)           # Distribution-connected generators' bids (part of old objective)
+# um.C_T_g_b = pyo.Var(um.T, um.S)           # Transmission-connected generators' bids (part of old objective)
 
-um.rho_D_g_b_t_s = pyo.Var(um.T, um.S) # Accepted bid of block b
+# um.rho_D_g_b_t_s = pyo.Var(um.T, um.S) # Accepted bid of block b (part of old objective)
 um.P_D_g_t_s = pyo.Var(um.G_D, um.T, um.S, domain=pyo.NonNegativeReals) # Active power dispatch of distribution-connected generators
+
+
+# Variables from AMPL objective and cost constraints
+um.Bid = pyo.Var(um.T, um.S, bounds=(None, 500.0))
+um.P_DSO = pyo.Var(um.T, um.S) # Power exchange with transmission, corresponds to P_DSO in AMPL objective
+um.GenCosts_dist = pyo.Var(um.G_D, um.T, um.S, domain=pyo.NonNegativeReals)
+um.Carbon_Price = pyo.Var(um.T, um.S, bounds=(None, 5.0))
+um.Carbon_SE = pyo.Var(um.T, um.S) # Carbon allowances traded with ISO / SE
+um.GenCosts_trans = pyo.Var(um.G_T, um.T, um.S, domain=pyo.NonNegativeReals)
+
 
 g_d_d['P_max (MW)']
 g_d_d['P_min (MW)']
@@ -171,7 +191,7 @@ um.V_SQ_i_t_s = pyo.Var()  # Nodal voltage magnitude squared
 um.SOC_i_t_s = pyo.Var()   # State of charge of energy storage systems
 
 # Variáveis relacionadas à transmissão
-um.P_T_g_t_s = pyo.Var()    # Generator's total power dispatch
+um.P_T_g_t_s = pyo.Var(um.G_T, um.T, um.S, domain=pyo.NonNegativeReals)    # Generator's total power dispatch
 um.PF_l_t_s = pyo.Var()     # Power flow on transmission lines
 um.Q_SE_i_t_s = pyo.Var()   # Reactive power trades in the wholesale market
 
@@ -183,19 +203,33 @@ um.rho_T_g_b_t_s = pyo.Var() # Accepted bid of block b
 um.upsilon_T_g_t_s = pyo.Var() # Carbon allowances absorbed/provided by generator g
 
 
-# Função Objetivo para o DSO (Upper-level problem)
-um.objective = pyo.Objective(
-    expr=sum(
-        um.p_s_t * (
-            # Custos de geração dos geradores conectados à rede de distribuição
-            um.C_D_g_b[t, s] * um.rho_D_g_b_t_s[t, s] +
-            # Receita de troca de allowances de carbono com o ISO
-            um.upsilon_t_s[t, s] * um.rho2_SE_t_s[t, s] +
-            # Receita de intercâmbio de energia com o ISO nos nós de interface
-            sum( um.P_SE_i_t_s[i, t, s] * um.lambda_t_s[i, t, s] for i in um.N_INF )
-            ) for s in um.S  for t in um.T),
-    sense = pyo.minimize
-)
+# Função Objetivo para o DSO (Upper-level problem) - Matching AMPL Novo.mod DSO_Costs
+def objective_rule(model):
+    cost = 0
+    for s_idx in model.S: # Iterate over actual set members
+        for t_idx in model.T: # Iterate over actual set members
+            cost += (model.Bid[t_idx,s_idx] * model.P_DSO[t_idx,s_idx] +
+                     sum(model.GenCosts_dist[g,t_idx,s_idx] for g in model.G_D) + # g is already a member of G_D
+                     model.Carbon_Price[t_idx,s_idx] * model.Carbon_SE[t_idx,s_idx])
+    return cost
+
+um.objective = pyo.Objective(rule=objective_rule, sense=pyo.minimize)
+
+
+# Constraint for calculating generation costs for distribution generators
+def calculate_gen_costs_dist_rule(model, g, t, s):
+    return model.GenCosts_dist[g,t,s] == model.a_d[g] * model.P_D_g_t_s[g,t,s]**2 + \
+                                         model.b_d[g] * model.P_D_g_t_s[g,t,s] + \
+                                         model.c_d[g]
+um.Calculate_GenCosts_Dist = pyo.Constraint(um.G_D, um.T, um.S, rule=calculate_gen_costs_dist_rule)
+
+# Constraint for calculating generation costs for transmission generators
+def calculate_gen_costs_trans_rule(model, g, t, s):
+    return model.GenCosts_trans[g,t,s] == model.a_t[g] * model.P_T_g_t_s[g,t,s]**2 + \
+                                           model.b_t[g] * model.P_T_g_t_s[g,t,s] + \
+                                           model.c_t[g]
+um.Calculate_GenCosts_Trans = pyo.Constraint(um.G_T, um.T, um.S, rule=calculate_gen_costs_trans_rule)
+
 
 # Definindo as restrições de potência mínima e máxima
 def power_max_rule(model, g, t, s):
