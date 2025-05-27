@@ -1,0 +1,25 @@
+for{g in G_T}{
+	let Pmax_t[g] := Pmax_t[g] / SBASE;
+	let Pmin_t[g] := Pmin_t[g] / SBASE;
+	let a_t[g] := a_t[g] * SBASE^2;
+	let b_t[g] := b_t[g] * SBASE;
+	
+	for {p in B}{
+		let P_block_t[g,p] := Pmax_t[g]/card(B);
+		let Price_block_t[g,p] := 2*a_t[g]*P_block_t[g,p]*p + b_t[g];
+	};
+};
+
+
+
+for{g in G_D}{
+	let Pmax_d[g] := Pmax_d[g] / SBASE;
+	let Pmin_d[g] := Pmin_d[g] / SBASE;
+	let a_d[g] := a_d[g] * SBASE^2;
+	let b_d[g] := b_d[g] * SBASE;
+	
+	for {p in B}{
+		let P_block_d[g,p] := Pmax_d[g]/card(B);
+		let Price_block_d[g,p] := 2*a_d[g]*P_block_d[g,p]*p + b_d[g];
+	};
+};

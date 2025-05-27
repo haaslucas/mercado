@@ -1,0 +1,130 @@
+reset;
+option solver conopt      ;
+#option solver BARON;
+#option baron_options "outlev = 1";
+
+#option solver cplex;
+#option solver cplexamp;
+#option cplex_options 'iisfind 1 mipdisplay=2 mipgap= 5e-5';
+#option cplex_options 'mipdisplay=2 mipgap= 5e-5';
+#option cplex_options "mipdisplay=2 iisfind 1 integrality = 1e-3 mipgap= 0 absmipgap = 0 time 1800 ";
+#option cplex_options "mipdisplay=2 iisfind 1 integrality = 1e-3 time 1800000000 ";
+
+#option solver gurobi;
+#option gurobi_options "outlev = 1";
+
+#option solver xpress;
+#option xpress_options "outlev = 1";
+
+model NLP.mod;
+#model Central.mod;
+#model LinearMod.mod;
+data new_input.dat;
+
+
+
+param U;
+let U:=1;
+
+
+
+
+for{l in Trans_Lines}{
+	let Trans_Capacity[l] := Trans_Capacity[l] / SBASE;
+	for{n in Trans_Nodes}{
+		let Trans_Incidencia[n,l] := 0;
+	};	
+};
+
+for{l in Trans_Lines}{
+	let Trans_Incidencia[From[l],l] :=  1;
+	let Trans_Incidencia[To[l],l]   := -1;
+};
+
+
+
+
+let {n in ESS} Dist_P_ESS_min[n] := Dist_P_ESS_min[n]/SBASE;
+let {n in ESS} Dist_P_ESS_max[n] := Dist_P_ESS_max[n]/SBASE;
+let {n in ESS} Dist_SOC_min[n] := Dist_SOC_min[n]/SBASE;
+let {n in ESS} Dist_SOC_max[n] := Dist_SOC_max[n]/SBASE;
+let {n in ESS} Dist_SOC_initial[n] := Dist_SOC_initial[n]/SBASE;
+
+
+let {(n,m) in L} Z[n,m]  := sqrt(R[n,m]^2+X[n,m]^2);
+let {(n,m) in L} Imax[n,m] := (Imax[n,m]/(SBASE*1e3/VBASE));
+
+let {g in G_T} Pmax_t[g] := Pmax_t[g] / SBASE;
+let {g in G_T} Pmin_t[g] := Pmin_t[g] / SBASE;
+let {g in G_T} a_t[g] := a_t[g] * SBASE^2;
+let {g in G_T} b_t[g] := b_t[g] * SBASE;
+let {g in G_T} Carbon_Cost_t[g] := Carbon_Cost_t[g] * SBASE;
+
+let {g in G_D} Pmax_d[g] := Pmax_d[g] / SBASE;
+let {g in G_D} Pmin_d[g] := Pmin_d[g] / SBASE;
+let {g in G_D} a_d[g] := a_d[g] * SBASE^2;
+let {g in G_D} b_d[g] := b_d[g] * SBASE;
+let {g in G_D} Carbon_Cost_d[g] := Carbon_Cost_d[g] * SBASE;
+
+
+for{n in Trans_Nodes, t in T} {
+	if (Trans_Type[n] == "L2") then
+		let Trans_Load[n,t] := Trans_Inst_Cap[n] * L2[t] / SBASE;
+		
+	else if (Trans_Type[n] == "L3") then
+		let Trans_Load[n,t] := Trans_Inst_Cap[n] * L3[t] / SBASE;
+		
+	else if (Trans_Type[n] == "L4") then
+		let Trans_Load[n,t] := Trans_Inst_Cap[n] * L4[t] / SBASE;
+					
+	else if (Trans_Type[n] == "L6") then
+		let Trans_Load[n,t] := Trans_Inst_Cap[n] * L6[t] / SBASE;
+		
+	else if (Trans_Type[n] == "L8") then
+		let Trans_Load[n,t] := Trans_Inst_Cap[n] * L8[t] / SBASE;
+};
+	
+for{n in N, t in T} {  	
+	if (Dist_Type[n] == "IND1") then
+		let Dist_Load[n,t] := Dist_Inst_Cap[n] * ind1[t] / SBASE;
+	else if (Dist_Type[n] == "IND2") then
+		let Dist_Load[n,t] := Dist_Inst_Cap[n] * ind2[t] / SBASE;
+	else if (Dist_Type[n] == "IND3") then
+		let Dist_Load[n,t] := Dist_Inst_Cap[n] * ind3[t] / SBASE;
+		
+	else if (Dist_Type[n] == "RES1") then
+		let Dist_Load[n,t] := Dist_Inst_Cap[n] * res1[t] / SBASE;
+	else if (Dist_Type[n] == "RES4") then
+		let Dist_Load[n,t] := Dist_Inst_Cap[n] * res4[t] / SBASE;
+	else if (Dist_Type[n] == "RES5") then
+		let Dist_Load[n,t] := Dist_Inst_Cap[n] * res5[t] / SBASE;
+		
+	else if (Dist_Type[n] == "OFF1") then
+		let Dist_Load[n,t] := Dist_Inst_Cap[n] * off1[t] / SBASE;
+	else if (Dist_Type[n] == "OFF4") then
+		let Dist_Load[n,t] := Dist_Inst_Cap[n] * off4[t] / SBASE;	
+};
+
+
+let Emission_Weighted_Average := sum{g in G_T}(Pmax_t[g]*Carbon_Cost_t[g])/sum{j in G_T}(Pmax_t[j]);
+let Emission_Weighted_Average := Emission_Weighted_Average * U;
+
+let {t in T} Carbon_Limit_Trans[t] := Emission_Weighted_Average * sum{n in Trans_Nodes}(Trans_Load[n,t]);
+let {t in T} Carbon_Limit_Dist[t] :=  Emission_Weighted_Average * sum{n in N}(Dist_Load[n,t]);
+
+
+solve;
+#include print_energy.inc;
+#include print_carbon.inc;
+#include print_injection.inc;
+
+
+printf 'DSO Payoff: %10.2f\n', sum{t in T} (Bid[t] * P_DSO[t]) + sum{t in T, g in G_D}(GenCosts_dist[g,t]) + sum{t in T} (Carbon_Price[t] * Carbon_SE[t]);
+printf 'ISO Payoff: %10.2f\n', sum{t in T} -(Bid[t] * P_DSO[t]) + sum{t in T, g in G_T}(GenCosts_trans[g,t]) - sum{t in T} (Carbon_Price[t] * Carbon_SE[t]);
+printf 'Total Generation Costs: %10.2f\n', sum{t in T, g in G_T}(GenCosts_trans[g,t]) + sum{t in T, g in G_D}(GenCosts_dist[g,t]);
+#printf 'Transmission Carbon Emission Daily Limit: %10.2f\n', sum{t in T} Carbon_Limit[t];
+printf '\n\n\n\n';
+
+printf 'DSO Energy Market Revenue: %10.2f\n', sum{t in T} (-Bid[t] * P_DSO[t]);
+printf 'DSO Carbon Market Revenue: %10.2f\n', sum{t in T} (-Carbon_Price[t] * Carbon_SE[t]);
+printf 'DSO Generation Costs: %10.2f\n', sum{t in T, g in G_D}(GenCosts_dist[g,t]);
