@@ -182,9 +182,6 @@ a=1
 
 
 
-
-'''
-
 """
 Eq. (3): Garante o balanço de potência reativa nos nós da rede de distribuição, 
 considerando geração, fluxo de potência e intercâmbio com o sistema de transmissão.
@@ -431,4 +428,3 @@ def carbon_emission_limit_distribution_rule(model, t, s):
         model.Gamma_D_t
     )
 model.carbon_emission_limit_distribution = pyo.Constraint(model.T, model.S, rule=carbon_emission_limit_distribution_rule)
-'''

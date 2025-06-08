@@ -226,6 +226,7 @@ var DSO_Revenue{T, S};
 var GenCosts_dist{G_D, T, S} >= 0;
 var GenCosts_trans{G_T, T, S} >= 0;
 
+# eq 1
 minimize DSO_Costs: sum{s in S, t in T} (1 * (
 					(Bid[t,s] * P_DSO[t,s]) 
 					+ sum{g in G_D}(GenCosts_dist[g,t,s])
@@ -242,7 +243,7 @@ s.t. Calculate_GenCosts_Trans {t in T, g in G_T, s in S}:
 #s.t. Calculate_DSO_Revenue{t in T}: DSO_Revenue[t] = lambda[5,t] * P_DSO[t] 
 #								+ sum{g in G_T, n in LDA} (Carbon_Price[t] * Carbon_SE[n,g,t]);
 
-s.t. ACTIVE_POWER_BALANCE{n in N, t in T, s in S}: 
+s.t. ACTIVE_POWER_BALANCE{n in N, t in T, s in S}: #eq
 #soma dos geradores nos nós G_LDA_Node[g] para os g no set G_D quando g é igual a n
 
 	sum{g in G_D:G_LDA_Node[g] == n}(P_thermal_dist[g,t,s]) # pot geradores

@@ -9,7 +9,8 @@ I_t = pd.read_csv(pasta + 'matriz_incidencia_transmissao.csv')
 I_t = I_t.values.tolist()
 
 dlines  = pd.read_csv(pasta + 'distribution_line_data.csv')
-#dlines = dlines.iloc[:1,:]
+
+dlines
 dlines = dlines.set_index(['From', 'To'])
 
 tnodes = pd.read_csv(pasta + 'transmission_node_data.csv')
@@ -36,10 +37,6 @@ g_d_nd = pd.read_csv(pasta + 'dso_connected_non_dispatchable_generators.csv')
 g_d_d  = pd.read_csv(pasta + 'dso_connected_dispatchable_generators.csv')
 ls = pd.read_csv(pasta + 'ls.csv')
 
-# Precompute data structures for faster rule construction
-ess_node_map_dict = ess['Node'].to_dict()
-dload_dict_actual = dload2.set_index(['Node', 'Hour', 'Scenario'])['Load'].to_dict()
-ls_nodes_actual_set = set(ls['Node'].unique())
 
 
 #nó de conexão entre a rede de distribuição e a rede de transmissão
@@ -75,8 +72,8 @@ um.d_nodes = pyo.RangeSet(1, 34) # Set of distribution nodes
 
 
 um.N_T = pyo.Set()          # Set of transmission nodes
-um.N_INF = pyo.RangeSet(1, 1)         # Set of interface nodes
-um.S = pyo.RangeSet(1, 1)      # Set of scenarios
+um.N_INF = pyo.Set()          # Set of interface nodes
+um.S = pyo.RangeSet(1, 5)      # Set of scenarios
 um.T = pyo.RangeSet(1, 24)      # Set of time periods
 
 
@@ -143,21 +140,10 @@ um.C_D_g_b = pyo.Var(um.T, um.S)           # Distribution-connected generators' 
 um.C_T_g_b = pyo.Var(um.T, um.S)           # Transmission-connected generators' bids
 
 um.rho_D_g_b_t_s = pyo.Var(um.T, um.S) # Accepted bid of block b
-um.P_D_g_t_s = pyo.Var(um.G_D, um.T, um.S, domain=pyo.NonNegativeReals) # Active power dispatch of distribution-connected generators
-
-g_d_d['P_max (MW)']
-g_d_d['P_min (MW)']
-
-'''s.t. MAXIMUM_DG_ACTIVE_POWER {t in T, g in G_D, s in S}:
-    P_thermal_dist[g,t,s] <=   Pmax_d[g];											
-
-s.t. MINIMUM_DG_ACTIVE_POWER {t in T, g in G_D, s in S}:
-    P_thermal_dist[g,t,s] >=   Pmin_d[g];	'''
-
-
+um.P_D_g_t_s = pyo.Var(um.G_D, um.T, um.S) # Active power dispatch of distribution-connected generators
 um.rho2_SE_t_s = pyo.Var(um.T, um.S) # Carbon allowances absorbed/provided by generator g
-um.lambda_t_s = pyo.Var(um.N_INF, um.T, um.S) # LMP of energy / Carbon allowance trades in the wholesale market
-um.P_SE_i_t_s = pyo.Var(um.N_INF, um.T, um.S)   # Active power trades in the wholesale market
+um.lambda_t_s = pyo.Var(um.T, um.S) # LMP of energy / Carbon allowance trades in the wholesale market
+um.P_SE_i_t_s = pyo.Var(um.T, um.S)   # Active power trades in the wholesale market
 um.upsilon_t_s = pyo.Var(um.T, um.S) # LMP of carbon / Carbon allowance trades in the wholesale market
 
 um.Q_D_g_t_s = pyo.Var()   # Generator reactive power dispatch
@@ -192,83 +178,37 @@ um.objective = pyo.Objective(
             # Receita de troca de allowances de carbono com o ISO
             um.upsilon_t_s[t, s] * um.rho2_SE_t_s[t, s] +
             # Receita de intercâmbio de energia com o ISO nos nós de interface
-            sum( um.P_SE_i_t_s[i, t, s] * um.lambda_t_s[i, t, s] for i in um.N_INF )
+            sum( um.P_SE_i_t_s[i, t, s] * um.lambda_t_s[t, s] for i in um.N_INF )
             ) for s in um.S  for t in um.T),
     sense = pyo.minimize
 )
-
-# Definindo as restrições de potência mínima e máxima
-def power_max_rule(model, g, t, s):
-    P_max = g_d_d.loc[g_d_d['Node'] == g, 'P_max (MW)'].values[0]
-    return model.P_D_g_t_s[g, t, s] <= P_max
-
-def power_min_rule(model, g, t, s):
-    P_min = g_d_d.loc[g_d_d['Node'] == g, 'P_min (MW)'].values[0]
-    return model.P_D_g_t_s[g, t, s] >= P_min
-
-# Adicionar as restrições ao modelo
-um.power_max_limits = pyo.Constraint(um.G_D, um.T, um.S, rule=power_max_rule)
-um.power_min_limits = pyo.Constraint(um.G_D, um.T, um.S, rule=power_min_rule)
-
-
 
 """
 Eq. (2): Garante o balanço de potência ativa nos nós da rede de distribuição, 
 considerando geração, fluxo de potência, armazenamento e intercâmbio com o sistema de transmissão.
 """
-
-#a = dlines[dlines.index[x][0] == 4 for x in dlines.index]
-
-
-
-def active_power_balance_distribution_rule(um, n, t, s): # 'model' is 'um'
-    # pot_Geradores: Assumes P_D_g_t_s[n,t,s] is total power if node n has a generator.
-    # model.G_D is a Set of nodes with distribution generators.
-    if n in um.G_D:
-        a=1
-    pot_Geradores = um.P_D_g_t_s[n, t, s] if n in um.G_D else 0.0
+def active_power_balance_distribution_rule(um, lfrom, lto, n, t, s, e):
+    l = (lfrom,lto)
     
-    # pot_Entrando and pot_Saindo
-    pot_Entrando = 0.0
-    pot_Saindo = 0.0
-    # These sums are over all lines in model.L as per original logic
-    pot_Saindo_P_ij_sum = 0.0
-    pot_Saindo_losses_sum = 0.0
-
-    for l_tuple in um.L: # l_tuple is (from_node, to_node)
-        if l_tuple[1] == n: # If line l_tuple terminates at node n
-            pot_Entrando += um.P_ij_t_s[l_tuple, t, s]
-        
-        if l_tuple[0] == n:
-            # If line l_tuple starts at node n, we need to sum the losses
-            # The losses are calculated as R_ij * I_ij
-            pot_Saindo += um.P_ij_t_s[l_tuple, t, s]
-            pot_Saindo += dlines.loc[l_tuple, 'R (pu)'] * um.I[l_tuple, t, s]
-            
-    # pot_ESS: Power from specific ESS unit 'e' if it's at node 'n'.
-    # ess_node_map_dict maps ess_idx (which is 'e' here) to its node_num.
+    pot_Geradores   = sum(um.P_D_g_t_s[g, t, s] for g in g_d_d['Node'] if g == n)
     
-    # pot_ESS: Soma da potência do ESS específica para a unidade 'e' se estiver no nó 'n'.
-    pot_ESS = sum(um.P_ESS_i_t_s[e, t, s] for e in um.ess if ess_node_map_dict.get(e) == n)
+    pot_Entrando    = sum(um.P_ij_t_s[l, t, s] for l in um.L if l[1] == n) 
 
-    # pot_LoadDemand: Load at (n, t, s) from precomputed dict.
-    pot_LoadDemand = dload_dict_actual.get((n, t, s), 0.0)
+    pot_Saindo      = sum(um.P_ij_t_s[l, t, s]   + dlines['R (pu)'].loc[l] * um.I[l,t,s] for l in um.L )
 
-    # pot_LoadShift: Load shift at node 'n' if 'n' is a load shifting node.
-    # model.P_LS_i_t_s is indexed by (node from model.N, t, s).
-    pot_LoadShift = um.P_LS_i_t_s[n, t, s] if n in ls_nodes_actual_set else 0.0
+    pot_ESS         = sum(um.P_ESS_i_t_s[e , t, s] for bess in ess['Node'] if bess == n)
     
-    # pot_Intercambio: Power exchange if node 'n' is an interface node.
-    # Assumes P_SE_i_t_s is indexed by node, t, s.
-    pot_Intercambio = um.P_SE_i_t_s[n, t, s] if n in um.N_INF else 0.0
-    # If P_SE_i_t_s is defined only on (T,S) as per Var def, then:
-    # pot_Intercambio = model.P_SE_i_t_s[t, s] if n in model.N_INF else 0.0
+    pot_Intercambio = sum(um.P_SE_i_t_s[i, t, s] for i in um.N_INF if i == n)
+    
+    pot_LoadShift   = sum(um.P_LS_i_t_s[i, t, s] for i in ls['Node'] if i == n)
+    
+    pot_LoadDemand  = dload2['Load'][(dload2['Node'] == n) & (dload2['Hour'] == t) & (dload2['Scenario'] == s)].iloc[0]
+    
+    return pot_Geradores + pot_Entrando - pot_Saindo + pot_ESS + pot_Intercambio == pot_LoadDemand + pot_LoadShift 
 
-    return pot_Geradores + pot_Entrando - pot_Saindo + pot_ESS + pot_Intercambio == pot_LoadDemand + pot_LoadShift
+um.active_power_balance_distribution = pyo.Constraint(um.L, um.N, um.T, um.S, um.ess,  rule=active_power_balance_distribution_rule)
 
-    #return (pot_Geradores + pot_Entrando - pot_Saindo + pot_ESS + pot_Intercambio
-    #        - pot_LoadDemand - pot_LoadShift)
-um.active_power_balance_distribution = pyo.Constraint(um.N, um.T, um.S,  rule=active_power_balance_distribution_rule)
+
 
 
 solver = opt.SolverFactory('ipopt')
@@ -278,6 +218,8 @@ results = solver.solve(um, tee=True)
 for g in um.G_D:
     print(f'A potência gerada pelo gerador {g} é: {um.P_D_g_t_s[g, :, :].value}')
 
+for t in um.T:
+    print(f'O preço de mercado na hora {t} é: {um.lambda_t_s[t, :].value}')
 
 #print result of um.objective
 print(f'O valor da função objetivo é: {um.objective()}')

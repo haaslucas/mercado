@@ -9,6 +9,8 @@ I_t = pd.read_csv(pasta + 'matriz_incidencia_transmissao.csv')
 I_t = I_t.values.tolist()
 
 dlines  = pd.read_csv(pasta + 'distribution_line_data.csv')
+
+dlines
 dlines = dlines.set_index(['From', 'To'])
 
 tnodes = pd.read_csv(pasta + 'transmission_node_data.csv')
@@ -185,26 +187,29 @@ um.objective = pyo.Objective(
 Eq. (2): Garante o balanço de potência ativa nos nós da rede de distribuição, 
 considerando geração, fluxo de potência, armazenamento e intercâmbio com o sistema de transmissão.
 """
-def active_power_balance_distribution_rule(um, lfrom, lto, n, t, s, e):
-    l = (lfrom,lto)
-    
+
+#a = dlines[dlines.index[x][0] == 4 for x in dlines.index]
+
+def active_power_balance_distribution_rule(um, n, t, s, e):
+
+
     pot_Geradores   = sum(um.P_D_g_t_s[g, t, s] for g in g_d_d['Node'] if g == n)
-    
-    pot_Entrando    = sum(um.P_ij_t_s[l, t, s] for l in um.L if l[1] == n) 
+
+    pot_Entrando    = sum(um.P_ij_t_s[n, t, s] if n == dlines.xs(l).index else 0 for l in um.L)
 
     pot_Saindo      = sum(um.P_ij_t_s[l, t, s]   + dlines['R (pu)'].loc[l] * um.I[l,t,s] for l in um.L )
 
     pot_ESS         = sum(um.P_ESS_i_t_s[e , t, s] for bess in ess['Node'] if bess == n)
-    
+
     pot_Intercambio = sum(um.P_SE_i_t_s[i, t, s] for i in um.N_INF if i == n)
-    
+
     pot_LoadShift   = sum(um.P_LS_i_t_s[i, t, s] for i in ls['Node'] if i == n)
-    
+
     pot_LoadDemand  = dload2['Load'][(dload2['Node'] == n) & (dload2['Hour'] == t) & (dload2['Scenario'] == s)].iloc[0]
-    
+
     return pot_Geradores + pot_Entrando - pot_Saindo + pot_ESS + pot_Intercambio == pot_LoadDemand + pot_LoadShift 
 
-um.active_power_balance_distribution = pyo.Constraint(um.L, um.N, um.T, um.S, um.ess,  rule=active_power_balance_distribution_rule)
+um.active_power_balance_distribution = pyo.Constraint(um.N, um.T, um.S, um.ess,  rule=active_power_balance_distribution_rule)
 
 
 
