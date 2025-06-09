@@ -1,0 +1,4 @@
+Resultados para a variável: OF
+OF : Size=1, Index=None
+    Key  : Lower : Value                : Upper : Fixed : Stale : Domain
+    None :     0 : 0.026176326719868852 :  None : False : False : NonNegativeReals
