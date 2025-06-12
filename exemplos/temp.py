@@ -101,11 +101,19 @@ LN = { # Características da rede
     (20, 23): {'r': 0.0014, 'x': 0.0108, 'b': 0.0910, 'limit': 1000},
     (21, 22): {'r': 0.0087, 'x': 0.0678, 'b': 0.1424, 'limit': 500},
 }
+
+#criando os valores invertidos
+for k, v in list(LN.items()):          # list(...) → trava o snapshot das chaves originais
+    k_inv = k[::-1]                   # inverte a tupla (p/ pares basta k[::-1] ou (k[1], k[0]))
+    if k_inv not in LN:                # opcional: só cria se ainda não existir
+        LN[k_inv] = v
+        
 #calculate 'th' for each line
 for (i, j), params in LN.items():
     r, x, b, limit = params['r'], params['x'], params['b'], params['limit']
     LN[(i, j)]['th'] = np.arctan2(x, r)  # angle in radians # np.arctan(x/r) 
     LN[(i, j)]['z'] = np.sqrt(r**2 + x**2)  # impedance magnitude
+
 
 model.LN = Param(model.i, model.i, ['r', 'x', 'b', 'limit','z','th'], initialize=lambda model, i, j, k: LN.get((i, j), {}).get(k, 0))
 
@@ -195,30 +203,30 @@ model.Pw = Var(model.i, model.t, within=NonNegativeReals, bounds=Pw_bounds)  # W
 # Equações
 def eq1(model, i, j, t): # Active power flow of generators
     if (i, j) in LN:
-        return model.Pij[i, j, t] == (model.V[i, t]**2 * cos(model.LN[i, j, 'th']) 
+        return model.Pij[i, j, t] == (model.V[i, t]**2 * cos(model.LN[j, i, 'th']) 
                                         - model.V[i, t] * model.V[j, t] * cos(model.Va[i, t] 
-                                        - model.Va[j, t] + model.LN[i, j, 'th'])) / model.LN[i, j, 'z']
+                                        - model.Va[j, t] + model.LN[j, i, 'th'])) / model.LN[i, j, 'z']
     return Constraint.Skip
 
 def eq2(model, i, j, t): # Reactive power flow of generators
     if (i, j) in LN: 
-        return model.Qij[i, j, t] == (model.V[i, t]**2 * sin(model.LN[i, j, 'th'])
+        return model.Qij[i, j, t] == (model.V[i, t]**2 * sin(model.LN[j, i, 'th'])
                     - model.V[i, t] * model.V[j, t] * sin(model.Va[i, t] - model.Va[j, t] 
-                    + model.LN[i, j, 'th'])) / model.LN[i, j, 'z'] - model.LN[i, j, 'b'] * model.V[i, t]**2 / 2
+                    + model.LN[j, i, 'th'])) / model.LN[j, i, 'z'] - model.LN[j, i, 'b'] * model.V[i, t]**2 / 2
     return Constraint.Skip
 
 def eq3(model, i, t):  # Active power balance equation
     return (
         model.Pw[i, t] + (model.Pg[i, t] if i in model.GB else 0)
         - model.WD[t, 'd'] * model.BD[i, 'Pd'] / model.Sbase
-        ==  - sum(model.Pij[j, i, t] for j in model.i if (j, i) in LN) 
+        ==   sum(model.Pij[i, j, t] for j in model.i if (j, i) in LN) 
     )
 
 def eq4(model, i, t):
     return (
         (model.Qg[i, t] if i in model.GB else 0)
         - model.WD[t, 'd'] * model.BD[i, 'Qd'] / model.Sbase
-        == - sum(model.Qij[j, i, t] for j in model.i if (j, i) in LN)  
+        ==  sum(model.Qij[i, j, t] for j in model.i if (j, i) in LN)  
     )
 
 def eq5(model):
@@ -289,6 +297,16 @@ Pij_data = {(i, j, t): model.Pij[i, j, t].value for i in model.i for j in model.
 Pij_df = pd.DataFrame.from_dict(Pij_data, orient='index', columns=['Pij']).reset_index()
 Pij_df.Pij = Pij_df.Pij*100 # Convert to MW
 
+for par in model.component_objects(Param, active=True):
+    # Criar um nome de arquivo baseado no nome do parâmetro
+    param_name = par.name
+    filename = f"{param_name}.txt"
+    
+    # Salvar o parâmetro em um arquivo .txt
+    with open(filename, 'w') as f:
+        f.write(f"Resultados para o parâmetro: {param_name}\n")
+        par.pprint(ostream=f)
+        
 # Iterar sobre todas as variáveis do modelo
 for var in model.component_objects(Var, active=True):
     # Criar um nome de arquivo baseado no nome da variável

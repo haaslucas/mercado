@@ -305,7 +305,12 @@ def active_power_balance_distribution_rule(um, n, t, s): # 'model' is 'um'
 um.active_power_balance_distribution = pyo.Constraint(um.N, um.T, um.S,  rule=active_power_balance_distribution_rule)
 
 
-solver = opt.SolverFactory('ipopt')
+
+#solver "c:\ampl\conopt.exe"
+solver = opt.SolverFactory('conopt',
+                       executable=r'C:\ampl\conopt.exe')
+
+#solver = opt.SolverFactory('glpk')
 results = solver.solve(um, tee=True)
 
 # Análise de resultados

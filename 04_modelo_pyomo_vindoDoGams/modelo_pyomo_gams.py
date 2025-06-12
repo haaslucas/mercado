@@ -382,7 +382,8 @@ def main():
     Pg.l[i, t] = 43000 / Sbase
     
     #set the solver as the path c:\ampl\conopt.exe
-    
+    #printparamater LN values
+    print("LN values: \n", LN.pivot().round(4))
     loadflow.solve(solver="CONOPT")
 
     # Reporting Parameters
