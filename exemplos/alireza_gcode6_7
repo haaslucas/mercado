@@ -249,11 +249,18 @@ model.Eq7 = Constraint(model.GB, model.t, rule=eq7)
 
 
 # Resolvendo o modelo
-solver = SolverFactory('ipopt')
+#solver = SolverFactory('ipopt')
 #set for more iterations
-solver.options['max_iter'] = 100000
-solver.options['tol'] = 1e-6
-solver.options['print_level'] = 5  # Increase verbosity for debugging
+#solver.options['max_iter'] = 100000
+#solver.options['tol'] = 1e-6
+#solver.options['print_level'] = 5  # Increase verbosity for debugging
+
+
+from amplpy import modules
+
+solver_name = "conopt"  # "highs", "cbc",  "couenne", "bonmin", "ipopt", "scip", or "gcg".
+solver = SolverFactory(solver_name+"nl", executable=modules.find(solver_name), solve_io="nl")
+
 
 results = solver.solve(model, tee=True, load_solutions=True)
 
@@ -302,5 +309,13 @@ for i in model.i:
     for t in model.t:
         report.loc[t, i] = model.V[i, t].value
 
+model.OF.pprint()
+
 report.to_excel('exemplos/results.xlsx', sheet_name='Results')
 print(report)
+
+from pyomo.util.infeasible import log_infeasible_constraints, log_close_to_bounds
+log_infeasible_constraints(model, log_expression=True)   # depois da tentativa de solve
+log_close_to_bounds(model) 
+
+a=1

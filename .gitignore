@@ -1,3 +1,7 @@
 .aider*
 *.xlsx
 *.rar
+*pyc
+cache
+*.log
+*.gdx

@@ -1,0 +1,4 @@
+gamspy[test,dev,doc]
+pytest
+nbmake
+tox
