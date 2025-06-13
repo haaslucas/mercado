@@ -9,7 +9,7 @@ model = ConcreteModel()
 # Conjuntos
 model.i = RangeSet(1, 24)  # network buses
 model.slack = 13 # slack bus
-model.t = RangeSet(1, 24)  # time periods
+model.t = RangeSet(1, 1)  # time periods
 model.GB = Set(initialize=[1, 2, 7, 13, 15, 16, 18, 21, 22, 23])  # generating buses
 
 # Parâmetros
@@ -203,16 +203,16 @@ model.Pw = Var(model.i, model.t, within=NonNegativeReals, bounds=Pw_bounds)  # W
 # Equações
 def eq1(model, i, j, t): # Active power flow of generators
     if (i, j) in LN:
-        return model.Pij[i, j, t] == (model.V[i, t]**2 * cos(model.LN[j, i, 'th']) 
+        return model.Pij[i, j, t] == (model.V[i, t]**2 * cos(model.LN[i, j, 'th']) 
                                         - model.V[i, t] * model.V[j, t] * cos(model.Va[i, t] 
-                                        - model.Va[j, t] + model.LN[j, i, 'th'])) / model.LN[i, j, 'z']
+                                        - model.Va[j, t] + model.LN[i, j, 'th'])) / model.LN[i, j, 'z']
     return Constraint.Skip
 
 def eq2(model, i, j, t): # Reactive power flow of generators
     if (i, j) in LN: 
-        return model.Qij[i, j, t] == (model.V[i, t]**2 * sin(model.LN[j, i, 'th'])
+        return model.Qij[i, j, t] == (model.V[i, t]**2 * sin(model.LN[i, j, 'th'])
                     - model.V[i, t] * model.V[j, t] * sin(model.Va[i, t] - model.Va[j, t] 
-                    + model.LN[j, i, 'th'])) / model.LN[j, i, 'z'] - model.LN[j, i, 'b'] * model.V[i, t]**2 / 2
+                    + model.LN[j, i, 'th'])) / model.LN[i, j, 'z'] - model.LN[i, j, 'b'] * model.V[i, t]**2 / 2
     return Constraint.Skip
 
 def eq3(model, i, t):  # Active power balance equation
@@ -328,7 +328,7 @@ for constraint in model.component_objects(Constraint, active=True):
     with open(filename, 'w') as f:
         f.write(f"Resultados para a restrição: {constraint_name}\n")
         constraint.pprint(ostream=f)
-        
+
 # Relatórios
 report = pd.DataFrame(index=model.t, columns=model.i)
 for i in model.i:
