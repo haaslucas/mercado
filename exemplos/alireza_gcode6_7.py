@@ -192,6 +192,11 @@ def Pw_bounds(model, i, t):
     return (0, 0)  # No wind power for other buses
 model.Pw = Var(model.i, model.t, within=NonNegativeReals, bounds=Pw_bounds)  # Wind power
 
+# Initial guess for Pg
+for i in model.GB:
+    for t in model.t:
+        model.Pg[i, t].value = 43000 / model.Sbase
+
 # Equações
 def eq1(model, i, j, t): # Eq. 6.8f - Active power flow of lines
     if (i, j) in LN:
