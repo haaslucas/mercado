@@ -3,9 +3,9 @@ Qg : Size=10, Index=GB*t
     Key     : Lower : Value               : Upper : Fixed : Stale : Domain
      (1, 1) :     0 :                 0.0 :  1.92 : False : False : NonNegativeReals
      (2, 1) :     0 :                 0.0 :  1.92 : False : False : NonNegativeReals
-     (7, 1) :   0.0 : 0.12777508381820976 :   3.0 : False : False : NonNegativeReals
-    (13, 1) :   0.0 :  3.7414877976076353 :  5.91 : False : False : NonNegativeReals
-    (15, 1) :     0 :  1.9895525756093324 :  2.15 : False : False : NonNegativeReals
+     (7, 1) :   0.0 : 0.07136696938283686 :   3.0 : False : False : NonNegativeReals
+    (13, 1) :   0.0 :    3.61629449113507 :  5.91 : False : False : NonNegativeReals
+    (15, 1) :     0 :  1.7966590187403197 :  2.15 : False : False : NonNegativeReals
     (16, 1) :     0 :                 0.0 :  1.55 : False : False : NonNegativeReals
     (18, 1) :     0 :                 0.0 :   4.0 : False : False : NonNegativeReals
     (21, 1) :     0 :                 0.0 :   4.0 : False : False : NonNegativeReals

@@ -384,7 +384,7 @@ def main():
     #set the solver as the path c:\ampl\conopt.exe
     #printparamater LN values
     print("LN values: \n", LN.pivot().round(4))
-    loadflow.solve(solver="CONOPT")
+    loadflow.solve(solver="IPOPT")
 
     # Reporting Parameters
     report = Parameter(m, name="report", domain=[t, i, "*"])
@@ -408,6 +408,7 @@ def main():
     df = df_Pg.copy()                 # (opcional) evita alterar o original
     df['gerador'] = 'G' + df['i'].astype(int).astype(str)
 
+
     # ============================================================
     # A) Apenas a coluna 'level' em formato wide
     # ============================================================
@@ -418,8 +419,10 @@ def main():
         .sort_index(axis=1)               # garante ordem G1, G2, …
         .reset_index()                    # devolve 't' como coluna normal
     )
+    df_Pg.drop(columns='t',inplace = True)
 
-
+    LN.records.to_excel(writer, sheet_name="LN")
+    GenD.records.to_excel(writer, sheet_name="GenD")
     #print OF
     print("Objective Function Value:  ", loadflow.objective_value)
 
@@ -434,6 +437,6 @@ def main():
 if __name__ == "__main__":  
     main()
 
-
+    
 
 a=1

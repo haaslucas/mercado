@@ -1,13 +1,13 @@
 Resultados para a variável: Pg
 Pg : Size=10, Index=GB*t
-    Key     : Lower  : Value              : Upper : Fixed : Stale : Domain
-     (1, 1) :  0.304 :              0.304 :  1.52 : False : False : NonNegativeReals
-     (2, 1) :  0.304 :              0.304 :  1.52 : False : False : NonNegativeReals
-     (7, 1) :   0.75 :               0.75 :   3.5 : False : False : NonNegativeReals
-    (13, 1) : 2.0685 :             2.0685 :  5.91 : False : False : NonNegativeReals
-    (15, 1) : 0.6625 : 1.8102602252110536 :  2.15 : False : False : NonNegativeReals
-    (16, 1) : 0.5425 :             0.5425 :  1.55 : False : False : NonNegativeReals
-    (18, 1) :    1.0 :                4.0 :   4.0 : False : False : NonNegativeReals
-    (21, 1) :    1.0 :                4.0 :   4.0 : False : False : NonNegativeReals
-    (22, 1) :    0.0 :                3.0 :   3.0 : False : False : NonNegativeReals
-    (23, 1) :  2.485 :              2.485 :   3.6 : False : False : NonNegativeReals
+    Key     : Lower  : Value             : Upper : Fixed : Stale : Domain
+     (1, 1) :  0.304 :             0.304 :  1.52 : False : False : NonNegativeReals
+     (2, 1) :  0.304 :             0.304 :  1.52 : False : False : NonNegativeReals
+     (7, 1) :   0.75 :              0.75 :   3.5 : False : False : NonNegativeReals
+    (13, 1) : 2.0685 :            2.0685 :  5.91 : False : False : NonNegativeReals
+    (15, 1) : 0.6625 : 1.813183555693555 :  2.15 : False : False : NonNegativeReals
+    (16, 1) : 0.5425 :            0.5425 :  1.55 : False : False : NonNegativeReals
+    (18, 1) :    1.0 :               4.0 :   4.0 : False : False : NonNegativeReals
+    (21, 1) :    1.0 :               4.0 :   4.0 : False : False : NonNegativeReals
+    (22, 1) :    0.0 :               3.0 :   3.0 : False : False : NonNegativeReals
+    (23, 1) :  2.485 :             2.485 :   3.6 : False : False : NonNegativeReals

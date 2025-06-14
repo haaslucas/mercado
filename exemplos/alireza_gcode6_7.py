@@ -9,7 +9,7 @@ model = ConcreteModel()
 # Conjuntos
 model.i = RangeSet(1, 24)  # network buses
 model.slack = 13 # slack bus
-model.t = RangeSet(1, 23)  # time periods
+model.t = RangeSet(1, 24)  # time periods
 model.GB = Set(initialize=[1, 2, 7, 13, 15, 16, 18, 21, 22, 23])  # generating buses
 
 # Parâmetros
@@ -164,7 +164,7 @@ model.Qij = Var(model.i, model.i, model.t, within=Reals, bounds=Qij_bounds)  # R
 
 def Pg_bounds(model, i, t):
     return (model.GenD[i,'pmin'] / model.Sbase, model.GenD[i,'pmax'] / model.Sbase)
-model.Pg = Var(model.GB, model.t, within=NonNegativeReals, bounds=Pg_bounds)
+model.Pg = Var(model.GB, model.t, within=NonNegativeReals, bounds=Pg_bounds)  # Active generation
 
 def Qg_bounds(model, i, t):
     return (model.GenD[i,'Qmin'] / model.Sbase, model.GenD[i,'Qmax'] / model.Sbase)
@@ -178,24 +178,21 @@ def Va_bounds(model, i, t):
 model.Va = Var(model.i, model.t, bounds=Va_bounds, initialize=lambda model, i, t: 0 if i == model.slack else 0)  # Voltage angle
 #fixando o ângulo do slack bus
 
-model.Va[model.slack, :] = 0  # Define o ângulo para o slack bus
+#model.Va[model.slack, :] = 0  # Define o ângulo para o slack bus
 
 def V_bounds(model, i, t):
     if i == model.slack:
-        return (1.035, 1.035)  # Slack bus voltage is fixed at 1.035 p.u.
+        return (1, 1)  # Slack bus voltage is fixed at 1.035 p.u.
     return (0.9, 1.1)  # Voltage magnitude bounds for other buses
-model.V = Var(model.i, model.t, bounds=V_bounds)  # Voltage magnitude
+model.V = Var(model.i, model.t, bounds=V_bounds, initialize=lambda model, i, t: 1 if i == model.slack else 1.0)  # Voltage magnitude
 
 def Pw_bounds(model, i, t):
     if i in model.Wcap:
-        return (0, model.Wcap[i] / model.Sbase)  # Wind power bounds
+        return (0, model.WD[t,'w'] * model.Wcap[i] / model.Sbase)  # Wind power bounds
     return (0, 0)  # No wind power for other buses
 model.Pw = Var(model.i, model.t, within=NonNegativeReals, bounds=Pw_bounds)  # Wind power
 
-# Initial guess for Pg
-for i in model.GB:
-    for t in model.t:
-        model.Pg[i, t].value = 43000 / model.Sbase
+
 
 # Equações
 def eq1(model, i, j, t): # Eq. 6.8f - Active power flow of lines

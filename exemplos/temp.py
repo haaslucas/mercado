@@ -270,8 +270,8 @@ from amplpy import modules
 
 #solver "c:\ampl\conopt.exe"
 
-solver = SolverFactory('conopt',
-                       executable=r'C:\ampl\conopt.exe')
+#solver = SolverFactory('conopt',
+#                       executable=r'C:\ampl\conopt.exe')
 results = solver.solve(model, tee=True, load_solutions=True)
 
 

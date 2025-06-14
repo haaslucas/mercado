@@ -1,27 +1,27 @@
 Resultados para a variável: V
 V : Size=24, Index=i*t
     Key     : Lower : Value              : Upper : Fixed : Stale : Domain
-     (1, 1) :   0.9 :  0.921946417321674 :   1.1 : False : False :  Reals
-     (2, 1) :   0.9 : 0.9210538888245036 :   1.1 : False : False :  Reals
-     (3, 1) :   0.9 : 0.9000928203467332 :   1.1 : False : False :  Reals
-     (4, 1) :   0.9 : 0.9141971417905366 :   1.1 : False : False :  Reals
-     (5, 1) :   0.9 : 0.9456516707772723 :   1.1 : False : False :  Reals
-     (6, 1) :   0.9 :  1.011893793400994 :   1.1 : False : False :  Reals
+     (1, 1) :   0.9 : 0.9583670712553457 :   1.1 : False : False :  Reals
+     (2, 1) :   0.9 : 0.9611750710548516 :   1.1 : False : False :  Reals
+     (3, 1) :   0.9 : 0.9099590106153829 :   1.1 : False : False :  Reals
+     (4, 1) :   0.9 : 0.9372316659566875 :   1.1 : False : False :  Reals
+     (5, 1) :   0.9 : 0.9686377870666527 :   1.1 : False : False :  Reals
+     (6, 1) :   0.9 : 1.0292774393169999 :   1.1 : False : False :  Reals
      (7, 1) :   0.9 :                0.9 :   1.1 : False : False :  Reals
-     (8, 1) :   0.9 : 0.9043890454300296 :   1.1 : False : False :  Reals
-     (9, 1) :   0.9 : 0.9351218634858326 :   1.1 : False : False :  Reals
-    (10, 1) :   0.9 : 0.9901070042341995 :   1.1 : False : False :  Reals
-    (11, 1) :   0.9 : 0.9634161572170191 :   1.1 : False : False :  Reals
-    (12, 1) :   0.9 : 0.9828727422142052 :   1.1 : False : False :  Reals
+     (8, 1) :   0.9 : 0.9082305709114237 :   1.1 : False : False :  Reals
+     (9, 1) :   0.9 : 0.9436276496735059 :   1.1 : False : False :  Reals
+    (10, 1) :   0.9 : 0.9986041530871798 :   1.1 : False : False :  Reals
+    (11, 1) :   0.9 : 0.9661519650890474 :   1.1 : False : False :  Reals
+    (12, 1) :   0.9 : 0.9864529456172767 :   1.1 : False : False :  Reals
     (13, 1) : 1.035 :              1.035 : 1.035 : False : False :  Reals
-    (14, 1) :   0.9 : 0.9264080513467378 :   1.1 : False : False :  Reals
-    (15, 1) :   0.9 : 0.9352155420562566 :   1.1 : False : False :  Reals
-    (16, 1) :   0.9 :  0.927012988085294 :   1.1 : False : False :  Reals
-    (17, 1) :   0.9 : 0.9269427032098663 :   1.1 : False : False :  Reals
-    (18, 1) :   0.9 : 0.9297926112095556 :   1.1 : False : False :  Reals
-    (19, 1) :   0.9 : 0.9375652770376182 :   1.1 : False : False :  Reals
-    (20, 1) :   0.9 : 0.9565781267962284 :   1.1 : False : False :  Reals
-    (21, 1) :   0.9 : 0.9361748092446742 :   1.1 : False : False :  Reals
-    (22, 1) :   0.9 : 0.9468600200960664 :   1.1 : False : False :  Reals
-    (23, 1) :   0.9 :  0.969325087830027 :   1.1 : False : False :  Reals
+    (14, 1) :   0.9 :  0.925540514628281 :   1.1 : False : False :  Reals
+    (15, 1) :   0.9 : 0.9295212107830841 :   1.1 : False : False :  Reals
+    (16, 1) :   0.9 : 0.9229188928377774 :   1.1 : False : False :  Reals
+    (17, 1) :   0.9 : 0.9219902680437734 :   1.1 : False : False :  Reals
+    (18, 1) :   0.9 : 0.9245623913735974 :   1.1 : False : False :  Reals
+    (19, 1) :   0.9 : 0.9347456971626237 :   1.1 : False : False :  Reals
+    (20, 1) :   0.9 : 0.9549147750908576 :   1.1 : False : False :  Reals
+    (21, 1) :   0.9 : 0.9307406840216355 :   1.1 : False : False :  Reals
+    (22, 1) :   0.9 : 0.9415023879041386 :   1.1 : False : False :  Reals
+    (23, 1) :   0.9 : 0.9683031915845814 :   1.1 : False : False :  Reals
     (24, 1) :   0.9 :                0.9 :   1.1 : False : False :  Reals

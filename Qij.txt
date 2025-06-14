@@ -2,10 +2,10 @@ Resultados para a variável: Qij
 Qij : Size=576, Index=i*i*t
     Key         : Lower : Value                 : Upper : Fixed : Stale : Domain
       (1, 1, 1) :     0 :                  None :     0 : False :  True :  Reals
-      (1, 2, 1) : -1.75 :   -0.1757950228597735 :  1.75 : False : False :  Reals
-      (1, 3, 1) : -1.75 :   0.27675875565936664 :  1.75 : False : False :  Reals
+      (1, 2, 1) : -1.75 :  -0.44520519186782204 :  1.75 : False : False :  Reals
+      (1, 3, 1) : -1.75 :   0.40557606709444877 :  1.75 : False : False :  Reals
       (1, 4, 1) :     0 :                  None :     0 : False :  True :  Reals
-      (1, 5, 1) : -1.75 :  -0.25155622660793764 :  1.75 : False : False :  Reals
+      (1, 5, 1) : -1.75 :  -0.11096337903284195 :  1.75 : False : False :  Reals
       (1, 6, 1) :     0 :                  None :     0 : False :  True :  Reals
       (1, 7, 1) :     0 :                  None :     0 : False :  True :  Reals
       (1, 8, 1) :     0 :                  None :     0 : False :  True :  Reals
@@ -25,12 +25,12 @@ Qij : Size=576, Index=i*i*t
      (1, 22, 1) :     0 :                  None :     0 : False :  True :  Reals
      (1, 23, 1) :     0 :                  None :     0 : False :  True :  Reals
      (1, 24, 1) :     0 :                  None :     0 : False :  True :  Reals
-      (2, 1, 1) : -1.75 :   0.24431609853067512 :  1.75 : False : False :  Reals
+      (2, 1, 1) : -1.75 :   0.02198643367639094 :  1.75 : False : False :  Reals
       (2, 2, 1) :     0 :                  None :     0 : False :  True :  Reals
       (2, 3, 1) :     0 :                  None :     0 : False :  True :  Reals
-      (2, 4, 1) : -1.75 :   0.07060002873152181 :  1.75 : False : False :  Reals
+      (2, 4, 1) : -1.75 :    0.2012142157101803 :  1.75 : False : False :  Reals
       (2, 5, 1) :     0 :                  None :     0 : False :  True :  Reals
-      (2, 6, 1) : -1.75 :    -0.451818394360692 :  1.75 : False : False :  Reals
+      (2, 6, 1) : -1.75 :   -0.3601029264832182 :  1.75 : False : False :  Reals
       (2, 7, 1) :     0 :                  None :     0 : False :  True :  Reals
       (2, 8, 1) :     0 :                  None :     0 : False :  True :  Reals
       (2, 9, 1) :     0 :                  None :     0 : False :  True :  Reals
@@ -49,7 +49,7 @@ Qij : Size=576, Index=i*i*t
      (2, 22, 1) :     0 :                  None :     0 : False :  True :  Reals
      (2, 23, 1) :     0 :                  None :     0 : False :  True :  Reals
      (2, 24, 1) :     0 :                  None :     0 : False :  True :  Reals
-      (3, 1, 1) : -1.75 :  -0.21794920026934697 :  1.75 : False : False :  Reals
+      (3, 1, 1) : -1.75 :  -0.33284714907772256 :  1.75 : False : False :  Reals
       (3, 2, 1) :     0 :                  None :     0 : False :  True :  Reals
       (3, 3, 1) :     0 :                  None :     0 : False :  True :  Reals
       (3, 4, 1) :     0 :                  None :     0 : False :  True :  Reals
@@ -57,7 +57,7 @@ Qij : Size=576, Index=i*i*t
       (3, 6, 1) :     0 :                  None :     0 : False :  True :  Reals
       (3, 7, 1) :     0 :                  None :     0 : False :  True :  Reals
       (3, 8, 1) :     0 :                  None :     0 : False :  True :  Reals
-      (3, 9, 1) : -1.75 :   -0.3668832460662333 :  1.75 : False : False :  Reals
+      (3, 9, 1) : -1.75 :   -0.3602870288671746 :  1.75 : False : False :  Reals
      (3, 10, 1) :     0 :                  None :     0 : False :  True :  Reals
      (3, 11, 1) :     0 :                  None :     0 : False :  True :  Reals
      (3, 12, 1) :     0 :                  None :     0 : False :  True :  Reals
@@ -72,16 +72,16 @@ Qij : Size=576, Index=i*i*t
      (3, 21, 1) :     0 :                  None :     0 : False :  True :  Reals
      (3, 22, 1) :     0 :                  None :     0 : False :  True :  Reals
      (3, 23, 1) :     0 :                  None :     0 : False :  True :  Reals
-     (3, 24, 1) :  -4.0 :   0.33156325220336447 :   4.0 : False : False :  Reals
+     (3, 24, 1) :  -4.0 :    0.4398649838125299 :   4.0 : False : False :  Reals
       (4, 1, 1) :     0 :                  None :     0 : False :  True :  Reals
-      (4, 2, 1) : -1.75 :  -0.09588784422698618 :  1.75 : False : False :  Reals
+      (4, 2, 1) : -1.75 :  -0.22342754293630918 :  1.75 : False : False :  Reals
       (4, 3, 1) :     0 :                  None :     0 : False :  True :  Reals
       (4, 4, 1) :     0 :                  None :     0 : False :  True :  Reals
       (4, 5, 1) :     0 :                  None :     0 : False :  True :  Reals
       (4, 6, 1) :     0 :                  None :     0 : False :  True :  Reals
       (4, 7, 1) :     0 :                  None :     0 : False :  True :  Reals
       (4, 8, 1) :     0 :                  None :     0 : False :  True :  Reals
-      (4, 9, 1) : -1.75 : -0.006788856096885069 :  1.75 : False : False :  Reals
+      (4, 9, 1) : -1.75 :   0.12075084261202405 :  1.75 : False : False :  Reals
      (4, 10, 1) :     0 :                  None :     0 : False :  True :  Reals
      (4, 11, 1) :     0 :                  None :     0 : False :  True :  Reals
      (4, 12, 1) :     0 :                  None :     0 : False :  True :  Reals
@@ -97,7 +97,7 @@ Qij : Size=576, Index=i*i*t
      (4, 22, 1) :     0 :                  None :     0 : False :  True :  Reals
      (4, 23, 1) :     0 :                  None :     0 : False :  True :  Reals
      (4, 24, 1) :     0 :                  None :     0 : False :  True :  Reals
-      (5, 1, 1) : -1.75 :   0.23782052529755177 :  1.75 : False : False :  Reals
+      (5, 1, 1) : -1.75 :   0.09098511482833192 :  1.75 : False : False :  Reals
       (5, 2, 1) :     0 :                  None :     0 : False :  True :  Reals
       (5, 3, 1) :     0 :                  None :     0 : False :  True :  Reals
       (5, 4, 1) :     0 :                  None :     0 : False :  True :  Reals
@@ -106,7 +106,7 @@ Qij : Size=576, Index=i*i*t
       (5, 7, 1) :     0 :                  None :     0 : False :  True :  Reals
       (5, 8, 1) :     0 :                  None :     0 : False :  True :  Reals
       (5, 9, 1) :     0 :                  None :     0 : False :  True :  Reals
-     (5, 10, 1) : -1.75 :  -0.33365211226649827 :  1.75 : False : False :  Reals
+     (5, 10, 1) : -1.75 :    -0.186816701797736 :  1.75 : False : False :  Reals
      (5, 11, 1) :     0 :                  None :     0 : False :  True :  Reals
      (5, 12, 1) :     0 :                  None :     0 : False :  True :  Reals
      (5, 13, 1) :     0 :                  None :     0 : False :  True :  Reals
@@ -122,7 +122,7 @@ Qij : Size=576, Index=i*i*t
      (5, 23, 1) :     0 :                  None :     0 : False :  True :  Reals
      (5, 24, 1) :     0 :                  None :     0 : False :  True :  Reals
       (6, 1, 1) :     0 :                  None :     0 : False :  True :  Reals
-      (6, 2, 1) : -1.75 :   0.44503001201931913 :  1.75 : False : False :  Reals
+      (6, 2, 1) : -1.75 :    0.3320711873451476 :  1.75 : False : False :  Reals
       (6, 3, 1) :     0 :                  None :     0 : False :  True :  Reals
       (6, 4, 1) :     0 :                  None :     0 : False :  True :  Reals
       (6, 5, 1) :     0 :                  None :     0 : False :  True :  Reals
@@ -130,7 +130,7 @@ Qij : Size=576, Index=i*i*t
       (6, 7, 1) :     0 :                  None :     0 : False :  True :  Reals
       (6, 8, 1) :     0 :                  None :     0 : False :  True :  Reals
       (6, 9, 1) :     0 :                  None :     0 : False :  True :  Reals
-     (6, 10, 1) : -1.75 :   -0.6366931859572121 :  1.75 : False : False :  Reals
+     (6, 10, 1) : -1.75 :   -0.5237343612893566 :  1.75 : False : False :  Reals
      (6, 11, 1) :     0 :                  None :     0 : False :  True :  Reals
      (6, 12, 1) :     0 :                  None :     0 : False :  True :  Reals
      (6, 13, 1) :     0 :                  None :     0 : False :  True :  Reals
@@ -152,7 +152,7 @@ Qij : Size=576, Index=i*i*t
       (7, 5, 1) :     0 :                  None :     0 : False :  True :  Reals
       (7, 6, 1) :     0 :                  None :     0 : False :  True :  Reals
       (7, 7, 1) :     0 :                  None :     0 : False :  True :  Reals
-      (7, 8, 1) : -1.75 :  -0.04335275005490899 :  1.75 : False : False :  Reals
+      (7, 8, 1) : -1.75 :  -0.09976086449028189 :  1.75 : False : False :  Reals
       (7, 9, 1) :     0 :                  None :     0 : False :  True :  Reals
      (7, 10, 1) :     0 :                  None :     0 : False :  True :  Reals
      (7, 11, 1) :     0 :                  None :     0 : False :  True :  Reals
@@ -175,10 +175,10 @@ Qij : Size=576, Index=i*i*t
       (8, 4, 1) :     0 :                  None :     0 : False :  True :  Reals
       (8, 5, 1) :     0 :                  None :     0 : False :  True :  Reals
       (8, 6, 1) :     0 :                  None :     0 : False :  True :  Reals
-      (8, 7, 1) : -1.75 :   0.03078865274504447 :  1.75 : False : False :  Reals
+      (8, 7, 1) : -1.75 :    0.0876934151898238 :  1.75 : False : False :  Reals
       (8, 8, 1) :     0 :                  None :     0 : False :  True :  Reals
-      (8, 9, 1) : -1.75 :   0.04903980424833309 :  1.75 : False : False :  Reals
-     (8, 10, 1) : -1.75 :   -0.3194074244157438 :  1.75 : False : False :  Reals
+      (8, 9, 1) : -1.75 :   0.02069243680049833 :  1.75 : False : False :  Reals
+     (8, 10, 1) : -1.75 :  -0.34796481941278795 :  1.75 : False : False :  Reals
      (8, 11, 1) :     0 :                  None :     0 : False :  True :  Reals
      (8, 12, 1) :     0 :                  None :     0 : False :  True :  Reals
      (8, 13, 1) :     0 :                  None :     0 : False :  True :  Reals
@@ -195,16 +195,16 @@ Qij : Size=576, Index=i*i*t
      (8, 24, 1) :     0 :                  None :     0 : False :  True :  Reals
       (9, 1, 1) :     0 :                  None :     0 : False :  True :  Reals
       (9, 2, 1) :     0 :                  None :     0 : False :  True :  Reals
-      (9, 3, 1) : -1.75 :   0.38321353133503383 :  1.75 : False : False :  Reals
-      (9, 4, 1) : -1.75 :  0.033134443061279925 :  1.75 : False : False :  Reals
+      (9, 3, 1) : -1.75 :    0.3745256611118352 :  1.75 : False : False :  Reals
+      (9, 4, 1) : -1.75 :  -0.09569553309381698 :  1.75 : False : False :  Reals
       (9, 5, 1) :     0 :                  None :     0 : False :  True :  Reals
       (9, 6, 1) :     0 :                  None :     0 : False :  True :  Reals
       (9, 7, 1) :     0 :                  None :     0 : False :  True :  Reals
-      (9, 8, 1) : -1.75 :  0.015897700183334106 :  1.75 : False : False :  Reals
+      (9, 8, 1) : -1.75 :  0.042194299899789685 :  1.75 : False : False :  Reals
       (9, 9, 1) :     0 :                  None :     0 : False :  True :  Reals
      (9, 10, 1) :     0 :                  None :     0 : False :  True :  Reals
-     (9, 11, 1) :  -4.0 :   -0.2200485422306219 :   4.0 : False : False :  Reals
-     (9, 12, 1) :  -4.0 :    -0.458621213126317 :   4.0 : False : False :  Reals
+     (9, 11, 1) :  -4.0 :  -0.15882680273933153 :   4.0 : False : False :  Reals
+     (9, 12, 1) :  -4.0 :   -0.4086217059559395 :   4.0 : False : False :  Reals
      (9, 13, 1) :     0 :                  None :     0 : False :  True :  Reals
      (9, 14, 1) :     0 :                  None :     0 : False :  True :  Reals
      (9, 15, 1) :     0 :                  None :     0 : False :  True :  Reals
@@ -221,14 +221,14 @@ Qij : Size=576, Index=i*i*t
      (10, 2, 1) :     0 :                  None :     0 : False :  True :  Reals
      (10, 3, 1) :     0 :                  None :     0 : False :  True :  Reals
      (10, 4, 1) :     0 :                  None :     0 : False :  True :  Reals
-     (10, 5, 1) : -1.75 :   0.35172310019268116 :  1.75 : False : False :  Reals
+     (10, 5, 1) : -1.75 :   0.19488020920686921 :  1.75 : False : False :  Reals
      (10, 6, 1) : -1.75 :                 -1.75 :  1.75 : False : False :  Reals
      (10, 7, 1) :     0 :                  None :     0 : False :  True :  Reals
-     (10, 8, 1) : -1.75 :    0.3622027036772826 :  1.75 : False : False :  Reals
+     (10, 8, 1) : -1.75 :    0.3931995604612905 :  1.75 : False : False :  Reals
      (10, 9, 1) :     0 :                  None :     0 : False :  True :  Reals
     (10, 10, 1) :     0 :                  None :     0 : False :  True :  Reals
-    (10, 11, 1) :  -4.0 :    0.5115980021429932 :   4.0 : False : False :  Reals
-    (10, 12, 1) :  -4.0 :    0.2506716597900531 :   4.0 : False : False :  Reals
+    (10, 11, 1) :  -4.0 :    0.5802894700544537 :   4.0 : False : False :  Reals
+    (10, 12, 1) :  -4.0 :    0.3078262435790701 :   4.0 : False : False :  Reals
     (10, 13, 1) :     0 :                  None :     0 : False :  True :  Reals
     (10, 14, 1) :     0 :                  None :     0 : False :  True :  Reals
     (10, 15, 1) :     0 :                  None :     0 : False :  True :  Reals
@@ -249,12 +249,12 @@ Qij : Size=576, Index=i*i*t
      (11, 6, 1) :     0 :                  None :     0 : False :  True :  Reals
      (11, 7, 1) :     0 :                  None :     0 : False :  True :  Reals
      (11, 8, 1) :     0 :                  None :     0 : False :  True :  Reals
-     (11, 9, 1) :  -4.0 :    0.3559756210540904 :   4.0 : False : False :  Reals
-    (11, 10, 1) :  -4.0 :  -0.20925613990856082 :   4.0 : False : False :  Reals
+     (11, 9, 1) :  -4.0 :    0.2897475928863112 :   4.0 : False : False :  Reals
+    (11, 10, 1) :  -4.0 :   -0.2787048330976907 :   4.0 : False : False :  Reals
     (11, 11, 1) :     0 :                  None :     0 : False :  True :  Reals
     (11, 12, 1) :     0 :                  None :     0 : False :  True :  Reals
-    (11, 13, 1) :  -5.0 :   -1.4024817524863586 :   5.0 : False : False :  Reals
-    (11, 14, 1) :  -5.0 :     1.255762271340829 :   5.0 : False : False :  Reals
+    (11, 13, 1) :  -5.0 :   -1.3510995659943015 :   5.0 : False : False :  Reals
+    (11, 14, 1) :  -5.0 :    1.3400568062055818 :   5.0 : False : False :  Reals
     (11, 15, 1) :     0 :                  None :     0 : False :  True :  Reals
     (11, 16, 1) :     0 :                  None :     0 : False :  True :  Reals
     (11, 17, 1) :     0 :                  None :     0 : False :  True :  Reals
@@ -273,11 +273,11 @@ Qij : Size=576, Index=i*i*t
      (12, 6, 1) :     0 :                  None :     0 : False :  True :  Reals
      (12, 7, 1) :     0 :                  None :     0 : False :  True :  Reals
      (12, 8, 1) :     0 :                  None :     0 : False :  True :  Reals
-     (12, 9, 1) :  -4.0 :    0.5773359478953946 :   4.0 : False : False :  Reals
-    (12, 10, 1) :  -4.0 : -0.010449788143558604 :   4.0 : False : False :  Reals
+     (12, 9, 1) :  -4.0 :    0.5209554491832793 :   4.0 : False : False :  Reals
+    (12, 10, 1) :  -4.0 :  -0.07039209704108078 :   4.0 : False : False :  Reals
     (12, 11, 1) :     0 :                  None :     0 : False :  True :  Reals
     (12, 12, 1) :     0 :                  None :     0 : False :  True :  Reals
-    (12, 13, 1) :  -5.0 :   -0.9787514823716281 :   5.0 : False : False :  Reals
+    (12, 13, 1) :  -5.0 :   -0.9091668950852568 :   5.0 : False : False :  Reals
     (12, 14, 1) :     0 :                  None :     0 : False :  True :  Reals
     (12, 15, 1) :     0 :                  None :     0 : False :  True :  Reals
     (12, 16, 1) :     0 :                  None :     0 : False :  True :  Reals
@@ -287,7 +287,7 @@ Qij : Size=576, Index=i*i*t
     (12, 20, 1) :     0 :                  None :     0 : False :  True :  Reals
     (12, 21, 1) :     0 :                  None :     0 : False :  True :  Reals
     (12, 22, 1) :     0 :                  None :     0 : False :  True :  Reals
-    (12, 23, 1) :  -5.0 :   0.41186532261979214 :   5.0 : False : False :  Reals
+    (12, 23, 1) :  -5.0 :   0.45860354294295613 :   5.0 : False : False :  Reals
     (12, 24, 1) :     0 :                  None :     0 : False :  True :  Reals
      (13, 1, 1) :     0 :                  None :     0 : False :  True :  Reals
      (13, 2, 1) :     0 :                  None :     0 : False :  True :  Reals
@@ -299,8 +299,8 @@ Qij : Size=576, Index=i*i*t
      (13, 8, 1) :     0 :                  None :     0 : False :  True :  Reals
      (13, 9, 1) :     0 :                  None :     0 : False :  True :  Reals
     (13, 10, 1) :     0 :                  None :     0 : False :  True :  Reals
-    (13, 11, 1) :  -5.0 :     1.420395052860905 :   5.0 : False : False :  Reals
-    (13, 12, 1) :  -5.0 :    0.9686633250010696 :   5.0 : False : False :  Reals
+    (13, 11, 1) :  -5.0 :    1.3611160726489946 :   5.0 : False : False :  Reals
+    (13, 12, 1) :  -5.0 :    0.8915663654560672 :   5.0 : False : False :  Reals
     (13, 13, 1) :     0 :                  None :     0 : False :  True :  Reals
     (13, 14, 1) :     0 :                  None :     0 : False :  True :  Reals
     (13, 15, 1) :     0 :                  None :     0 : False :  True :  Reals
@@ -311,7 +311,7 @@ Qij : Size=576, Index=i*i*t
     (13, 20, 1) :     0 :                  None :     0 : False :  True :  Reals
     (13, 21, 1) :     0 :                  None :     0 : False :  True :  Reals
     (13, 22, 1) :     0 :                  None :     0 : False :  True :  Reals
-    (13, 23, 1) :  -5.0 :     0.982793298579724 :   5.0 : False : False :  Reals
+    (13, 23, 1) :  -5.0 :    0.9939759318640715 :   5.0 : False : False :  Reals
     (13, 24, 1) :     0 :                  None :     0 : False :  True :  Reals
      (14, 1, 1) :     0 :                  None :     0 : False :  True :  Reals
      (14, 2, 1) :     0 :                  None :     0 : False :  True :  Reals
@@ -323,12 +323,12 @@ Qij : Size=576, Index=i*i*t
      (14, 8, 1) :     0 :                  None :     0 : False :  True :  Reals
      (14, 9, 1) :     0 :                  None :     0 : False :  True :  Reals
     (14, 10, 1) :     0 :                  None :     0 : False :  True :  Reals
-    (14, 11, 1) :  -5.0 :   -1.0174605826083112 :   5.0 : False : False :  Reals
+    (14, 11, 1) :  -5.0 :   -1.0954071825243588 :   5.0 : False : False :  Reals
     (14, 12, 1) :     0 :                  None :     0 : False :  True :  Reals
     (14, 13, 1) :     0 :                  None :     0 : False :  True :  Reals
     (14, 14, 1) :     0 :                  None :     0 : False :  True :  Reals
     (14, 15, 1) :     0 :                  None :     0 : False :  True :  Reals
-    (14, 16, 1) :  -5.0 :    0.7505011617662459 :   5.0 : False : False :  Reals
+    (14, 16, 1) :  -5.0 :    0.8284477616822294 :   5.0 : False : False :  Reals
     (14, 17, 1) :     0 :                  None :     0 : False :  True :  Reals
     (14, 18, 1) :     0 :                  None :     0 : False :  True :  Reals
     (14, 19, 1) :     0 :                  None :     0 : False :  True :  Reals
@@ -352,15 +352,15 @@ Qij : Size=576, Index=i*i*t
     (15, 13, 1) :     0 :                  None :     0 : False :  True :  Reals
     (15, 14, 1) :     0 :                  None :     0 : False :  True :  Reals
     (15, 15, 1) :     0 :                  None :     0 : False :  True :  Reals
-    (15, 16, 1) :  -5.0 :   0.17002074481468551 :   5.0 : False : False :  Reals
+    (15, 16, 1) :  -5.0 :   0.08371383548793616 :   5.0 : False : False :  Reals
     (15, 17, 1) :     0 :                  None :     0 : False :  True :  Reals
     (15, 18, 1) :     0 :                  None :     0 : False :  True :  Reals
     (15, 19, 1) :     0 :                  None :     0 : False :  True :  Reals
     (15, 20, 1) :     0 :                  None :     0 : False :  True :  Reals
-    (15, 21, 1) : -10.0 :    0.9364522375402663 :  10.0 : False : False :  Reals
+    (15, 21, 1) : -10.0 :    0.9321131362109198 :  10.0 : False : False :  Reals
     (15, 22, 1) :     0 :                  None :     0 : False :  True :  Reals
     (15, 23, 1) :     0 :                  None :     0 : False :  True :  Reals
-    (15, 24, 1) :  -5.0 :    0.4449923385391966 :   5.0 : False : False :  Reals
+    (15, 24, 1) :  -5.0 :    0.3427447923262797 :   5.0 : False : False :  Reals
      (16, 1, 1) :     0 :                  None :     0 : False :  True :  Reals
      (16, 2, 1) :     0 :                  None :     0 : False :  True :  Reals
      (16, 3, 1) :     0 :                  None :     0 : False :  True :  Reals
@@ -374,12 +374,12 @@ Qij : Size=576, Index=i*i*t
     (16, 11, 1) :     0 :                  None :     0 : False :  True :  Reals
     (16, 12, 1) :     0 :                  None :     0 : False :  True :  Reals
     (16, 13, 1) :     0 :                  None :     0 : False :  True :  Reals
-    (16, 14, 1) :  -5.0 :  -0.17805249011125932 :   5.0 : False : False :  Reals
-    (16, 15, 1) :  -5.0 :   -0.0762704837558515 :   5.0 : False : False :  Reals
+    (16, 14, 1) :  -5.0 :  -0.25126784162377336 :   5.0 : False : False :  Reals
+    (16, 15, 1) :  -5.0 :  0.010145676236829963 :   5.0 : False : False :  Reals
     (16, 16, 1) :     0 :                  None :     0 : False :  True :  Reals
-    (16, 17, 1) :  -5.0 :       0.8183041320422 :   5.0 : False : False :  Reals
+    (16, 17, 1) :  -5.0 :     0.852292595541394 :   5.0 : False : False :  Reals
     (16, 18, 1) :     0 :                  None :     0 : False :  True :  Reals
-    (16, 19, 1) :  -5.0 :   -0.7008834252735842 :   5.0 : False : False :  Reals
+    (16, 19, 1) :  -5.0 :   -0.7480727071791664 :   5.0 : False : False :  Reals
     (16, 20, 1) :     0 :                  None :     0 : False :  True :  Reals
     (16, 21, 1) :     0 :                  None :     0 : False :  True :  Reals
     (16, 22, 1) :     0 :                  None :     0 : False :  True :  Reals
@@ -400,13 +400,13 @@ Qij : Size=576, Index=i*i*t
     (17, 13, 1) :     0 :                  None :     0 : False :  True :  Reals
     (17, 14, 1) :     0 :                  None :     0 : False :  True :  Reals
     (17, 15, 1) :     0 :                  None :     0 : False :  True :  Reals
-    (17, 16, 1) :  -5.0 :  -0.28919051809873647 :   5.0 : False : False :  Reals
+    (17, 16, 1) :  -5.0 :   -0.3161136394447909 :   5.0 : False : False :  Reals
     (17, 17, 1) :     0 :                  None :     0 : False :  True :  Reals
-    (17, 18, 1) :  -5.0 :   0.23615645710522182 :   5.0 : False : False :  Reals
+    (17, 18, 1) :  -5.0 :    0.2559535805762826 :   5.0 : False : False :  Reals
     (17, 19, 1) :     0 :                  None :     0 : False :  True :  Reals
     (17, 20, 1) :     0 :                  None :     0 : False :  True :  Reals
     (17, 21, 1) :     0 :                  None :     0 : False :  True :  Reals
-    (17, 22, 1) :  -5.0 :  0.053034060993514646 :   5.0 : False : False :  Reals
+    (17, 22, 1) :  -5.0 :   0.06016005886849273 :   5.0 : False : False :  Reals
     (17, 23, 1) :     0 :                  None :     0 : False :  True :  Reals
     (17, 24, 1) :     0 :                  None :     0 : False :  True :  Reals
      (18, 1, 1) :     0 :                  None :     0 : False :  True :  Reals
@@ -425,11 +425,11 @@ Qij : Size=576, Index=i*i*t
     (18, 14, 1) :     0 :                  None :     0 : False :  True :  Reals
     (18, 15, 1) :     0 :                  None :     0 : False :  True :  Reals
     (18, 16, 1) :     0 :                  None :     0 : False :  True :  Reals
-    (18, 17, 1) :  -5.0 :  -0.12122854212911287 :   5.0 : False : False :  Reals
+    (18, 17, 1) :  -5.0 :  -0.13905881281046079 :   5.0 : False : False :  Reals
     (18, 18, 1) :     0 :                  None :     0 : False :  True :  Reals
     (18, 19, 1) :     0 :                  None :     0 : False :  True :  Reals
     (18, 20, 1) :     0 :                  None :     0 : False :  True :  Reals
-    (18, 21, 1) : -10.0 :  -0.34423916600577015 :  10.0 : False : False :  Reals
+    (18, 21, 1) : -10.0 :  -0.32640890518485915 :  10.0 : False : False :  Reals
     (18, 22, 1) :     0 :                  None :     0 : False :  True :  Reals
     (18, 23, 1) :     0 :                  None :     0 : False :  True :  Reals
     (18, 24, 1) :     0 :                  None :     0 : False :  True :  Reals
@@ -448,11 +448,11 @@ Qij : Size=576, Index=i*i*t
     (19, 13, 1) :     0 :                  None :     0 : False :  True :  Reals
     (19, 14, 1) :     0 :                  None :     0 : False :  True :  Reals
     (19, 15, 1) :     0 :                  None :     0 : False :  True :  Reals
-    (19, 16, 1) :  -5.0 :    0.8935749533647934 :   5.0 : False : False :  Reals
+    (19, 16, 1) :  -5.0 :    0.9440054763888608 :   5.0 : False : False :  Reals
     (19, 17, 1) :     0 :                  None :     0 : False :  True :  Reals
     (19, 18, 1) :     0 :                  None :     0 : False :  True :  Reals
     (19, 19, 1) :     0 :                  None :     0 : False :  True :  Reals
-    (19, 20, 1) : -10.0 :   -1.1468441474970092 :  10.0 : False : False :  Reals
+    (19, 20, 1) : -10.0 :    -1.197274670521107 :  10.0 : False : False :  Reals
     (19, 21, 1) :     0 :                  None :     0 : False :  True :  Reals
     (19, 22, 1) :     0 :                  None :     0 : False :  True :  Reals
     (19, 23, 1) :     0 :                  None :     0 : False :  True :  Reals
@@ -475,11 +475,11 @@ Qij : Size=576, Index=i*i*t
     (20, 16, 1) :     0 :                  None :     0 : False :  True :  Reals
     (20, 17, 1) :     0 :                  None :     0 : False :  True :  Reals
     (20, 18, 1) :     0 :                  None :     0 : False :  True :  Reals
-    (20, 19, 1) : -10.0 :    1.0815327600428228 :  10.0 : False : False :  Reals
+    (20, 19, 1) : -10.0 :    1.1352315658675989 :  10.0 : False : False :  Reals
     (20, 20, 1) :     0 :                  None :     0 : False :  True :  Reals
     (20, 21, 1) :     0 :                  None :     0 : False :  True :  Reals
     (20, 22, 1) :     0 :                  None :     0 : False :  True :  Reals
-    (20, 23, 1) : -10.0 :   -1.2595057072708664 :  10.0 : False : False :  Reals
+    (20, 23, 1) : -10.0 :   -1.3132045130956786 :  10.0 : False : False :  Reals
     (20, 24, 1) :     0 :                  None :     0 : False :  True :  Reals
      (21, 1, 1) :     0 :                  None :     0 : False :  True :  Reals
      (21, 2, 1) :     0 :                  None :     0 : False :  True :  Reals
@@ -495,14 +495,14 @@ Qij : Size=576, Index=i*i*t
     (21, 12, 1) :     0 :                  None :     0 : False :  True :  Reals
     (21, 13, 1) :     0 :                  None :     0 : False :  True :  Reals
     (21, 14, 1) :     0 :                  None :     0 : False :  True :  Reals
-    (21, 15, 1) : -10.0 :   -0.3355119877504335 :  10.0 : False : False :  Reals
+    (21, 15, 1) : -10.0 :   -0.3202679324857657 :  10.0 : False : False :  Reals
     (21, 16, 1) :     0 :                  None :     0 : False :  True :  Reals
     (21, 17, 1) :     0 :                  None :     0 : False :  True :  Reals
-    (21, 18, 1) : -10.0 :   0.27179772358924553 :  10.0 : False : False :  Reals
+    (21, 18, 1) : -10.0 :   0.25515599115262355 :  10.0 : False : False :  Reals
     (21, 19, 1) :     0 :                  None :     0 : False :  True :  Reals
     (21, 20, 1) :     0 :                  None :     0 : False :  True :  Reals
     (21, 21, 1) :     0 :                  None :     0 : False :  True :  Reals
-    (21, 22, 1) :  -5.0 :   0.06371426416118794 :   5.0 : False : False :  Reals
+    (21, 22, 1) :  -5.0 :   0.06511193153226867 :   5.0 : False : False :  Reals
     (21, 23, 1) :     0 :                  None :     0 : False :  True :  Reals
     (21, 24, 1) :     0 :                  None :     0 : False :  True :  Reals
      (22, 1, 1) :     0 :                  None :     0 : False :  True :  Reals
@@ -521,11 +521,11 @@ Qij : Size=576, Index=i*i*t
     (22, 14, 1) :     0 :                  None :     0 : False :  True :  Reals
     (22, 15, 1) :     0 :                  None :     0 : False :  True :  Reals
     (22, 16, 1) :     0 :                  None :     0 : False :  True :  Reals
-    (22, 17, 1) :  -5.0 :  0.021286903714752586 :   5.0 : False : False :  Reals
+    (22, 17, 1) :  -5.0 :  0.019374897127247673 :   5.0 : False : False :  Reals
     (22, 18, 1) :     0 :                  None :     0 : False :  True :  Reals
     (22, 19, 1) :     0 :                  None :     0 : False :  True :  Reals
     (22, 20, 1) :     0 :                  None :     0 : False :  True :  Reals
-    (22, 21, 1) :  -5.0 : -0.021286903714752586 :   5.0 : False : False :  Reals
+    (22, 21, 1) :  -5.0 : -0.019374906984790982 :   5.0 : False : False :  Reals
     (22, 22, 1) :     0 :                  None :     0 : False :  True :  Reals
     (22, 23, 1) :     0 :                  None :     0 : False :  True :  Reals
     (22, 24, 1) :     0 :                  None :     0 : False :  True :  Reals
@@ -540,22 +540,22 @@ Qij : Size=576, Index=i*i*t
      (23, 9, 1) :     0 :                  None :     0 : False :  True :  Reals
     (23, 10, 1) :     0 :                  None :     0 : False :  True :  Reals
     (23, 11, 1) :     0 :                  None :     0 : False :  True :  Reals
-    (23, 12, 1) :  -5.0 :   -0.2962494410505854 :   5.0 : False : False :  Reals
-    (23, 13, 1) :  -5.0 :   -0.9024952152495802 :   5.0 : False : False :  Reals
+    (23, 12, 1) :  -5.0 :   -0.3415043226904721 :   5.0 : False : False :  Reals
+    (23, 13, 1) :  -5.0 :   -0.9127265700835518 :   5.0 : False : False :  Reals
     (23, 14, 1) :     0 :                  None :     0 : False :  True :  Reals
     (23, 15, 1) :     0 :                  None :     0 : False :  True :  Reals
     (23, 16, 1) :     0 :                  None :     0 : False :  True :  Reals
     (23, 17, 1) :     0 :                  None :     0 : False :  True :  Reals
     (23, 18, 1) :     0 :                  None :     0 : False :  True :  Reals
     (23, 19, 1) :     0 :                  None :     0 : False :  True :  Reals
-    (23, 20, 1) : -10.0 :    1.1987446563001656 :  10.0 : False : False :  Reals
+    (23, 20, 1) : -10.0 :    1.2542308828163997 :  10.0 : False : False :  Reals
     (23, 21, 1) :     0 :                  None :     0 : False :  True :  Reals
     (23, 22, 1) :     0 :                  None :     0 : False :  True :  Reals
     (23, 23, 1) :     0 :                  None :     0 : False :  True :  Reals
     (23, 24, 1) :     0 :                  None :     0 : False :  True :  Reals
      (24, 1, 1) :     0 :                  None :     0 : False :  True :  Reals
      (24, 2, 1) :     0 :                  None :     0 : False :  True :  Reals
-     (24, 3, 1) :  -4.0 :   0.20562612802406027 :   4.0 : False : False :  Reals
+     (24, 3, 1) :  -4.0 :   0.10033860625329923 :   4.0 : False : False :  Reals
      (24, 4, 1) :     0 :                  None :     0 : False :  True :  Reals
      (24, 5, 1) :     0 :                  None :     0 : False :  True :  Reals
      (24, 6, 1) :     0 :                  None :     0 : False :  True :  Reals
@@ -567,7 +567,7 @@ Qij : Size=576, Index=i*i*t
     (24, 12, 1) :     0 :                  None :     0 : False :  True :  Reals
     (24, 13, 1) :     0 :                  None :     0 : False :  True :  Reals
     (24, 14, 1) :     0 :                  None :     0 : False :  True :  Reals
-    (24, 15, 1) :  -5.0 :  -0.20562612802406027 :   5.0 : False : False :  Reals
+    (24, 15, 1) :  -5.0 :  -0.10033860625321345 :   5.0 : False : False :  Reals
     (24, 16, 1) :     0 :                  None :     0 : False :  True :  Reals
     (24, 17, 1) :     0 :                  None :     0 : False :  True :  Reals
     (24, 18, 1) :     0 :                  None :     0 : False :  True :  Reals
