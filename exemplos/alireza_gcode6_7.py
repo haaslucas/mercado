@@ -208,18 +208,22 @@ def eq2(model, i, j, t): # Eq. 6.8g - Reactive power flow of lines
     return Constraint.Skip
 
 def eq3(model, i, t):  # Eq.6.8b - Active power balance
-    return (
-        model.Pw[i, t] + (model.Pg[i, t] if i in model.GB else 0)
-        - model.WD[t, 'd'] * model.BD[i, 'Pd'] / model.Sbase
-        ==   sum(model.Pij[i, j, t] for j in model.i if (i, j) in LN) 
-    )
+    lhs = model.Pw[i, t] + (model.Pg[i, t] if i in model.GB else 0) - model.WD[t, 'd'] * model.BD[i, 'Pd'] / model.Sbase
+    rhs = sum(model.Pij[i, j, t] for j in model.i if (i, j) in LN)
+    
+    expression = (lhs == rhs)
+    if expression is True:  # Check if the expression is literally the boolean True
+        return Constraint.Feasible
+    return expression
 
 def eq4(model, i, t): # Eq.6.8c - Reactive power balance
-    return (
-        (model.Qg[i, t] if i in model.GB else 0)
-        - model.WD[t, 'd'] * model.BD[i, 'Qd'] / model.Sbase
-        ==  sum(model.Qij[i, j, t] for j in model.i if (i, j) in LN)  
-    )
+    lhs = (model.Qg[i, t] if i in model.GB else 0) - model.WD[t, 'd'] * model.BD[i, 'Qd'] / model.Sbase
+    rhs = sum(model.Qij[i, j, t] for j in model.i if (i, j) in LN)
+
+    expression = (lhs == rhs)
+    if expression is True:  # Check if the expression is literally the boolean True
+        return Constraint.Feasible
+    return expression
 
 def eq5(model):
     model.OF == sum(model.Pg[i, t] * model.GenD[i, 'b'] * model.Sbase for i in model.GB for t in model.t)
