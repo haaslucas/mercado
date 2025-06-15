@@ -6,9 +6,6 @@ import matplotlib.pyplot as plt
 # Criação do modelo
 model = ConcreteModel()
 
-# 1) habilitar espaço para os duais
-model.dual = Suffix(direction=Suffix.IMPORT)
-
 # Conjuntos
 model.i = RangeSet(1, 24)  # network buses
 model.slack = 13 # slack bus
@@ -33,7 +30,6 @@ GenD = {
     22: {'pmax': 300, 'pmin': 0, 'b': 0, 'Qmax': 300, 'Qmin': -60, 'Vg': 1.05, 'RU': 53, 'RD': 53},
     23: {'pmax': 360, 'pmin': 248.5, 'b': 10.52, 'Qmax': 310, 'Qmin': -125, 'Vg': 1.05, 'RU': 31, 'RD': 31}
 }
-
 
 
 model.GenD = Param(model.GB, ['pmax', 'pmin', 'b', 'Qmax', 'Qmin', 'Vg', 'RU', 'RD'], initialize=lambda model, i, j: GenD[i][j])
@@ -149,7 +145,7 @@ Wcap = {8: 200, 19: 150, 21: 100}
 model.Wcap = Param(model.i, initialize=lambda model, i: Wcap.get(i, 0))
 
 # Variáveis
-
+model.OF = Var(within=NonNegativeReals)  # Objective function
 #model.Pij = Var(model.i, model.i, model.t)  # Power flow variables
 #model.Qij = Var(model.i, model.i, model.t)  # Reactive power flow variables
 
@@ -211,46 +207,31 @@ def eq2(model, i, j, t): # Eq. 6.8g - Reactive power flow of lines
                     + model.LN[i, j, 'th'])) / model.LN[i, j, 'z'] - model.LN[i, j, 'b'] * model.V[i, t]**2 / 2
     return Constraint.Skip
 
-
-
-def eq3(model, i, t):
-    # Injeção líquida (geração + potência livre – carga)
-    injection = (model.Pw[i, t] +
-                 (model.Pg[i, t] if i in model.GB else 0) -
-                 model.WD[t, 'd'] * model.BD[i, 'Pd'] / model.Sbase)
-
-    outgoing = sum(model.Pij[i, j, t]      # i ─► j
-                   for j in model.i if (i, j) in LN)
-
-    incoming = sum(model.Pij[j, i, t]      # j ─► i
-                   for j in model.i if (j, i) in LN)
-
-    # Balanço: injeção = saídas – entradas
-    return injection == outgoing - incoming
+def eq3(model, i, t):  # Eq.6.8b - Active power balance
+    lhs = model.Pw[i, t] + (model.Pg[i, t] if i in model.GB else 0) - model.WD[t, 'd'] * model.BD[i, 'Pd'] / model.Sbase
+    rhs = sum(model.Pij[j, i, t] for j in model.i if (i, j) in LN)
+    
+    expression = (lhs == rhs)
+    if expression is True:  # Check if the expression is literally the boolean True
+        return Constraint.Feasible
+    return expression
 
 def eq4(model, i, t): # Eq.6.8c - Reactive power balance
-    # Injeção líquida (geração + potência livre – carga)
-    injection = (model.Pw[i, t] +
-                 (model.Qg[i, t] if i in model.GB else 0) -
-                 model.WD[t, 'd'] * model.BD[i, 'Qd'] / model.Sbase)
-    
-    outgoing = sum(model.Qij[i, j, t]      # i ─► j
-                     for j in model.i if (i, j) in LN)
-    
-    incoming = sum(model.Qij[j, i, t]      # j ─► i
-                        for j in model.i if (j, i) in LN)
-    
-    # Balanço: injeção = saídas – entradas
-    return injection == outgoing - incoming
+    lhs = (model.Qg[i, t] if i in model.GB else 0) - model.WD[t, 'd'] * model.BD[i, 'Qd'] / model.Sbase
+    rhs = sum(model.Qij[j, i, t] for j in model.i if (i, j) in LN)
 
-'''def eq5(model):
+    expression = (lhs == rhs)
+    if expression is True:  # Check if the expression is literally the boolean True
+        return Constraint.Feasible
+    return expression
+
+def eq5(model):
     model.OF == sum(model.Pg[i, t] * model.GenD[i, 'b'] * 100 for i in model.GB for t in model.t)
-    return model.OF'''
+    return model.OF
 
-model.OF = Objective(
-    expr=sum(model.Pg[i, t] * model.GenD[i, 'b'] * model.Sbase for i in model.GB for t in model.t),
-    sense=minimize)
-
+#model.OF = Objective(
+#    expr=sum(model.Pg[i, t] * model.GenD[i, 'b'] * model.Sbase for i in model.GB for t in model.t),
+#    sense=minimize)
 
 def eq6(model, i, t):
     if model.GenD[i,'pmax'] and t > 1:
@@ -266,7 +247,7 @@ model.Eq1 = Constraint(model.i, model.i, model.t, rule=eq1) # active power flow 
 model.Eq2 = Constraint(model.i, model.i, model.t, rule=eq2) # reactive power flow of lines
 model.Eq3 = Constraint(model.i, model.t, rule=eq3) # active power balance; Optimal found, = 0
 model.Eq4 = Constraint(model.i, model.t, rule=eq4) # reactive power balance
-#model.Eq5 = Objective(rule=eq5, sense=minimize, name='ObjectiveFunction') # Objective function11
+model.Eq5 = Objective(rule=eq5, sense=minimize, name='ObjectiveFunction') # Objective function11
 model.Eq6 = Constraint(model.GB, model.t, rule=eq6) # Eq.6.8d - Ramp up constraint
 model.Eq7 = Constraint(model.GB, model.t, rule=eq7) # Eq.6.8e - Ramp down constraint
 
@@ -280,6 +261,9 @@ solver = SolverFactory('ipopt')
 #solver.options['print_level'] = 5  # Increase verbosity for debugging
 
 
+from amplpy import modules
+
+
 #solver "c:\ampl\conopt.exe"
 
 #solver = SolverFactory('conopt',
@@ -287,28 +271,10 @@ solver = SolverFactory('ipopt')
 results = solver.solve(model, tee=True, load_solutions=True)
 
 
-import logging
-logging.basicConfig(level=logging.INFO)
-from amplpy import modules
-from pyomo.util.infeasible import log_infeasible_constraints
-
-# 1) monta um logger que grava só no arquivo
-log_txt = logging.getLogger('infeas')
-log_txt.setLevel(logging.INFO)             # garante que msgs INFO sejam emitidas
-file_hdl = logging.FileHandler('infeasible6.txt', mode='w')
-file_hdl.setFormatter(logging.Formatter('%(message)s'))  # só a mensagem
-log_txt.addHandler(file_hdl)
-
-# 2) dispara o diagnóstico já mandando para o arquivo
-log_infeasible_constraints(model, logger=log_txt, log_variables=True, log_expression =True)
-
-# 3) (opcional) remove handler ou fecha se o script continuar rodando
-log_txt.removeHandler(file_hdl)
-file_hdl.close()
 #solver_name = "conopt"  # "highs", "cbc",  "couenne", "bonmin", "ipopt", "scip", or "gcg".
 #solver = SolverFactory(solver_name+"nl", executable=modules.find(solver_name), solve_io="nl")
 
-a=1
+
 
 
 #convert model.Pij to a DataFrame
@@ -327,13 +293,6 @@ Pij_data = {(i, j, t): model.Pij[i, j, t].value for i in model.i for j in model.
 Pij_df = pd.DataFrame.from_dict(Pij_data, orient='index', columns=['Pij']).reset_index()
 Pij_df.Pij = Pij_df.Pij*100 # Convert to MW
 
-for obj in model.component_objects(Objective, active=True):
-    obj_name = obj.name
-    filename = f"{obj_name}.txt"    
-    with open(filename, 'w') as f:
-        f.write(f"Resultados para a função objetivo: {obj_name}\n")
-        obj.pprint(ostream=f)
-    
 # Iterar sobre todas as variáveis do modelo
 for var in model.component_objects(Var, active=True):
     # Criar um nome de arquivo baseado no nome da variável
@@ -362,38 +321,11 @@ for i in model.i:
     for t in model.t:
         report.loc[t, i] = model.V[i, t].value
 
-#model.OF.pprint()
+model.OF.pprint()
 
-print(model.OF.expr())
 #report.to_excel('exemplos/results.xlsx', sheet_name='Results')
 #print(report)
-#print the dual variables
-dual_vars = model.dual
-with open("duais.txt", "w") as f:               # abre/zera o arquivo
-    for constr in model.component_objects(Constraint, active=True):
-        header = f"Dual variables for constraint {constr.name}:\n"
-        print(header.rstrip())
-        f.write(header)
 
-        for index in constr:
-            c_ref = constr[index]
-            if c_ref in dual_vars:              # só escreve se houver dual
-                value = dual_vars[c_ref]
-                line = f"  {index}: {value}\n"
-            else:
-                line = f"  {index}: <none>\n"   # opcional: marca ausentes
 
-            print(line.rstrip())
-            f.write(line)
-
-plt.figure(figsize=(12, 6))
-Pg_df.plot(grid=True)
-plt.title('Active Power Generation (Pg) by Generator Over Time')
-plt.xlabel('Time Period')
-plt.ylabel('Active Power (MW)')
-plt.legend(title='Generator')
-plt.tight_layout()
-plt.savefig('exemplos/active_power_generation.png')
 
 a=1
- 

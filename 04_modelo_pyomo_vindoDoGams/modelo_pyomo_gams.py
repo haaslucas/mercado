@@ -379,7 +379,7 @@ def main():
     Pw.up[i, t] = WD[t, "w"] * Wcap[i] / Sbase
     Pw.lo[i, t] = 0
     #use initial guess 43000
-    Pg.l[i, t] = 43000 / Sbase
+    #Pg.l[i, t] = 43000 / Sbase
     
     #set the solver as the path c:\ampl\conopt.exe
     #printparamater LN values
@@ -388,7 +388,7 @@ def main():
 
     # Reporting Parameters
     report = Parameter(m, name="report", domain=[t, i, "*"])
-    report2 = Parameter(m, name="report2", domain=[i, t])
+    report2 = Parameter(m,  name="report2", domain=[i, t])
     report3 = Parameter(m, name="report3", domain=[i, t])
 
     report[t, i, "V"] = V.l[i, t] #V is the voltage magnitude
@@ -399,7 +399,8 @@ def main():
     report[t, i, "LMP_Q"] = eq4.m[i, t] / Sbase # LMP_Q is the locational marginal price for reactive power in $/MVarh
 
     print("report  \n", report.pivot().round(4))
-
+    #print the duals of equations eq3 and eq4
+    report2[i, t] = eq3.m[i, t] / Sbase
     writer = pd.ExcelWriter("results2.xlsx", engine="openpyxl")
     #export all variables, equations, and parameters to .txt files
 
@@ -407,11 +408,6 @@ def main():
     #the column 'i' is the generator. Convert to columns
     df = df_Pg.copy()                 # (opcional) evita alterar o original
     df['gerador'] = 'G' + df['i'].astype(int).astype(str)
-
-
-    # ============================================================
-    # A) Apenas a coluna 'level' em formato wide
-    # ============================================================
     df_Pg = (
         df.pivot(index='t',                 # linhas = instantes (t1…t24)
                 columns='gerador',         # colunas = G1…G24
@@ -421,14 +417,31 @@ def main():
     )
     df_Pg.drop(columns='t',inplace = True)
 
+
     LN.records.to_excel(writer, sheet_name="LN")
     GenD.records.to_excel(writer, sheet_name="GenD")
     #print OF
     print("Objective Function Value:  ", loadflow.objective_value)
 
+    df_Pg = df_Pg[ ["G1", "G2", "G7", "G13", "G15", "G16", "G18", "G21", "G22", "G23"]]
+    df_Pg['Total'] = df_Pg.sum(axis=1)  # Add a total column
+    df_Pg = df_Pg*100
+        
+        
+    #plot Pg_df.plot() with grid on
+    plt.figure(figsize=(12, 6))
+    df_Pg.plot(grid=True)
+    plt.title('Active Power Generation (Pg) by Generator Over Time')
+    plt.xlabel('Time Period')
+    plt.ylabel('Active Power (MW)')
+    plt.legend(title='Generator')
+    plt.tight_layout()
+
+
+
 
     report.pivot().round(4).to_excel(writer, sheet_name="classic")
-    report2.pivot().round(4).to_excel(writer, sheet_name="classic2")
+    #report2.pivot().round(4).to_excel(writer, sheet_name="classic2")
     report3.pivot().round(4).to_excel(writer, sheet_name="classic3")
 
     writer.close()

@@ -383,7 +383,7 @@ def main():
     
     #set the solver as the path c:\ampl\conopt.exe
     
-    loadflow.solve(solver="CONOPT")
+    loadflow.solve(solver="IPOPT")
 
     # Reporting Parameters
     report = Parameter(m, name="report", domain=[t, i, "*"])

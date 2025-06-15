@@ -6,13 +6,10 @@ import matplotlib.pyplot as plt
 # Criação do modelo
 model = ConcreteModel()
 
-# 1) habilitar espaço para os duais
-model.dual = Suffix(direction=Suffix.IMPORT)
-
 # Conjuntos
 model.i = RangeSet(1, 24)  # network buses
 model.slack = 13 # slack bus
-model.t = RangeSet(1, 24)  # time periods
+model.t = RangeSet(1, 1)  # time periods
 model.GB = Set(initialize=[1, 2, 7, 13, 15, 16, 18, 21, 22, 23])  # generating buses
 
 # Parâmetros
@@ -211,37 +208,23 @@ def eq2(model, i, j, t): # Eq. 6.8g - Reactive power flow of lines
                     + model.LN[i, j, 'th'])) / model.LN[i, j, 'z'] - model.LN[i, j, 'b'] * model.V[i, t]**2 / 2
     return Constraint.Skip
 
-
-
-def eq3(model, i, t):
-    # Injeção líquida (geração + potência livre – carga)
-    injection = (model.Pw[i, t] +
-                 (model.Pg[i, t] if i in model.GB else 0) -
-                 model.WD[t, 'd'] * model.BD[i, 'Pd'] / model.Sbase)
-
-    outgoing = sum(model.Pij[i, j, t]      # i ─► j
-                   for j in model.i if (i, j) in LN)
-
-    incoming = sum(model.Pij[j, i, t]      # j ─► i
-                   for j in model.i if (j, i) in LN)
-
-    # Balanço: injeção = saídas – entradas
-    return injection == outgoing - incoming
+def eq3(model, i, t):  # Eq.6.8b - Active power balance
+    lhs = model.Pw[i, t] + (model.Pg[i, t] if i in model.GB else 0) - model.WD[t, 'd'] * model.BD[i, 'Pd'] / model.Sbase
+    rhs = sum(model.Pij[i, j, t] for j in model.i if (i, j) in LN)
+    
+    expression = (lhs == rhs)
+    if expression is True:  # Check if the expression is literally the boolean True
+        return Constraint.Feasible
+    return expression
 
 def eq4(model, i, t): # Eq.6.8c - Reactive power balance
-    # Injeção líquida (geração + potência livre – carga)
-    injection = (model.Pw[i, t] +
-                 (model.Qg[i, t] if i in model.GB else 0) -
-                 model.WD[t, 'd'] * model.BD[i, 'Qd'] / model.Sbase)
-    
-    outgoing = sum(model.Qij[i, j, t]      # i ─► j
-                     for j in model.i if (i, j) in LN)
-    
-    incoming = sum(model.Qij[j, i, t]      # j ─► i
-                        for j in model.i if (j, i) in LN)
-    
-    # Balanço: injeção = saídas – entradas
-    return injection == outgoing - incoming
+    lhs = (model.Qg[i, t] if i in model.GB else 0) - model.WD[t, 'd'] * model.BD[i, 'Qd'] / model.Sbase
+    rhs = sum(model.Qij[i, j, t] for j in model.i if (i, j) in LN)
+
+    expression = (lhs == rhs)
+    if expression is True:  # Check if the expression is literally the boolean True
+        return Constraint.Feasible
+    return expression
 
 '''def eq5(model):
     model.OF == sum(model.Pg[i, t] * model.GenD[i, 'b'] * 100 for i in model.GB for t in model.t)
@@ -295,7 +278,7 @@ from pyomo.util.infeasible import log_infeasible_constraints
 # 1) monta um logger que grava só no arquivo
 log_txt = logging.getLogger('infeas')
 log_txt.setLevel(logging.INFO)             # garante que msgs INFO sejam emitidas
-file_hdl = logging.FileHandler('infeasible6.txt', mode='w')
+file_hdl = logging.FileHandler('infeasible4.txt', mode='w')
 file_hdl.setFormatter(logging.Formatter('%(message)s'))  # só a mensagem
 log_txt.addHandler(file_hdl)
 
@@ -327,13 +310,6 @@ Pij_data = {(i, j, t): model.Pij[i, j, t].value for i in model.i for j in model.
 Pij_df = pd.DataFrame.from_dict(Pij_data, orient='index', columns=['Pij']).reset_index()
 Pij_df.Pij = Pij_df.Pij*100 # Convert to MW
 
-for obj in model.component_objects(Objective, active=True):
-    obj_name = obj.name
-    filename = f"{obj_name}.txt"    
-    with open(filename, 'w') as f:
-        f.write(f"Resultados para a função objetivo: {obj_name}\n")
-        obj.pprint(ostream=f)
-    
 # Iterar sobre todas as variáveis do modelo
 for var in model.component_objects(Var, active=True):
     # Criar um nome de arquivo baseado no nome da variável
@@ -367,33 +343,15 @@ for i in model.i:
 print(model.OF.expr())
 #report.to_excel('exemplos/results.xlsx', sheet_name='Results')
 #print(report)
-#print the dual variables
-dual_vars = model.dual
-with open("duais.txt", "w") as f:               # abre/zera o arquivo
-    for constr in model.component_objects(Constraint, active=True):
-        header = f"Dual variables for constraint {constr.name}:\n"
-        print(header.rstrip())
-        f.write(header)
 
-        for index in constr:
-            c_ref = constr[index]
-            if c_ref in dual_vars:              # só escreve se houver dual
-                value = dual_vars[c_ref]
-                line = f"  {index}: {value}\n"
-            else:
-                line = f"  {index}: <none>\n"   # opcional: marca ausentes
 
-            print(line.rstrip())
-            f.write(line)
-
-plt.figure(figsize=(12, 6))
+'''plt.figure(figsize=(12, 6))
 Pg_df.plot(grid=True)
 plt.title('Active Power Generation (Pg) by Generator Over Time')
 plt.xlabel('Time Period')
 plt.ylabel('Active Power (MW)')
 plt.legend(title='Generator')
 plt.tight_layout()
-plt.savefig('exemplos/active_power_generation.png')
+plt.savefig('exemplos/active_power_generation.png')'''
 
 a=1
- 
