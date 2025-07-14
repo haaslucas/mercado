@@ -3,10 +3,9 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-# Criação do modelo
+
 model = ConcreteModel()
 
-# 1) habilitar espaço para os duais
 model.dual = Suffix(direction=Suffix.IMPORT)
 
 # Conjuntos
@@ -33,7 +32,6 @@ GenD = {
     22: {'pmax': 300, 'pmin': 0, 'b': 0, 'Qmax': 300, 'Qmin': -60, 'Vg': 1.05, 'RU': 53, 'RD': 53},
     23: {'pmax': 360, 'pmin': 248.5, 'b': 10.52, 'Qmax': 310, 'Qmin': -125, 'Vg': 1.05, 'RU': 31, 'RD': 31}
 }
-
 
 
 model.GenD = Param(model.GB, ['pmax', 'pmin', 'b', 'Qmax', 'Qmin', 'Vg', 'RU', 'RD'], initialize=lambda model, i, j: GenD[i][j])
