@@ -4,6 +4,7 @@ import pathlib
 import pandas as pd
 import re
 import sys
+from auxiliares import *
 # (1) Onde estão Novo.mod, input.dat, etc…
 basedir = pathlib.Path(".")
 ampl = AMPL()
@@ -11,8 +12,19 @@ ampl = AMPL()
 
 ampl.eval('include execute_linear.run;')             # chama o .run
 
+variables_df, parameters_df = get_ampl_dataframes(ampl)
+#get the variable P from AMPL
+P = ampl.getVariable('P')
+#get the valies of P
+P_values = P.getValues().toPandas()
+all_vars_df = create_variables_dataframe(ampl)
+
 ampl.eval('expand _con > "expanded_model.txt";')
 ampl.eval('expand _obj >> "expanded_model.txt";')
+#expand variables
+for v in ampl.getVariables():
+    ampl.eval(f'expand {v[0]} >> "vars.txt";')
+
 
 # 2. Utilidades --------------------------------------------------------
 def safe_sheet_name(name: str, existing: set) -> str:
