@@ -7,7 +7,7 @@ option solver gurobi;
 #option solver HiGHS ;
 #option solver cplex;
 option cplex_options 'mipdisplay =2 iisfind =2  ';
-option gurobi_options 'outlev=1  iisfind=1 mipfocus=0 numericfocus=0 timelimit=30';
+option gurobi_options 'outlev=1  iisfind=1 mipfocus=0 numericfocus=0';
 #limit time to 60 s
 
 #option pl_linearize 0;

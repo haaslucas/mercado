@@ -362,7 +362,7 @@ s.t. new {(i,j) in L, t in T}:
 	VM[i,t] - VM[j,t] = 2*(R[i,j]*P[i,j,t] +X[i,j]*Q[i,j,t]) + Z[i,j]^2*I[i,j,t];
 	
 s.t. new2{(i,j) in L, t in T}:
-	P[i,j,t]^2 + Q[i,j,t]^2 <= I[i,j,t]*VM[j,t];
+	P[ i,j,t]^2 + Q[i,j,t]^2 <= I[i,j,t]*VM[j,t];
 	
 #s.t. new2{(i,j) in L, t in T}:
 #	P[i,j,t]^2  <= I[i,j,t]*VM[j,t];
