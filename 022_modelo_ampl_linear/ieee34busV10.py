@@ -647,6 +647,66 @@ def ieee34bus(  prelog=False, poslog=False, analyze_model=True, Y = 40):  #
         return m.mu_Pg_LOW[g, t] <= m.M * m.z_Pg_LOW[g, t]
     m.cs_Pg_LOW2 = Constraint(m.GB, m.t, rule=cs_Pg_LOW2_rule)
 
+    # --- QG_BOUNDS_UPPER ---
+    m.z_Qg_UP = Var(m.GB, m.t, within=Binary)
+    def cs_Qg_UP1_rule(m, g, t):
+        expr = m.GenD[g, 'P_max (pu)'] - m.Qg[g, t]
+        return expr <= m.M * (1 - m.z_Qg_UP[g, t])
+    m.cs_Qg_UP1 = Constraint(m.GB, m.t, rule=cs_Qg_UP1_rule)
+    def cs_Qg_UP2_rule(m, g, t):
+        return m.mu_Qg_UP[g, t] <= m.M * m.z_Qg_UP[g, t]
+    m.cs_Qg_UP2 = Constraint(m.GB, m.t, rule=cs_Qg_UP2_rule)
+
+    # --- QG_BOUNDS_LOWER ---
+    m.z_Qg_LOW = Var(m.GB, m.t, within=Binary)
+    def cs_Qg_LOW1_rule(m, g, t):
+        expr = m.Qg[g, t] + m.GenD[g, 'P_max (pu)']
+        return expr <= m.M * (1 - m.z_Qg_LOW[g, t])
+    m.cs_Qg_LOW1 = Constraint(m.GB, m.t, rule=cs_Qg_LOW1_rule)
+    def cs_Qg_LOW2_rule(m, g, t):
+        return m.mu_Qg_LOW[g, t] <= m.M * m.z_Qg_LOW[g, t]
+    m.cs_Qg_LOW2 = Constraint(m.GB, m.t, rule=cs_Qg_LOW2_rule)
+
+    # --- Isq_BOUND_UPPER ---
+    m.z_Isq_UP = Var(m.l, m.t, within=Binary)
+    def cs_Isq_UP1_rule(m, i, j, t):
+        expr = DLINES.loc[(i, j), 'Line Ampacity (pu)']**2 - m.Isq[i, j, t]
+        return expr <= m.M * (1 - m.z_Isq_UP[i, j, t])
+    m.cs_Isq_UP1 = Constraint(m.l, m.t, rule=cs_Isq_UP1_rule)
+    def cs_Isq_UP2_rule(m, i, j, t):
+        return m.mu_Isq_UP[i, j, t] <= m.M * m.z_Isq_UP[i, j, t]
+    m.cs_Isq_UP2 = Constraint(m.l, m.t, rule=cs_Isq_UP2_rule)
+
+    # --- Isq_BOUND_LOWER ---
+    m.z_Isq_LOW = Var(m.l, m.t, within=Binary)
+    def cs_Isq_LOW1_rule(m, i, j, t):
+        expr = m.Isq[i, j, t]
+        return expr <= m.M * (1 - m.z_Isq_LOW[i, j, t])
+    m.cs_Isq_LOW1 = Constraint(m.l, m.t, rule=cs_Isq_LOW1_rule)
+    def cs_Isq_LOW2_rule(m, i, j, t):
+        return m.mu_Isq_LOW[i, j, t] <= m.M * m.z_Isq_LOW[i, j, t]
+    m.cs_Isq_LOW2 = Constraint(m.l, m.t, rule=cs_Isq_LOW2_rule)
+
+    # --- Vsq_BOUND_UPPER ---
+    m.z_Vsq_UP = Var(m.i, m.t, within=Binary)
+    def cs_Vsq_UP1_rule(m, i, t):
+        expr = 1.05**2 - m.Vsq[i, t]
+        return expr <= m.M * (1 - m.z_Vsq_UP[i, t])
+    m.cs_Vsq_UP1 = Constraint(m.i, m.t, rule=cs_Vsq_UP1_rule)
+    def cs_Vsq_UP2_rule(m, i, t):
+        return m.mu_Vsq_UP[i, t] <= m.M * m.z_Vsq_UP[i, t]
+    m.cs_Vsq_UP2 = Constraint(m.i, m.t, rule=cs_Vsq_UP2_rule)
+
+    # --- Vsq_BOUND_LOWER ---
+    m.z_Vsq_LOW = Var(m.i, m.t, within=Binary)
+    def cs_Vsq_LOW1_rule(m, i, t):
+        expr = m.Vsq[i, t] - 0.95**2
+        return expr <= m.M * (1 - m.z_Vsq_LOW[i, t])
+    m.cs_Vsq_LOW1 = Constraint(m.i, m.t, rule=cs_Vsq_LOW1_rule)
+    def cs_Vsq_LOW2_rule(m, i, t):
+        return m.mu_Vsq_LOW[i, t] <= m.M * m.z_Vsq_LOW[i, t]
+    m.cs_Vsq_LOW2 = Constraint(m.i, m.t, rule=cs_Vsq_LOW2_rule)
+
     # (This is a simplified example. A full implementation would require adding
     # binary variables and the two Big-M constraints for EVERY inequality constraint
     # in the model, which is a substantial number.)
