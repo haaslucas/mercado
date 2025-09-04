@@ -563,6 +563,7 @@ s.t. Carbon_Limits_Trans {t in T}:
 #
 
 ##									TRANSMISSION DUAL CONSTRAINTS
+# Stationarity condition for TSO primal variable P_thermal_trans
 s.t. Deriv_Potencia_with_Ramp {g in G_T, t in T}:
 	#(2*a_t[g] * P_thermal_trans[g,t] + b_t[g]) 
 	- lambda[G_Node[g],t] 
@@ -571,6 +572,7 @@ s.t. Deriv_Potencia_with_Ramp {g in G_T, t in T}:
 	+varphi[g,t]
 	= 0;
 	
+# Stationarity condition for TSO primal variable Block_Dispatch_t
 s.t. Deriv_Blocos_Potencia {g in G_T, b in B, t in T}:
 	Price_block_t[g,b] -varphi[g,t] + rho_U[g,b,t] - rho_L[g,b,t] = 0;
 	
@@ -584,14 +586,17 @@ s.t. Deriv_Fluxo{l in Trans_Lines, t in T}:
 s.t. Deriv_PDSO{t in T}:  
 	-Bid[t] + lambda[5,t] + kappa_U[t] - kappa_L[t] = 0;
 
+# Stationarity condition for TSO primal variable Footprint_trans
 s.t. Deriv_Footprint{g in G_T, t in T}:
 	+phi[g,t] + Xi_U[t] 
 	= 0;
 
+# Stationarity condition for TSO primal variable Carbon_T
 s.t. Deriv_Carbon_T {g in G_T, t in T}:
 	+ psi[t] + Xi_U[t]
 	 = 0;
 	
+# Stationarity condition for TSO primal variable Carbon_SE
 s.t. Deriv_Carbon_SE {t in T}:
 	 -Carbon_Price[t] -psi[t] = 0;
 
