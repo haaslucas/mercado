@@ -1,0 +1,452 @@
+from pyomo.environ import *
+import pandas as pd
+import numpy as np
+import sys
+sys.path.append('.')
+from auxiliares2 import *
+
+def ieee34bus(  prelog=False, poslog=False, analyze_model=True, Y = 40):  # 
+
+    m = ConcreteModel(name='34 bus',
+            doc='34 bus')
+
+    m.dual = Suffix(direction=Suffix.IMPORT)
+
+    SBASE = 100  # Base power in MVA
+    VBASE = 24.9  # Base voltage in kV
+    IBASE = SBASE * 1e3 / VBASE  # Base current in A
+    
+
+    ############ PROCESSAMENTO DE DADOS ############
+    PASTA = './modelos/data/'
+    DLINES  = pd.read_csv(PASTA + 'distribution_line_data.csv')
+    DLINES = DLINES.set_index(['From', 'To'])
+
+    DLINES['Z (pu)'] = np.sqrt(np.sqrt((DLINES['R (pu)']**2 + DLINES['X (pu)']**2).values))
+    DLINES['Line Ampacity (pu)'] = DLINES['Line Ampacity (A)'] / IBASE
+    #dnodes = pd.read_csv(PASTA + 'distribution_node_data.csv', index_col=0)
+    #dnodes = pd.read_csv(PASTA + 'distribution_node_data.csv')
+    ess = pd.read_csv(PASTA + 'ess.csv',index_col=0)
+
+    ess[['Max ESS Charge (pu)', 'Max ESS Discharge (pu)', 'Min ESS SOC (pu)',
+       'Max ESS SOC (pu)', 'Initial SOC (pu)',]] =     ess[['Max ESS Charge (MW)', 'Max ESS Discharge (MW)', 'Min ESS SOC (MW)',
+       'Max ESS SOC (MW)', 'Initial SOC (MW)',]]/ SBASE
+
+    load = pd.read_csv(PASTA + 'dist_load.csv')
+    load.Load  = load.Load*3.5
+    load = load.set_index(['Node','Hour'])
+    load = load[load.Scenario == 1]  
+    load.drop(columns=['Scenario'], inplace=True)
+    
+    gen_nd = pd.read_csv(PASTA + 'dso_connected_non_dispatchable_generators.csv')
+
+    gen_d  = pd.read_csv(PASTA + 'dso_connected_dispatchable_generators.csv')
+
+    
+    gen_d['P_max (pu)'] = gen_d['P_max (MW)'] / SBASE
+    gen_d['P_min (pu)'] = gen_d['P_min (MW)'] / SBASE
+    gen_nd['P_max (pu)'] = gen_nd['P_max (MW)'] / SBASE
+    
+    #concat  gdd and gdnd. They have column Node in common
+    gen_d.index = gen_d['Node']
+    gen_d.drop(columns=['Node','Unnamed: 0'], inplace=True)
+    gen_d.sort_index(inplace=True)
+    ls = pd.read_csv(PASTA + 'ls.csv')
+
+    gen_d.a = gen_d.a * SBASE**2
+    gen_d.b = gen_d.b * SBASE
+    
+    gen_nd.index = gen_nd['Node']
+    gen_nd.drop(columns=['Node','Unnamed: 0', 'Wind min Velocity (m/s)', 'Wind max Velocity (m/s)',
+                        'Wind Rated Velocity (m/s)'], inplace=True)
+    ####################################################
+    
+    #################### Conjuntos #####################
+        
+    m.i = RangeSet(1, 34, name='i', doc='Nós da rede de distribuição')
+    m.t = RangeSet(1, 24, name='t', doc='Horas do dia')
+    m.GB = Set(initialize=[5, 15, 19, 24, 34], name='GB', doc='Geradores despacháveis')
+    m.NGB = Set(initialize=[13, 23, 33], name='NGB', doc='Geradores não despacháveis')
+    m.l = Set(initialize=[(int(row.name[0]), int(row.name[1])) for _, row in DLINES.iterrows()], name='l', doc='Linhas de distribuição')
+    #LMPs não nulos: 5,9,15,19,22,34
+    
+    m.SBASE = Param(initialize=100, name='SBASE', doc='Base de potência do sistema') # ,units='MVA'
+    m.VsqBASE = Param(initialize=24.90, name='VBASE', doc='Tensão base do sistema') # ,units='kV'
+    m.IsqBASE = Param(initialize=IBASE, name='IBASE', doc='Base de corrente do sistema') # ,units='A'
+
+    m.slack = Param(initialize=1, name='slack', doc='Nó de referência da tensão (slack bus)')
+    #m.ESS_CAPACITY = Param(initialize=50/SBASE, name='SE_Capacity', doc='Capacidade do ESS') # ,units='pu'
+
+
+    #################### Parametros ####################
+
+    m.SOC0 = Param(initialize=0.01, name='SOC0', doc='Estado inicial de carga do ESS') # ,units='pu'
+    
+    m.GenD = Param(m.GB, ['a', 'b', 'P_max (pu)', 'P_min (pu)'], 
+                        initialize=lambda model, i, j: gen_d.loc[i][j],
+                        name='GenD', doc='Parâmetros dos geradores despacháveis')
+    
+    m.GenND = Param(m.NGB, ['P_max (pu)'], 
+                        initialize=lambda model, i,j: gen_nd.loc[i][j],
+                        name='GenND', doc='Parâmetros dos geradores não despacháveis')
+    
+    m.Load = Param(m.i, m.t, ['Load'] , 
+                        initialize=lambda model, i, t, l: load.loc[(i, t), l],
+                        name='Load', doc='Carga nos nós da rede de distribuição',
+                        )
+
+    m.Pij = Var(m.l, m.t, within=Reals, 
+                    doc='Potência ativa nas linhas de distribuição',
+                    name='Pij', 
+                    )
+    
+    m.Qij = Var(m.l, m.t, within=Reals,
+                    doc='Potência reativa nas linhas de distribuição',
+                    name='Qij', 
+                    )
+    
+    m.Isq = Var(m.l, m.t, within=NonNegativeReals,
+                doc='Corrente nas linhas de distribuição',
+                name='I') # , units='pu'
+    
+    m.Vsq = Var(m.i, m.t, 
+                doc='Tensão nos nós da rede de distribuição',
+                name='V') # , units='pu'
+
+    m.Pg = Var(m.GB, m.t, 
+                doc='Potência ativa dos geradores despacháveis',
+                name='Pg') #, units='pu'
+
+    m.Qg = Var(m.GB, m.t,
+                doc='Potência reativa dos geradores despacháveis',
+                name='Qg') # , units='pu'
+    
+    m.Ppv = Var(m.NGB, m.t,
+                doc='Potência ativa dos geradores fotovoltaicos',
+                name='Ppv') # , units='pu'
+    
+    m.Pbess = Var(ess.index, m.t,
+                doc='Potência ativa do ESS',
+                name='Pbess') # , units='pu'
+    
+    m.SOC = Var(ess.index, m.t,
+                doc='Estado de carga do ESS',
+                name='SOC') # , units='pu'
+    
+    #m.GenCost = Var(m.GB, m.t,
+    #            doc='Custo de geração dos geradores despacháveis',
+    #            name='GenCost', units='R$')
+    
+    #################### RESTRIÇÕES ####################
+    
+    m.Isq_BOUND_UPPER = Constraint(m.l, m.t,
+                rule=lambda model, i, j, t: m.Isq[i, j, t] <= DLINES.loc[(i, j), 'Line Ampacity (pu)']**2,
+                doc='Upper bound for current flow on distribution lines',
+                name='I_BOUND_UPPER')
+    
+    m.Isq_BOUND_LOWER = Constraint(m.l, m.t,
+                rule=lambda model, i, j, t: m.Isq[i, j, t] >= 0,
+                doc='Lower bound for current flow on distribution lines',
+                name='I_BOUND_LOWER')
+    
+    m.Vsq_BOUND_UPPER = Constraint(m.i, m.t,
+                rule=lambda model, i, t: m.Vsq[i, t] <= 1.05**2,
+                doc='Upper bound for voltage at each bus',
+                name='V_BOUND_UPPER')
+    
+    m.Vsq_BOUND_LOWER = Constraint(m.i, m.t,
+                rule=lambda model, i, t: m.Vsq[i, t] >= 0.95**2,
+                doc='Lower bound for voltage at each bus',
+                name='V_BOUND_LOWER')
+
+    m.Vsq_SLACK = Constraint(m.t,
+                rule=lambda model, t: m.Vsq[m.slack, t] == 1,
+                doc='Slack bus voltage constraint',
+                name='V_SLACK')
+    
+    m.PG_BOUNDS_UPPER = Constraint(m.GB, m.t,
+                rule=lambda model, i, t: m.Pg[i, t] <= m.GenD[i, 'P_max (pu)'],
+                doc='Upper bound for generation at each bus',
+                name='PG_BOUNDS_UPPER')
+    
+    m.PG_BOUNDS_LOWER = Constraint(m.GB, m.t,
+                rule=lambda model, i, t: m.Pg[i, t] >= m.GenD[i, 'P_min (pu)'],
+                doc='Lower bound for generation at each bus',
+                name='PG_BOUNDS_LOWER')
+    
+    m.QG_BOUNDS_UPPER = Constraint(m.GB, m.t,
+                rule=lambda model, i, t: m.Qg[i, t] <= m.GenD[i, 'P_max (pu)'],
+                doc='Upper bound for reactive power generation at each bus',
+                name='QG_BOUNDS_UPPER')
+    
+    m.QG_BOUNDS_LOWER = Constraint(m.GB, m.t,
+                rule=lambda model, i, t: m.Qg[i, t] >= -m.GenD[i, 'P_max (pu)'],
+                doc='Lower bound for reactive power generation at each bus',
+                name='QG_BOUNDS_LOWER')
+
+    m.PPV_BOUNDS_UPPER = Constraint(m.NGB, m.t,
+                rule=lambda model, i, t: m.Ppv[i, t] <= m.GenND[i, 'P_max (pu)'],
+                doc='Upper bound for non-dispatchable generation at each bus',
+                name='PPV_BOUNDS_UPPER')
+    
+    m.PPV_BOUNDS_LOWER = Constraint(m.NGB, m.t,
+                rule=lambda model, i, t: m.Ppv[i, t] >= 0,
+                doc='Lower bound for non-dispatchable generation at each bus',
+                name='PPV_BOUNDS_LOWER')
+    m.PBESS_BOUNDS_UPPER = Constraint(ess.index, m.t,
+                rule=lambda model, i, t: m.Pbess[i, t] <= ess.loc[i, 'Max ESS Charge (pu)'],
+                doc='Upper bound for ESS charging at each bus',
+                name='PBESS_BOUNDS_UPPER')
+    
+    m.PBESS_BOUNDS_LOWER = Constraint(ess.index, m.t,
+                rule=lambda model, i, t: m.Pbess[i, t] >= -ess.loc[i, 'Max ESS Charge (pu)'],
+                doc='Lower bound for ESS discharging at each bus',
+                name='PBESS_BOUNDS_LOWER')
+
+    m.SOC_BOUNDS_UPPER = Constraint(ess.index, m.t,
+                rule=lambda model, i, t: m.SOC[i, t] <= ess.loc[i, 'Max ESS SOC (pu)'],
+                doc='Upper bound for ESS state of charge at each bus',
+                name='SOC_BOUNDS_UPPER')
+    
+    m.SOC_BOUNDS_LOWER = Constraint(ess.index, m.t,
+                rule=lambda model, i, t: m.SOC[i, t] >= ess.loc[i, 'Min ESS SOC (pu)'],
+                doc='Lower bound for ESS state of charge at each bus',
+                name='SOC_BOUNDS_LOWER')
+
+
+    
+#m.ObjInferior é a soma dos custos dos geradores mais a soma da Var 
+# lambda_BALANCO_POT_ATIVA (criada mais pra frente com a função create_dual_variables),
+# vezes a potência de cada gerador fotovoltaico (m.NGB).
+
+    def balanco_pot_ativa(model, i, t): 
+        injecoes = (
+            (m.Pg[i, t]   if i in m.GB        else 0)
+        + (m.Ppv[i, t]  if i in m.NGB       else 0)
+        + (m.Pbess[i, t] if i in ess.index  else 0)
+        -  m.Load[i, t, 'Load']
+        )
+
+        saindo =   sum(m.Pij[i, j, t] + DLINES.loc[(i, j), 'R (pu)']
+                    * m.Isq[i, j, t] for j in m.i if (i, j) in m.l)
+        
+        entrando = sum(m.Pij[j, i, t] for j in m.i if (j, i) in m.l)
+        
+        return injecoes == saindo - entrando
+
+    def balanco_pot_reativa(model, i, t):
+        injecoes =   ( m.Qg[i, t] if i in m.GB else 0 ) \
+                     - m.Load[i, t,'Load']*np.tan(np.arccos(.9))
+                   
+        saindo   = sum(m.Qij[i, j, t] + DLINES.loc[(i, j), 'X (pu)'] 
+                     * m.Isq[i, j, t] for j in m.i if (i, j) in m.l)
+                        
+        entrando = sum(m.Qij[j, i, t] for j in m.i if (j, i) in m.l)
+        
+        return injecoes == saindo - entrando
+
+    m.BALANCO_POT_ATIVA = Constraint(m.i, m.t, rule=balanco_pot_ativa,
+                doc='Balanço de potência ativa nos nós da rede de distribuição',
+                name='balanco_pot_ativa')
+    
+    m.BALANCO_POT_REATIVA = Constraint(m.i, m.t, rule=balanco_pot_reativa,
+                doc='Balanço de potência reativa nos nós da rede de distribuição',
+                name='balanco_pot_reativa')
+    
+    def fluxo_Linhas(model, i, j, t):
+        if (i, j) in DLINES.index:
+            return m.Vsq[i, t] - m.Vsq[j, t] == 2 * (DLINES.loc[(i, j), 'R (pu)'] * m.Pij[i, j, t]
+                + DLINES.loc[(i, j), 'X (pu)'] * m.Qij[i, j, t]) + DLINES.loc[(i,j),'Z (pu)']**2 * m.Isq[i, j, t]
+        return Constraint.Skip
+
+    m.FLUXO_LINHAS = Constraint(m.l, m.t, rule=fluxo_Linhas,
+                doc='Equação de fluxo de potência ativa e reativa nas linhas de distribuição',
+                name='eq6')
+
+    # Applying the new piecewise linear approximation for signed variables
+    add_piecewise_tangent_approximation_signed(
+        model=m,
+        P_to_linearize=m.Pij,
+        P_max_abs_func=lambda i, j, t: DLINES.loc[(i, j), 'Line Ampacity (pu)'],
+        Y=Y,
+        base_name='Pij',
+        output_var_name='Pij_sq_piecewised_signed'
+    )
+
+    add_piecewise_tangent_approximation_signed(
+        model=m,
+        P_to_linearize=m.Qij,
+        P_max_abs_func=lambda i, j, t: DLINES.loc[(i, j), 'Line Ampacity (pu)'],
+        Y=Y,
+        base_name='Qij',
+        output_var_name='Qij_sq_piecewised_signed'
+    )
+    
+    def fluxo_Linhas2_modified(model, i, j, t):
+        if (i, j) in DLINES.index:
+            # Use the new output variables for the approximated squared terms
+            return m.Pij_sq_piecewised_signed[i, j, t] + m.Qij_sq_piecewised_signed[i, j, t] <=m.Isq[i, j, t]
+        return Constraint.Skip
+        
+
+    m.FLUXO_LINHAS2 = Constraint(m.l, m.t, rule=fluxo_Linhas2_modified,
+                doc='Limite de potência aparente nas linhas de distribuição (linearized)',
+                name='eq7_linearized')
+
+
+    def state_of_charge(model, i, t):
+        if t == 1:
+            
+            return m.SOC[i, t] == m.SOC0
+        else:
+            return m.SOC[i, t] == m.SOC[i, t-1] - (m.Pbess[i, t-1])
+
+    m.STATE_OF_CHARGE = Constraint(ess.index, m.t, rule=state_of_charge,
+                doc='Estado de carga do ESS ao longo do tempo',
+                name='State of Charge')
+
+    '''def fluxo_Linhas2_modified(model, i, j, t):
+        if (i, j) in DLINES.index:
+            # Use the new output variables for the approximated squared terms
+            return m.Pij[i, j, t] + m.Qij[i, j, t] <= m.Isq[i, j, t] * 1
+        return Constraint.Skip
+        
+    m.FLUXO_LINHAS2 = Constraint(m.l, m.t, rule=fluxo_Linhas2_modified,
+                doc='Limite de potência aparente nas linhas de distribuição (linearized)',
+                name='eq7_linearized')'''
+    
+
+    # The original code had these calls for Pg and Qg, which are commented out.
+    # If Pg and Qg can be negative, these should also use the signed version.
+    # For now, assuming Pg and Qg are positive or zero, the original function is fine.
+    # If they can be negative, uncomment and use the signed version.
+
+    
+    add_piecewise_tangent_approximation(
+        model=m,
+        P_to_linearize=m.Pg,
+        P_max_func=lambda i, t: m.GenD[i, 'P_max (pu)'],
+        Y=Y,
+        base_name='Pg',
+        output_var_name='Pg_sq_piecewised'
+    )
+    add_piecewise_tangent_approximation(
+        model=m,
+        P_to_linearize=m.Qg,
+        P_max_func=lambda i, t: m.GenD[i, 'P_max (pu)'],
+        Y=Y,
+        base_name='Qg',
+        output_var_name='Qg_sq_piecewised'
+    )
+
+    def gd_upper_bound(model, g, t):
+        # This constraint uses the output variables from the piecewise approximation.
+        # Ensure these output variables are correctly named.
+        return m.Pg_sq_piecewised[g, t] + m.Qg_sq_piecewised[g, t] <= m.GenD[g, 'P_max (pu)']**2
+
+    m.GD_UPPER_BOUND = Constraint(gen_d.index, m.t, rule=gd_upper_bound,
+                doc='Limite de potência aparente dos geradores despacháveis',
+                name='eq10')
+    
+    '''def gnd_upper_bound(model, r, t):
+        # NON-LINEAR: This is a quadratic constraint on the active power of non-dispatchable generators.
+        return m.Ppv[r, t]**2 <= np.tan(np.arccos(.9))*m.GenND[r, 'P_max (pu)']**2
+    
+    m.GND_UPPER_BOUND = Constraint(gen_nd.index, m.t, rule=gnd_upper_bound,
+                doc='Limite de potência aparente dos geradores não despacháveis',
+                name='eq11')'''
+
+
+    LISTA_PRIMAIS = list(m.component_objects(Var, active=True))
+    not_primal_names = ['abs_', 'P_plus', 'P_minus', 'delta_']
+    LISTA_PRIMAIS = [v for v in LISTA_PRIMAIS if not any(v.name.startswith(prefix) for prefix in not_primal_names)]
+    LISTA_PRIMAIS = LISTA_PRIMAIS[:-4]
+    LISTA_CONSTRS_INFERIOR = list(m.component_objects(Constraint, active=True))
+    not_primal_names = ['abs_', 'p_squared_', 'p_decomposition_','pw_','FLUXO_LINHAS2','GD__UPPER_BOUND']
+    LISTA_CONSTRS_INFERIOR = [c for c in LISTA_CONSTRS_INFERIOR if not any(c.name.startswith(prefix) for prefix in not_primal_names)]
+    DIC_DUAIS = create_dual_variables(m, constraint_list=LISTA_CONSTRS_INFERIOR)
+
+    # Nova função objetivo
+    m.ObjInferior = Objective(
+        expr=(
+            # Custo original dos geradores
+            sum(m.Pg_sq_piecewised[i, t] * m.GenD[i, 'a'] +
+                m.Pg[i, t] * m.GenD[i, 'b']
+                for i in m.GB for t in m.t)
+        ),
+        sense=minimize,
+        name='OF'
+    )
+
+    
+    m.Lagr = Expression(expr=build_lagrangian_expression(m, DIC_DUAIS))
+    add_lagrangian_derivatives_from_constraints(m, m.Lagr, LISTA_PRIMAIS)
+    add_complementarity_slackness_condition_linear_optimized(m, DIC_DUAIS)
+    
+    
+    '''
+    
+    m.ObjInferior.deactivate()  # Desativa o objetivo do nível inferior
+    
+    m.OBJ_SUPERIOR = Objective(
+    expr=sum(m.lambda_BALANCO_POT_ATIVA[i, t] * m.Ppv[i, t] for i in m.NGB for t in m.t),
+    sense=maximize, 
+    doc='Objective function for the upper level of the MPEC',
+    name='OF_superior'
+    )'''
+
+
+    m.SYMBOL_MAP = {
+    # Variáveis
+    'Pg': 'P_g',
+    'Pd': 'P_d',
+    'Pij': 'P_{ij}',
+    'Qij': 'Q_{ij}',
+    'I': 'I_{ij}',
+    'V': 'V_i',
+    'Qg': 'Q_g',
+    'Ppv': 'P_{pv}',
+    'Pbess': 'P_{bess}',
+    'SOC': 'SOC_i',
+    'GenCost': 'C_g',
+    # Parâmetros
+    'SBASE': 'S_{base}',
+    'VBASE': 'V_{base}',
+    'IBASE': 'I_{base}',
+    'SOC0': 'SOC_0',
+    'GenD': 'G_d',
+    'GenND': 'G_{nd}',
+    'Load': 'L_i',
+    # Conjuntos
+    'i': 'N_i',
+    't': 'T_t',
+    # Restrições
+    'I_BOUND_UPPER': 'I_{ij}^{max}',
+    'I_BOUND_LOWER': 'I_{ij}^{min}',
+    'V_BOUND_UPPER': 'V_i^{max}',
+    'V_BOUND_LOWER': 'V_i^{min}',
+    'V_SLACK': 'V_{slack}',
+    'PG_BOUNDS_UPPER': 'P_g^{max}',
+    'PG_BOUNDS_LOWER': 'P_g^{min}',
+    'QG_BOUNDS_UPPER': 'Q_g^{max}',
+    'QG_BOUNDS_LOWER': 'Q_g^{min}',
+    'PPV_BOUNDS_UPPER': 'P_{pv}^{max}',
+    'PPV_BOUNDS_LOWER': 'P_{pv}^{min}',
+    'PBESS_BOUNDS_UPPER': 'P_{bess}^{max}',
+    'PBESS_BOUNDS_LOWER': 'P_{bess}^{min}',
+    'SOC_BOUNDS_UPPER': 'SOC_i^{max}',
+    'SOC_BOUNDS_LOWER': 'SOC_i^{min}',
+    'BALANCO_POT_ATIVA': 'Balanço de Potência Ativa',
+    'BALANCO_POT_REATIVA': 'Balanço de Potência Reativa',
+    'FLUXO_LINHAS': 'Fluxo de Linhas',
+    'FLUXO_LINHAS2': 'Limite de Potência Aparente',
+    'GD_UPPER_BOUND': 'Limite de Potência Aparente dos Geradores Despacháveis',
+    'GND_BOUNDS_UPPER': 'Limite de Potência Aparente dos Geradores Não Despacháveis',
+    'STATE_OF_CHARGE': 'Estado de Carga do ESS',
+    'ObjInferior': 'Custo de Geração'
+    }
+    
+    #if analyze_model:
+    #    analyze_model_gurobi(m)
+    
+    return m
