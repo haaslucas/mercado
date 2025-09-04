@@ -89,7 +89,34 @@ if poslog:
 # 6. Exportar e analisar os resultados
 if results.solver.status == SolverStatus.ok and results.solver.termination_condition == TerminationCondition.optimal:
     print("Solução ótima encontrada.")
-    export_pyomo(mpec, nome_arquivo_resultados="ieee34bus",to_pkl=True, to_xlsx=True, to_parquet=True)
+
+    # --- Comparação de Duais ---
+    # Extrai os valores de lambda_BPA (variáveis primais do MPEC)
+    lambda_bpa_vals = []
+    for idx in mpec.lambda_BPA:
+        lambda_bpa_vals.append({'Key': idx, 'lambda_BPA_MPEC': value(mpec.lambda_BPA[idx])})
+    df_lambda_bpa = pd.DataFrame(lambda_bpa_vals).set_index('Key')
+
+    # Extrai os duais verdadeiros (LMPs) do solver após fixar os binários
+    lmp_vals = []
+    if hasattr(mpec, 'dual'):
+        for idx in mpec.BALANCO_POT_ATIVA:
+            # Check if dual exists for the constraint before accessing
+            if mpec.BALANCO_POT_ATIVA[idx] in mpec.dual:
+                lmp_vals.append({'Key': idx, 'LMP_Solver': mpec.dual[mpec.BALANCO_POT_ATIVA[idx]]})
+    df_lmp = pd.DataFrame(lmp_vals).set_index('Key')
+
+    # Juntar para comparação
+    df_compare = df_lambda_bpa.join(df_lmp)
+
+    export_pyomo(
+        mpec,
+        nome_arquivo_resultados="ieee34bus",
+        to_pkl=True,
+        to_xlsx=True,
+        to_parquet=True,
+        extra_dfs={'LMP_Comparison': df_compare.reset_index()}
+    )
     #print mpec.display() in a txt
     '''with open('./resultados/ieee34bus_display.txt', 'w') as f:
         mpec.display(ostream=f)

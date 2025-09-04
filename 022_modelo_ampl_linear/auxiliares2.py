@@ -159,6 +159,7 @@ def export_pyomo(
     to_pkl: bool = True,
     to_parquet: bool = False,
     xlsx_engine: str = "xlsxwriter",
+    extra_dfs: dict = None,
 ):
     """
     Exporta Objetivos, Variáveis, Parâmetros, Restrições e Duais.
@@ -263,6 +264,12 @@ def export_pyomo(
         book[_sheet_ok("DUALS", used)] = pd.DataFrame(
             duals_rows, columns=["Constraint", "Key", "Dual"]
         )
+
+    # Add extra dataframes if provided
+    if extra_dfs:
+        for name, df in extra_dfs.items():
+            book[_sheet_ok(name, used)] = df
+
     import re 
     
     MAX_LEN = 31
