@@ -843,18 +843,14 @@ def ieee34bus(  prelog=False, poslog=False, analyze_model=True, Y = 40):  #
     def cs_pw_tan_Qg2_rule(m, g, t, k):
         return m.mu_pw_tan_Qg[g, t, k] <= m.M * m.z_pw_tan_Qg[g, t, k]
     m.cs_pw_tan_Qg2 = Constraint(m.GB, m.t, m.Y_set_Qg, rule=cs_pw_tan_Qg2_rule)
-    
-    
-    '''
-    
     m.ObjInferior.deactivate()  # Desativa o objetivo do nível inferior
     
     m.OBJ_SUPERIOR = Objective(
-    expr=sum(m.lambda_BALANCO_POT_ATIVA[i, t] * m.Ppv[i, t] for i in m.NGB for t in m.t),
+    expr=sum(m.lambda_BPA[i, t] * m.Ppv[i, t] for i in m.NGB for t in m.t),
     sense=maximize, 
     doc='Objective function for the upper level of the MPEC',
     name='OF_superior'
-    )'''
+    )
 
 
     m.SYMBOL_MAP = {
