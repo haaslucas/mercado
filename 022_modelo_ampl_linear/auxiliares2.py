@@ -943,16 +943,16 @@ def _generate_latex_table(model, symbol_map):
     table_rows = []
 
     # Header
-    table_rows.append("\\begin{table}[H]")
-    table_rows.append("    \\centering")
-    table_rows.append("    \\small")
-    table_rows.append(f"    \\caption{{Variáveis e Parâmetros do Modelo {escape_latex(model.name)}}}")
-    table_rows.append("    \\renewcommand{\\arraystretch}{1.4}")
-    table_rows.append(f"    \\label{{tb:{escape_latex(model.name).replace(' ', '')}VariaveisParametros}}")
-    table_rows.append("    \\begin{tabular}{m{3cm}|m{2.5cm}m{9cm}}")
-    table_rows.append("\\hline")
-    table_rows.append("\\textbf{Tipo} & \\textbf{Símbolo} & \\textbf{Descrição} \\\\")
-    table_rows.append("\\hline")
+    table_rows.append(r"\begin{table}[H]")
+    table_rows.append(r"    \centering")
+    table_rows.append(r"    \small")
+    table_rows.append(fr"    \caption{{Variáveis e Parâmetros do Modelo {escape_latex(model.name)}}}")
+    table_rows.append(r"    \renewcommand{\arraystretch}{1.4}")
+    table_rows.append(fr"    \label{{tb:{escape_latex(model.name).replace(' ', '')}VariaveisParametros}}")
+    table_rows.append(r"    \begin{tabular}{m{3cm}|m{2.5cm}m{9cm}}")
+    table_rows.append(r"\hline")
+    table_rows.append(r"\textbf{Tipo} & \textbf{Símbolo} & \textbf{Descrição} \\\\")
+    table_rows.append(r"\hline")
 
     # Parameters
     if params:
@@ -964,7 +964,7 @@ def _generate_latex_table(model, symbol_map):
             index_set_name = symbol_map.get(first_param.index_set().name, escape_latex(first_param.index_set().name))
             doc += f" (indexado por ${index_set_name}$)"
         
-        table_rows.append(f"\\multirow{{{len(params)}}}{{*}}{{Parâmetros}}")
+        table_rows.append(fr"\multirow{{{len(params)}}}{{*}}{{Parâmetros}}")
         table_rows.append(f"  & ${symbol}$ & {doc} \\\\")
 
         for p in params[1:]:
@@ -975,7 +975,7 @@ def _generate_latex_table(model, symbol_map):
                 index_set_name = symbol_map.get(p.index_set().name, escape_latex(p.index_set().name))
                 doc += f" (indexado por ${index_set_name}$)"
             table_rows.append(f"  & ${symbol}$ & {doc} \\\\")
-        table_rows.append("\\hline")
+        table_rows.append(r"\hline")
 
     # Variables
     if variables:
@@ -985,13 +985,13 @@ def _generate_latex_table(model, symbol_map):
         doc = escape_latex(first_var.doc)
         if first_var.is_indexed():
             index_set_name = symbol_map.get(first_var.index_set().name, escape_latex(first_var.index_set().name))
-            doc += f", ${symbol}_{{i}},\\; i\\in {index_set_name}$"
+            doc += fr", ${symbol}_{{i}},\; i\in {index_set_name}$"
         else:
             domain = _domain_name(first_var)
             if "Reals" in domain:
-                doc += f" (${symbol} \\in \\mathbb{{R}}$)"
+                doc += fr" (${symbol} \in \mathbb{{R}}$)"
 
-        table_rows.append(f"\\multirow{{{len(variables)}}}{{*}}{{Variáveis de decisão}}")
+        table_rows.append(fr"\multirow{{{len(variables)}}}{{*}}{{Variáveis de decisão}}")
         table_rows.append(f"  & ${symbol}$ & {doc} \\\\")
 
         for v in variables[1:]:
@@ -1000,17 +1000,17 @@ def _generate_latex_table(model, symbol_map):
             doc = escape_latex(v.doc)
             if v.is_indexed():
                 index_set_name = symbol_map.get(v.index_set().name, escape_latex(v.index_set().name))
-                doc += f", ${symbol}_{{i}},\\; i\\in {index_set_name}$"
+                doc += fr", ${symbol}_{{i}},\; i\in {index_set_name}$"
             else:
                 domain = _domain_name(v)
                 if "Reals" in domain:
-                    doc += f" (${symbol} \\in \\mathbb{{R}}$)"
+                    doc += fr" (${symbol} \in \mathbb{{R}}$)"
             table_rows.append(f"  & ${symbol}$ & {doc} \\\\")
-        table_rows.append("\\hline")
+        table_rows.append(r"\hline")
 
     # Footer
-    table_rows.append("\\end{tabular}")
-    table_rows.append("\\end{table}")
+    table_rows.append(r"\end{tabular}")
+    table_rows.append(r"\end{table}")
 
     return "\n".join(table_rows)
 
@@ -1134,20 +1134,20 @@ def modelo_to_latex(model, symbol_map, filename="model.tex"):
 
     full_latex_string = "\n".join(latex_parts)
 
-    latex_template = f"""\\documentclass{{article}}
-\\usepackage{{amsmath}}
-\\usepackage[utf8]{{inputenc}}
-\\usepackage{{geometry}}
-\\usepackage{{longtable}}
-\\usepackage{{multirow}}
-\\usepackage{{float}}
-\\geometry{{a4paper, margin=1in}}
-\\begin{{document}}
-\\title{{{escape_latex(model.name)}}}
-\\author{{Gerado Automaticamente}}
-\\maketitle
+    latex_template = fr"""\documentclass{{article}}
+\usepackage{{amsmath}}
+\usepackage[utf8]{{inputenc}}
+\usepackage{{geometry}}
+\usepackage{{longtable}}
+\usepackage{{multirow}}
+\usepackage{{float}}
+\geometry{{a4paper, margin=1in}}
+\begin{{document}}
+\title{{{escape_latex(model.name)}}}
+\author{{Gerado Automaticamente}}
+\maketitle
 {full_latex_string}
-\\end{{document}}
+\end{{document}}
 """
     
     # Garante que o diretório de resultados exista
