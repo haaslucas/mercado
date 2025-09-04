@@ -576,13 +576,16 @@ s.t. Deriv_Potencia_with_Ramp {g in G_T, t in T}:
 s.t. Deriv_Blocos_Potencia {g in G_T, b in B, t in T}:
 	Price_block_t[g,b] -varphi[g,t] + rho_U[g,b,t] - rho_L[g,b,t] = 0;
 	
+# Stationarity condition for TSO primal variable Trans_Theta
 s.t. Deriv_Teta{n in Trans_Nodes, t in T}: 
 	-sum{l in Trans_Lines}(-Trans_Status[l] * (1/Trans_Reactance[l]) * Trans_Incidencia[n,l]*mu[l,t]) = 0;
 
+# Stationarity condition for TSO primal variable Trans_Flow
 s.t. Deriv_Fluxo{l in Trans_Lines, t in T}: 
 	mu[l,t] - omega_L[l,t] + omega_U[l,t] 
 	-sum{n in Trans_Nodes}(Trans_Incidencia[n,l] * lambda[n,t]) = 0;
 
+# Stationarity condition for TSO primal variable P_DSO
 s.t. Deriv_PDSO{t in T}:  
 	-Bid[t] + lambda[5,t] + kappa_U[t] - kappa_L[t] = 0;
 
