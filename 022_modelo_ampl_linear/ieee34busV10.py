@@ -767,9 +767,82 @@ def ieee34bus(  prelog=False, poslog=False, analyze_model=True, Y = 40):  #
         return m.mu_SOC_LOW[i, t] <= m.M * m.z_SOC_LOW[i, t]
     m.cs_SOC_LOW2 = Constraint(ess.index, m.t, rule=cs_SOC_LOW2_rule)
 
-    # (This is a simplified example. A full implementation would require adding
-    # binary variables and the two Big-M constraints for EVERY inequality constraint
-    # in the model, which is a substantial number.)
+    # --- FLUXO_LINHAS2 ---
+    m.z_FL2 = Var(m.l, m.t, within=Binary)
+    def cs_FL2_1_rule(m, i, j, t):
+        expr = m.Isq[i, j, t] - (m.Pij_sq_piecewised_signed[i, j, t] + m.Qij_sq_piecewised_signed[i, j, t])
+        return expr <= m.M * (1 - m.z_FL2[i, j, t])
+    m.cs_FL2_1 = Constraint(m.l, m.t, rule=cs_FL2_1_rule)
+    def cs_FL2_2_rule(m, i, j, t):
+        return m.mu_FL2[i, j, t] <= m.M * m.z_FL2[i, j, t]
+    m.cs_FL2_2 = Constraint(m.l, m.t, rule=cs_FL2_2_rule)
+
+    # --- GD_UPPER_BOUND ---
+    m.z_GD_UP = Var(gen_d.index, m.t, within=Binary)
+    def cs_GD_UP1_rule(m, g, t):
+        expr = m.GenD[g, 'P_max (pu)']**2 - (m.Pg_sq_piecewised[g, t] + m.Qg_sq_piecewised[g, t])
+        return expr <= m.M * (1 - m.z_GD_UP[g, t])
+    m.cs_GD_UP1 = Constraint(gen_d.index, m.t, rule=cs_GD_UP1_rule)
+    def cs_GD_UP2_rule(m, g, t):
+        return m.mu_GD_UP[g, t] <= m.M * m.z_GD_UP[g, t]
+    m.cs_GD_UP2 = Constraint(gen_d.index, m.t, rule=cs_GD_UP2_rule)
+
+    # --- Complementarity for PWL Tangent Constraints ---
+    # For Pij_abs
+    m.z_pw_tan_Pij = Var(m.l, m.t, m.Y_set_Pij_abs, within=Binary)
+    def cs_pw_tan_Pij1_rule(m, i, j, t, k):
+        P = m.abs_P_Pij_abs[i, j, t]
+        P_sq = m.Pij_sq_piecewised_signed[i, j, t]
+        slope = m.slope_Pij_abs[i, j, t, k]
+        intercept = m.intercept_Pij_abs[i, j, t, k]
+        expr = P_sq - (slope * P + intercept)
+        return expr <= m.M * (1 - m.z_pw_tan_Pij[i, j, t, k])
+    m.cs_pw_tan_Pij1 = Constraint(m.l, m.t, m.Y_set_Pij_abs, rule=cs_pw_tan_Pij1_rule)
+    def cs_pw_tan_Pij2_rule(m, i, j, t, k):
+        return m.mu_pw_tan_Pij[i, j, t, k] <= m.M * m.z_pw_tan_Pij[i, j, t, k]
+    m.cs_pw_tan_Pij2 = Constraint(m.l, m.t, m.Y_set_Pij_abs, rule=cs_pw_tan_Pij2_rule)
+
+    # For Qij_abs
+    m.z_pw_tan_Qij = Var(m.l, m.t, m.Y_set_Qij_abs, within=Binary)
+    def cs_pw_tan_Qij1_rule(m, i, j, t, k):
+        P = m.abs_P_Qij_abs[i, j, t]
+        P_sq = m.Qij_sq_piecewised_signed[i, j, t]
+        slope = m.slope_Qij_abs[i, j, t, k]
+        intercept = m.intercept_Qij_abs[i, j, t, k]
+        expr = P_sq - (slope * P + intercept)
+        return expr <= m.M * (1 - m.z_pw_tan_Qij[i, j, t, k])
+    m.cs_pw_tan_Qij1 = Constraint(m.l, m.t, m.Y_set_Qij_abs, rule=cs_pw_tan_Qij1_rule)
+    def cs_pw_tan_Qij2_rule(m, i, j, t, k):
+        return m.mu_pw_tan_Qij[i, j, t, k] <= m.M * m.z_pw_tan_Qij[i, j, t, k]
+    m.cs_pw_tan_Qij2 = Constraint(m.l, m.t, m.Y_set_Qij_abs, rule=cs_pw_tan_Qij2_rule)
+
+    # For Pg
+    m.z_pw_tan_Pg = Var(m.GB, m.t, m.Y_set_Pg, within=Binary)
+    def cs_pw_tan_Pg1_rule(m, g, t, k):
+        P = m.Pg[g, t]
+        P_sq = m.Pg_sq_piecewised[g, t]
+        slope = m.slope_Pg[g, t, k]
+        intercept = m.intercept_Pg[g, t, k]
+        expr = P_sq - (slope * P + intercept)
+        return expr <= m.M * (1 - m.z_pw_tan_Pg[g, t, k])
+    m.cs_pw_tan_Pg1 = Constraint(m.GB, m.t, m.Y_set_Pg, rule=cs_pw_tan_Pg1_rule)
+    def cs_pw_tan_Pg2_rule(m, g, t, k):
+        return m.mu_pw_tan_Pg[g, t, k] <= m.M * m.z_pw_tan_Pg[g, t, k]
+    m.cs_pw_tan_Pg2 = Constraint(m.GB, m.t, m.Y_set_Pg, rule=cs_pw_tan_Pg2_rule)
+
+    # For Qg
+    m.z_pw_tan_Qg = Var(m.GB, m.t, m.Y_set_Qg, within=Binary)
+    def cs_pw_tan_Qg1_rule(m, g, t, k):
+        P = m.Qg[g, t]
+        P_sq = m.Qg_sq_piecewised[g, t]
+        slope = m.slope_Qg[g, t, k]
+        intercept = m.intercept_Qg[g, t, k]
+        expr = P_sq - (slope * P + intercept)
+        return expr <= m.M * (1 - m.z_pw_tan_Qg[g, t, k])
+    m.cs_pw_tan_Qg1 = Constraint(m.GB, m.t, m.Y_set_Qg, rule=cs_pw_tan_Qg1_rule)
+    def cs_pw_tan_Qg2_rule(m, g, t, k):
+        return m.mu_pw_tan_Qg[g, t, k] <= m.M * m.z_pw_tan_Qg[g, t, k]
+    m.cs_pw_tan_Qg2 = Constraint(m.GB, m.t, m.Y_set_Qg, rule=cs_pw_tan_Qg2_rule)
     
     
     '''
