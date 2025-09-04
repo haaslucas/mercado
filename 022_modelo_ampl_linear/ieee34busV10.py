@@ -421,39 +421,55 @@ def ieee34bus(  prelog=False, poslog=False, analyze_model=True, Y = 40):  #
 
     # --- Build Lagrangian Expression ---
     # This expression is the foundation for the stationarity conditions.
-    constraint_dual_map = {
-        'Isq_BOUND_UPPER': 'mu_Isq_UP',
-        'Isq_BOUND_LOWER': 'mu_Isq_LOW',
-        'Vsq_BOUND_UPPER': 'mu_Vsq_UP',
-        'Vsq_BOUND_LOWER': 'mu_Vsq_LOW',
-        'Vsq_SLACK': 'lambda_Vsq_SLACK',
-        'PG_BOUNDS_UPPER': 'mu_Pg_UP',
-        'PG_BOUNDS_LOWER': 'mu_Pg_LOW',
-        'QG_BOUNDS_UPPER': 'mu_Qg_UP',
-        'QG_BOUNDS_LOWER': 'mu_Qg_LOW',
-        'PPV_BOUNDS_UPPER': 'mu_Ppv_UP',
-        'PPV_BOUNDS_LOWER': 'mu_Ppv_LOW',
-        'PBESS_BOUNDS_UPPER': 'mu_Pbess_UP',
-        'PBESS_BOUNDS_LOWER': 'mu_Pbess_LOW',
-        'SOC_BOUNDS_UPPER': 'mu_SOC_UP',
-        'SOC_BOUNDS_LOWER': 'mu_SOC_LOW',
-        'BALANCO_POT_ATIVA': 'lambda_BPA',
-        'BALANCO_POT_REATIVA': 'lambda_BPR',
-        'FLUXO_LINHAS': 'lambda_FL',
-        'FLUXO_LINHAS2': 'mu_FL2',
-        'STATE_OF_CHARGE': 'lambda_SOC',
-        'GD_UPPER_BOUND': 'mu_GD_UP',
+    def lagrangian_rule(m):
+        # Start with the objective function of the lower-level problem
+        expr = m.ObjInferior.expr
+
+        # Add terms for each constraint multiplied by its dual variable
+        # The canonical_form helper converts constraints to 'g(x) <= 0' or 'h(x) == 0'
+        
+        # Power Flow and System Limits
+        expr += sum(m.mu_Isq_UP[idx] * canonical_form(m.Isq_BOUND_UPPER[idx])[0] for idx in m.mu_Isq_UP)
+        expr += sum(m.mu_Isq_LOW[idx] * canonical_form(m.Isq_BOUND_LOWER[idx])[0] for idx in m.mu_Isq_LOW)
+        expr += sum(m.mu_Vsq_UP[idx] * canonical_form(m.Vsq_BOUND_UPPER[idx])[0] for idx in m.mu_Vsq_UP)
+        expr += sum(m.mu_Vsq_LOW[idx] * canonical_form(m.Vsq_BOUND_LOWER[idx])[0] for idx in m.mu_Vsq_LOW)
+        expr += sum(m.lambda_Vsq_SLACK[idx] * canonical_form(m.Vsq_SLACK[idx])[0] for idx in m.lambda_Vsq_SLACK)
+        expr += sum(m.lambda_BPA[idx] * canonical_form(m.BALANCO_POT_ATIVA[idx])[0] for idx in m.lambda_BPA)
+        expr += sum(m.lambda_BPR[idx] * canonical_form(m.BALANCO_POT_REATIVA[idx])[0] for idx in m.lambda_BPR)
+        expr += sum(m.lambda_FL[idx] * canonical_form(m.FLUXO_LINHAS[idx])[0] for idx in m.lambda_FL)
+        expr += sum(m.mu_FL2[idx] * canonical_form(m.FLUXO_LINHAS2[idx])[0] for idx in m.mu_FL2)
+
+        # Generation and Storage Limits
+        expr += sum(m.mu_Pg_UP[idx] * canonical_form(m.PG_BOUNDS_UPPER[idx])[0] for idx in m.mu_Pg_UP)
+        expr += sum(m.mu_Pg_LOW[idx] * canonical_form(m.PG_BOUNDS_LOWER[idx])[0] for idx in m.mu_Pg_LOW)
+        expr += sum(m.mu_Qg_UP[idx] * canonical_form(m.QG_BOUNDS_UPPER[idx])[0] for idx in m.mu_Qg_UP)
+        expr += sum(m.mu_Qg_LOW[idx] * canonical_form(m.QG_BOUNDS_LOWER[idx])[0] for idx in m.mu_Qg_LOW)
+        expr += sum(m.mu_Ppv_UP[idx] * canonical_form(m.PPV_BOUNDS_UPPER[idx])[0] for idx in m.mu_Ppv_UP)
+        expr += sum(m.mu_Ppv_LOW[idx] * canonical_form(m.PPV_BOUNDS_LOWER[idx])[0] for idx in m.mu_Ppv_LOW)
+        expr += sum(m.mu_Pbess_UP[idx] * canonical_form(m.PBESS_BOUNDS_UPPER[idx])[0] for idx in m.mu_Pbess_UP)
+        expr += sum(m.mu_Pbess_LOW[idx] * canonical_form(m.PBESS_BOUNDS_LOWER[idx])[0] for idx in m.mu_Pbess_LOW)
+        expr += sum(m.mu_SOC_UP[idx] * canonical_form(m.SOC_BOUNDS_UPPER[idx])[0] for idx in m.mu_SOC_UP)
+        expr += sum(m.mu_SOC_LOW[idx] * canonical_form(m.SOC_BOUNDS_LOWER[idx])[0] for idx in m.mu_SOC_LOW)
+        expr += sum(m.lambda_SOC[idx] * canonical_form(m.STATE_OF_CHARGE[idx])[0] for idx in m.lambda_SOC)
+        expr += sum(m.mu_GD_UP[idx] * canonical_form(m.GD_UPPER_BOUND[idx])[0] for idx in m.mu_GD_UP)
+
         # Duals for Piecewise Linearization Constraints
-        'p_decomposition_constraint_Pij': 'lambda_p_decomp_Pij',
-        'abs_p_constraint_Pij': 'lambda_abs_p_Pij',
-        'pw_tangent_constr_Pij_abs': 'mu_pw_tan_Pij',
-        'p_decomposition_constraint_Qij': 'lambda_p_decomp_Qij',
-        'abs_p_constraint_Qij': 'lambda_abs_p_Qij',
-        'pw_tangent_constr_Qij_abs': 'mu_pw_tan_Qij',
-        'pw_tangent_constr_Pg': 'mu_pw_tan_Pg',
-        'pw_tangent_constr_Qg': 'mu_pw_tan_Qg',
-    }
-    m.Lagr = Expression(expr=build_lagrangian_expression(m, constraint_dual_map))
+        # For Pij
+        expr += sum(m.lambda_p_decomp_Pij[idx] * canonical_form(m.p_decomposition_constraint_Pij[idx])[0] for idx in m.lambda_p_decomp_Pij)
+        expr += sum(m.lambda_abs_p_Pij[idx] * canonical_form(m.abs_p_constraint_Pij[idx])[0] for idx in m.lambda_abs_p_Pij)
+        expr += sum(m.mu_pw_tan_Pij[idx] * canonical_form(m.pw_tangent_constr_Pij_abs[idx])[0] for idx in m.mu_pw_tan_Pij)
+        # For Qij
+        expr += sum(m.lambda_p_decomp_Qij[idx] * canonical_form(m.p_decomposition_constraint_Qij[idx])[0] for idx in m.lambda_p_decomp_Qij)
+        expr += sum(m.lambda_abs_p_Qij[idx] * canonical_form(m.abs_p_constraint_Qij[idx])[0] for idx in m.lambda_abs_p_Qij)
+        expr += sum(m.mu_pw_tan_Qij[idx] * canonical_form(m.pw_tangent_constr_Qij_abs[idx])[0] for idx in m.mu_pw_tan_Qij)
+        # For Pg
+        expr += sum(m.mu_pw_tan_Pg[idx] * canonical_form(m.pw_tangent_constr_Pg[idx])[0] for idx in m.mu_pw_tan_Pg)
+        # For Qg
+        expr += sum(m.mu_pw_tan_Qg[idx] * canonical_form(m.pw_tangent_constr_Qg[idx])[0] for idx in m.mu_pw_tan_Qg)
+
+        return expr
+
+    m.Lagr = Expression(rule=lagrangian_rule)
 
 
     #################################################################
