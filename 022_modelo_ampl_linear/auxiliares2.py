@@ -1041,7 +1041,7 @@ def modelo_to_latex(model, symbol_map, filename="model.tex"):
     latex_parts.append(_generate_latex_table(model, symbol_map))
 
     # 1. Conjuntos
-    latex_parts.append("\\section*{Conjuntos}")
+    latex_parts.append(r"\section*{Conjuntos}")
     for s in model.component_objects(Set, active=True):
         pyomo_name = s.name
         name = symbol_map.get(pyomo_name, escape_latex(pyomo_name))
@@ -1050,11 +1050,11 @@ def modelo_to_latex(model, symbol_map, filename="model.tex"):
             latex_parts.append(f"{escape_latex(s.doc)}\\\\")
         values = ", ".join(map(str, list(s)[:5]))
         if len(list(s)) > 5:
-            values += ", \\dots"
-        latex_parts.append(f"\\( {name} = \\{{{values}\\}} \\)")
+            values += r", \dots"
+        latex_parts.append(fr"\( {name} = \{{{values}\}} \)")
 
     # 2. Parâmetros
-    latex_parts.append("\\section*{Parâmetros}")
+    latex_parts.append(r"\section*{Parâmetros}")
     for p in model.component_objects(Param, active=True):
         pyomo_name = p.name
         name = symbol_map.get(pyomo_name, escape_latex(pyomo_name))
@@ -1067,12 +1067,12 @@ def modelo_to_latex(model, symbol_map, filename="model.tex"):
         if p.is_indexed():
             index_set_pyomo_name = p.index_set().name
             index_set_name = symbol_map.get(index_set_pyomo_name, escape_latex(index_set_pyomo_name))
-            latex_parts.append(f"Parâmetro indexado por \\({index_set_name}\\).")
+            latex_parts.append(fr"Parâmetro indexado por \({index_set_name}\).")
         else:
-            latex_parts.append(f"\\( {name} = {value(p)} \\)")
+            latex_parts.append(fr"\( {name} = {value(p)} \)")
 
     # 3. Variáveis
-    latex_parts.append("\\section*{Variáveis}")
+    latex_parts.append(r"\section*{Variáveis}")
     for v in model.component_objects(Var, active=True):
         pyomo_name = v.name
         name = symbol_map.get(pyomo_name, escape_latex(pyomo_name))
@@ -1086,27 +1086,27 @@ def modelo_to_latex(model, symbol_map, filename="model.tex"):
         if v.is_indexed():
             index_set_pyomo_name = v.index_set().name
             index_set_name = symbol_map.get(index_set_pyomo_name, escape_latex(index_set_pyomo_name))
-            latex_parts.append(f"\\( {name}_{{i}} \\) para \\( i \\in {index_set_name} \\) (Domínio: {domain})")
+            latex_parts.append(fr"\( {name}_{{i}} \) para \( i \in {index_set_name} \) (Domínio: {domain})")
         else:
-            latex_parts.append(f"\\( {name} \\) (Domínio: {domain})")
+            latex_parts.append(fr"\( {name} \) (Domínio: {domain})")
 
     # 4. Função Objetivo
     obj = next(model.component_objects(Objective, active=True), None)
     if obj is not None:
         pyomo_name = obj.name
         name = symbol_map.get(pyomo_name, escape_latex(pyomo_name))
-        latex_parts.append("\\section*{Função Objetivo}")
+        latex_parts.append(r"\section*{Função Objetivo}")
         #latex_parts.append(f"\\subsection*{{{name}}}")
         if obj.doc:
             latex_parts.append(f"{escape_latex(obj.doc)}\\\\")
         sense = "Maximizar" if obj.sense == maximize else "Minimizar"
         expr_str = _expr_to_latex(obj.expr, symbol_map)
-        latex_parts.append(f"\\begin{{equation*}}")
-        latex_parts.append(f"\\text{{{sense}}}: \\quad {expr_str}")
-        latex_parts.append(f"\\end{{equation*}}")
+        latex_parts.append(fr"\begin{{equation*}}")
+        latex_parts.append(fr"\text{{{sense}}}: \quad {expr_str}")
+        latex_parts.append(fr"\end{{equation*}}")
 
     # 5. Restrições
-    latex_parts.append("\\section*{Restrições}")
+    latex_parts.append(r"\section*{Restrições}")
     for c in model.component_objects(Constraint, active=True):
         pyomo_name = c.name
         name = symbol_map.get(pyomo_name, escape_latex(pyomo_name))
@@ -1120,17 +1120,17 @@ def modelo_to_latex(model, symbol_map, filename="model.tex"):
                 idx_tuple = c_data.index()
                 idx_repr = str(idx_tuple) if isinstance(idx_tuple, tuple) else str(idx_tuple)
                 idx_repr = idx_repr.replace("'", "")
-                latex_parts.append(f"\\begin{{equation*}}")
-                latex_parts.append(f"\\text{{Exemplo para índice {idx_repr}:}} \\\\")
+                latex_parts.append(fr"\begin{{equation*}}")
+                latex_parts.append(fr"\text{{Exemplo para índice {idx_repr}:}} \\\\")
                 latex_parts.append(f"{expr_str}")
-                latex_parts.append(f"\\end{{equation*}}")
+                latex_parts.append(fr"\end{{equation*}}")
             except StopIteration:
                 latex_parts.append(f"Restrição indexada mas vazia.")
         else:
             expr_str = _expr_to_latex(c.expr, symbol_map)
-            latex_parts.append(f"\\begin{{equation*}}")
+            latex_parts.append(fr"\begin{{equation*}}")
             latex_parts.append(expr_str)
-            latex_parts.append(f"\\end{{equation*}}")
+            latex_parts.append(fr"\end{{equation*}}")
 
     full_latex_string = "\n".join(latex_parts)
 
