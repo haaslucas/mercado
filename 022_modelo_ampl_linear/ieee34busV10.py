@@ -357,16 +357,9 @@ def ieee34bus(  prelog=False, poslog=False, analyze_model=True, Y = 40):  #
                 name='eq11')'''
 
 
-    LISTA_PRIMAIS = list(m.component_objects(Var, active=True))
-    not_primal_names = ['abs_', 'P_plus', 'P_minus', 'delta_']
-    LISTA_PRIMAIS = [v for v in LISTA_PRIMAIS if not any(v.name.startswith(prefix) for prefix in not_primal_names)]
-    LISTA_PRIMAIS = LISTA_PRIMAIS[:-4]
-    LISTA_CONSTRS_INFERIOR = list(m.component_objects(Constraint, active=True))
-    not_primal_names = ['abs_', 'p_squared_', 'p_decomposition_','pw_','FLUXO_LINHAS2','GD__UPPER_BOUND']
-    LISTA_CONSTRS_INFERIOR = [c for c in LISTA_CONSTRS_INFERIOR if not any(c.name.startswith(prefix) for prefix in not_primal_names)]
-    DIC_DUAIS = create_dual_variables(m, constraint_list=LISTA_CONSTRS_INFERIOR)
+    # --- KKT Conditions for the Lower-Level Problem ---
 
-    # Nova função objetivo
+    # The objective function for the lower-level problem
     m.ObjInferior = Objective(
         expr=(
             # Custo original dos geradores
@@ -378,7 +371,22 @@ def ieee34bus(  prelog=False, poslog=False, analyze_model=True, Y = 40):  #
         name='OF'
     )
 
-    
+    # 1. Identify all constraints of the lower-level problem.
+    # The previous filtering was incorrect and was the likely cause of the infeasibility.
+    # The correct approach is to include ALL constraints that define the lower-level problem.
+    LISTA_CONSTRS_INFERIOR = list(m.component_objects(Constraint, active=True))
+
+    # 2. Create dual variables for all lower-level constraints.
+    DIC_DUAIS = create_dual_variables(m, constraint_list=LISTA_CONSTRS_INFERIOR)
+
+    # 3. Identify all primal variables. These are all variables EXCEPT the newly created duals.
+    # The previous filtering was excluding auxiliary variables from linearizations (e.g., delta, P_plus)
+    # that are part of the reformulated primal problem and must have stationarity conditions.
+    all_vars = m.component_objects(Var, active=True)
+    dual_var_names = set(DIC_DUAIS.values())
+    LISTA_PRIMAIS = [v for v in all_vars if v.name not in dual_var_names]
+
+    # 4. Build Lagrangian and add KKT conditions using the helper functions.
     m.Lagr = Expression(expr=build_lagrangian_expression(m, DIC_DUAIS))
     add_lagrangian_derivatives_from_constraints(m, m.Lagr, LISTA_PRIMAIS)
     add_complementarity_slackness_condition_linear_optimized(m, DIC_DUAIS)
