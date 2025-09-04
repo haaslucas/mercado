@@ -707,6 +707,66 @@ def ieee34bus(  prelog=False, poslog=False, analyze_model=True, Y = 40):  #
         return m.mu_Vsq_LOW[i, t] <= m.M * m.z_Vsq_LOW[i, t]
     m.cs_Vsq_LOW2 = Constraint(m.i, m.t, rule=cs_Vsq_LOW2_rule)
 
+    # --- PPV_BOUNDS_UPPER ---
+    m.z_Ppv_UP = Var(m.NGB, m.t, within=Binary)
+    def cs_Ppv_UP1_rule(m, i, t):
+        expr = m.GenND[i, 'P_max (pu)'] - m.Ppv[i, t]
+        return expr <= m.M * (1 - m.z_Ppv_UP[i, t])
+    m.cs_Ppv_UP1 = Constraint(m.NGB, m.t, rule=cs_Ppv_UP1_rule)
+    def cs_Ppv_UP2_rule(m, i, t):
+        return m.mu_Ppv_UP[i, t] <= m.M * m.z_Ppv_UP[i, t]
+    m.cs_Ppv_UP2 = Constraint(m.NGB, m.t, rule=cs_Ppv_UP2_rule)
+
+    # --- PPV_BOUNDS_LOWER ---
+    m.z_Ppv_LOW = Var(m.NGB, m.t, within=Binary)
+    def cs_Ppv_LOW1_rule(m, i, t):
+        expr = m.Ppv[i, t]
+        return expr <= m.M * (1 - m.z_Ppv_LOW[i, t])
+    m.cs_Ppv_LOW1 = Constraint(m.NGB, m.t, rule=cs_Ppv_LOW1_rule)
+    def cs_Ppv_LOW2_rule(m, i, t):
+        return m.mu_Ppv_LOW[i, t] <= m.M * m.z_Ppv_LOW[i, t]
+    m.cs_Ppv_LOW2 = Constraint(m.NGB, m.t, rule=cs_Ppv_LOW2_rule)
+
+    # --- PBESS_BOUNDS_UPPER ---
+    m.z_Pbess_UP = Var(ess.index, m.t, within=Binary)
+    def cs_Pbess_UP1_rule(m, i, t):
+        expr = ess.loc[i, 'Max ESS Charge (pu)'] - m.Pbess[i, t]
+        return expr <= m.M * (1 - m.z_Pbess_UP[i, t])
+    m.cs_Pbess_UP1 = Constraint(ess.index, m.t, rule=cs_Pbess_UP1_rule)
+    def cs_Pbess_UP2_rule(m, i, t):
+        return m.mu_Pbess_UP[i, t] <= m.M * m.z_Pbess_UP[i, t]
+    m.cs_Pbess_UP2 = Constraint(ess.index, m.t, rule=cs_Pbess_UP2_rule)
+
+    # --- PBESS_BOUNDS_LOWER ---
+    m.z_Pbess_LOW = Var(ess.index, m.t, within=Binary)
+    def cs_Pbess_LOW1_rule(m, i, t):
+        expr = m.Pbess[i, t] + ess.loc[i, 'Max ESS Charge (pu)']
+        return expr <= m.M * (1 - m.z_Pbess_LOW[i, t])
+    m.cs_Pbess_LOW1 = Constraint(ess.index, m.t, rule=cs_Pbess_LOW1_rule)
+    def cs_Pbess_LOW2_rule(m, i, t):
+        return m.mu_Pbess_LOW[i, t] <= m.M * m.z_Pbess_LOW[i, t]
+    m.cs_Pbess_LOW2 = Constraint(ess.index, m.t, rule=cs_Pbess_LOW2_rule)
+
+    # --- SOC_BOUNDS_UPPER ---
+    m.z_SOC_UP = Var(ess.index, m.t, within=Binary)
+    def cs_SOC_UP1_rule(m, i, t):
+        expr = ess.loc[i, 'Max ESS SOC (pu)'] - m.SOC[i, t]
+        return expr <= m.M * (1 - m.z_SOC_UP[i, t])
+    m.cs_SOC_UP1 = Constraint(ess.index, m.t, rule=cs_SOC_UP1_rule)
+    def cs_SOC_UP2_rule(m, i, t):
+        return m.mu_SOC_UP[i, t] <= m.M * m.z_SOC_UP[i, t]
+    m.cs_SOC_UP2 = Constraint(ess.index, m.t, rule=cs_SOC_UP2_rule)
+
+    # --- SOC_BOUNDS_LOWER ---
+    m.z_SOC_LOW = Var(ess.index, m.t, within=Binary)
+    def cs_SOC_LOW1_rule(m, i, t):
+        expr = m.SOC[i, t] - ess.loc[i, 'Min ESS SOC (pu)']
+        return expr <= m.M * (1 - m.z_SOC_LOW[i, t])
+    m.cs_SOC_LOW1 = Constraint(ess.index, m.t, rule=cs_SOC_LOW1_rule)
+    def cs_SOC_LOW2_rule(m, i, t):
+        return m.mu_SOC_LOW[i, t] <= m.M * m.z_SOC_LOW[i, t]
+    m.cs_SOC_LOW2 = Constraint(ess.index, m.t, rule=cs_SOC_LOW2_rule)
+
     # (This is a simplified example. A full implementation would require adding
     # binary variables and the two Big-M constraints for EVERY inequality constraint
     # in the model, which is a substantial number.)
