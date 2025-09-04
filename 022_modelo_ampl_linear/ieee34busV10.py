@@ -419,6 +419,43 @@ def ieee34bus(  prelog=False, poslog=False, analyze_model=True, Y = 40):  #
     # For Qg
     m.mu_pw_tan_Qg = Var(m.GB, m.t, m.Y_set_Qg, within=NonNegativeReals)
 
+    # --- Build Lagrangian Expression ---
+    # This expression is the foundation for the stationarity conditions.
+    constraint_dual_map = {
+        'Isq_BOUND_UPPER': 'mu_Isq_UP',
+        'Isq_BOUND_LOWER': 'mu_Isq_LOW',
+        'Vsq_BOUND_UPPER': 'mu_Vsq_UP',
+        'Vsq_BOUND_LOWER': 'mu_Vsq_LOW',
+        'Vsq_SLACK': 'lambda_Vsq_SLACK',
+        'PG_BOUNDS_UPPER': 'mu_Pg_UP',
+        'PG_BOUNDS_LOWER': 'mu_Pg_LOW',
+        'QG_BOUNDS_UPPER': 'mu_Qg_UP',
+        'QG_BOUNDS_LOWER': 'mu_Qg_LOW',
+        'PPV_BOUNDS_UPPER': 'mu_Ppv_UP',
+        'PPV_BOUNDS_LOWER': 'mu_Ppv_LOW',
+        'PBESS_BOUNDS_UPPER': 'mu_Pbess_UP',
+        'PBESS_BOUNDS_LOWER': 'mu_Pbess_LOW',
+        'SOC_BOUNDS_UPPER': 'mu_SOC_UP',
+        'SOC_BOUNDS_LOWER': 'mu_SOC_LOW',
+        'BALANCO_POT_ATIVA': 'lambda_BPA',
+        'BALANCO_POT_REATIVA': 'lambda_BPR',
+        'FLUXO_LINHAS': 'lambda_FL',
+        'FLUXO_LINHAS2': 'mu_FL2',
+        'STATE_OF_CHARGE': 'lambda_SOC',
+        'GD_UPPER_BOUND': 'mu_GD_UP',
+        # Duals for Piecewise Linearization Constraints
+        'p_decomposition_constraint_Pij': 'lambda_p_decomp_Pij',
+        'abs_p_constraint_Pij': 'lambda_abs_p_Pij',
+        'pw_tangent_constr_Pij_abs': 'mu_pw_tan_Pij',
+        'p_decomposition_constraint_Qij': 'lambda_p_decomp_Qij',
+        'abs_p_constraint_Qij': 'lambda_abs_p_Qij',
+        'pw_tangent_constr_Qij_abs': 'mu_pw_tan_Qij',
+        'pw_tangent_constr_Pg': 'mu_pw_tan_Pg',
+        'pw_tangent_constr_Qg': 'mu_pw_tan_Qg',
+    }
+    m.Lagr = Expression(expr=build_lagrangian_expression(m, constraint_dual_map))
+
+
     #################################################################
     # 2. STATIONARITY CONDITIONS
     #################################################################
