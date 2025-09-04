@@ -791,7 +791,7 @@ def ieee34bus(  prelog=False, poslog=False, analyze_model=True, Y = 40):  #
     # For Pij_abs
     m.z_pw_tan_Pij = Var(m.l, m.t, m.Y_set_Pij_abs, within=Binary)
     def cs_pw_tan_Pij1_rule(m, i, j, t, k):
-        P = m.abs_P_Pij_abs[i, j, t]
+        P = m.abs_P_Pij[i, j, t]
         P_sq = m.Pij_sq_piecewised_signed[i, j, t]
         slope = m.slope_Pij_abs[i, j, t, k]
         intercept = m.intercept_Pij_abs[i, j, t, k]
@@ -805,7 +805,7 @@ def ieee34bus(  prelog=False, poslog=False, analyze_model=True, Y = 40):  #
     # For Qij_abs
     m.z_pw_tan_Qij = Var(m.l, m.t, m.Y_set_Qij_abs, within=Binary)
     def cs_pw_tan_Qij1_rule(m, i, j, t, k):
-        P = m.abs_P_Qij_abs[i, j, t]
+        P = m.abs_P_Qij[i, j, t]
         P_sq = m.Qij_sq_piecewised_signed[i, j, t]
         slope = m.slope_Qij_abs[i, j, t, k]
         intercept = m.intercept_Qij_abs[i, j, t, k]
