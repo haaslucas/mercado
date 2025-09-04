@@ -501,14 +501,43 @@ def ieee34bus(  prelog=False, poslog=False, analyze_model=True, Y = 40):  #
                ) == 0
     m.dLagr_dPg_sq = Constraint(m.GB, m.t, rule=dLagr_dPg_sq_rule)
 
+    # Derivative w.r.t. Pij
+    def dLagr_dPij_rule(m, i, j, t):
+        return (-m.lambda_BPA[i, t]                                          # from BALANCO_POT_ATIVA (saindo)
+                + m.lambda_BPA[j, t]                                         # from BALANCO_POT_ATIVA (entrando)
+                - m.lambda_FL[i, j, t] * 2 * DLINES.loc[(i, j), 'R (pu)']     # from FLUXO_LINHAS
+                + m.lambda_p_decomp_Pij[i, j, t]                             # from p_decomposition_constraint_Pij
+               ) == 0
+    m.dLagr_dPij = Constraint(m.l, m.t, rule=dLagr_dPij_rule)
+
+    # Derivative w.r.t. Qij
+    def dLagr_dQij_rule(m, i, j, t):
+        return (-m.lambda_BPR[i, t]                                          # from BALANCO_POT_REATIVA (saindo)
+                + m.lambda_BPR[j, t]                                         # from BALANCO_POT_REATIVA (entrando)
+                - m.lambda_FL[i, j, t] * 2 * DLINES.loc[(i, j), 'X (pu)']     # from FLUXO_LINHAS
+                + m.lambda_p_decomp_Qij[i, j, t]                             # from p_decomposition_constraint_Qij
+               ) == 0
+    m.dLagr_dQij = Constraint(m.l, m.t, rule=dLagr_dQij_rule)
+
+    # Derivative w.r.t. Isq
+    def dLagr_dIsq_rule(m, i, j, t):
+        return (m.mu_Isq_UP[i, j, t]                                         # from Isq_BOUND_UPPER
+                - m.mu_Isq_LOW[i, j, t]                                      # from Isq_BOUND_LOWER
+                - m.lambda_BPA[i, t] * DLINES.loc[(i, j), 'R (pu)']           # from BALANCO_POT_ATIVA
+                - m.lambda_BPR[i, t] * DLINES.loc[(i, j), 'X (pu)']           # from BALANCO_POT_REATIVA
+                - m.lambda_FL[i, j, t] * DLINES.loc[(i, j), 'Z (pu)']**2      # from FLUXO_LINHAS
+                - m.mu_FL2[i, j, t]                                          # from FLUXO_LINHAS2
+               ) == 0
+    m.dLagr_dIsq = Constraint(m.l, m.t, rule=dLagr_dIsq_rule)
+
     # (This is a simplified example. A full implementation would require derivatives for ALL primal variables:
-    # Qg, Ppv, Pbess, SOC, Vsq, Isq, Pij, Qij, and all auxiliary variables from linearizations.
+    # Qg, Ppv, Pbess, SOC, Vsq, and all auxiliary variables from linearizations.
     # This is a very extensive task prone to manual error.)
     
     # NOTE: To keep this response manageable and illustrative, I have only implemented
-    # the stationarity conditions for Pg and its piecewise approximation variable.
+    # the stationarity conditions for some variables.
     # You would need to systematically derive and add the conditions for every other primal variable
-    # in the model (Qg, Ppv, Pbess, SOC, Vsq, Isq, Pij, Qij, and all their auxiliary variables)
+    # in the model (Qg, Ppv, Pbess, SOC, Vsq, and all their auxiliary variables)
     # following the same logic. This is a very large and detailed task.
 
     #################################################################
