@@ -530,15 +530,95 @@ def ieee34bus(  prelog=False, poslog=False, analyze_model=True, Y = 40):  #
                ) == 0
     m.dLagr_dIsq = Constraint(m.l, m.t, rule=dLagr_dIsq_rule)
 
-    # (This is a simplified example. A full implementation would require derivatives for ALL primal variables:
-    # Qg, Ppv, Pbess, SOC, Vsq, and all auxiliary variables from linearizations.
-    # This is a very extensive task prone to manual error.)
-    
-    # NOTE: To keep this response manageable and illustrative, I have only implemented
-    # the stationarity conditions for some variables.
-    # You would need to systematically derive and add the conditions for every other primal variable
-    # in the model (Qg, Ppv, Pbess, SOC, Vsq, and all their auxiliary variables)
-    # following the same logic. This is a very large and detailed task.
+    # Derivative w.r.t. Vsq
+    def dLagr_dVsq_rule(m, i, t):
+        return (m.mu_Vsq_UP[i, t] - m.mu_Vsq_LOW[i, t]
+                + (m.lambda_Vsq_SLACK[t] if i == m.slack else 0)
+                + sum(m.lambda_FL[j, i, t] for j in m.i if (j, i) in m.l)
+                - sum(m.lambda_FL[i, j, t] for j in m.i if (i, j) in m.l)
+               ) == 0
+    m.dLagr_dVsq = Constraint(m.i, m.t, rule=dLagr_dVsq_rule)
+
+    # Derivative w.r.t. Qg
+    def dLagr_dQg_rule(m, g, t):
+        return (m.lambda_BPR[g, t]
+                + m.mu_Qg_UP[g, t] - m.mu_Qg_LOW[g, t]
+                - sum(m.mu_pw_tan_Qg[g, t, k] * m.slope_Qg[g, t, k] for k in m.Y_set_Qg)
+               ) == 0
+    m.dLagr_dQg = Constraint(m.GB, m.t, rule=dLagr_dQg_rule)
+
+    # Derivative w.r.t. Qg_sq_piecewised
+    def dLagr_dQg_sq_rule(m, g, t):
+        return (m.mu_GD_UP[g, t]
+                - sum(m.mu_pw_tan_Qg[g, t, k] for k in m.Y_set_Qg)
+               ) == 0
+    m.dLagr_dQg_sq = Constraint(m.GB, m.t, rule=dLagr_dQg_sq_rule)
+
+    # Derivative w.r.t. Ppv
+    def dLagr_dPpv_rule(m, r, t):
+        return (m.lambda_BPA[r, t]
+                + m.mu_Ppv_UP[r, t] - m.mu_Ppv_LOW[r, t]
+               ) == 0
+    m.dLagr_dPpv = Constraint(m.NGB, m.t, rule=dLagr_dPpv_rule)
+
+    # Derivative w.r.t. Pbess
+    def dLagr_dPbess_rule(m, e, t):
+        return (m.lambda_BPA[e, t]
+                + m.mu_Pbess_UP[e, t] - m.mu_Pbess_LOW[e, t]
+                - (m.lambda_SOC[e, t + 1] if t < 24 else 0)
+               ) == 0
+    m.dLagr_dPbess = Constraint(ess.index, m.t, rule=dLagr_dPbess_rule)
+
+    # Derivative w.r.t. SOC
+    def dLagr_dSOC_rule(m, e, t):
+        return (m.mu_SOC_UP[e, t] - m.mu_SOC_LOW[e, t]
+                + m.lambda_SOC[e, t]
+                - (m.lambda_SOC[e, t + 1] if t < 24 else 0)
+               ) == 0
+    m.dLagr_dSOC = Constraint(ess.index, m.t, rule=dLagr_dSOC_rule)
+
+    # --- Derivatives for auxiliary variables from signed PWL approximation ---
+    # For Pij
+    def dLagr_dP_plus_Pij_rule(m, i, j, t):
+        return m.lambda_p_decomp_Pij[i, j, t] + m.lambda_abs_p_Pij[i, j, t] == 0
+    m.dLagr_dP_plus_Pij = Constraint(m.l, m.t, rule=dLagr_dP_plus_Pij_rule)
+
+    def dLagr_dP_minus_Pij_rule(m, i, j, t):
+        return -m.lambda_p_decomp_Pij[i, j, t] + m.lambda_abs_p_Pij[i, j, t] == 0
+    m.dLagr_dP_minus_Pij = Constraint(m.l, m.t, rule=dLagr_dP_minus_Pij_rule)
+
+    def dLagr_dabs_P_Pij_rule(m, i, j, t):
+        return (-m.lambda_abs_p_Pij[i, j, t]
+                - sum(m.mu_pw_tan_Pij[i, j, t, k] * m.slope_Pij_abs[i, j, t, k] for k in m.Y_set_Pij_abs)
+               ) == 0
+    m.dLagr_dabs_P_Pij = Constraint(m.l, m.t, rule=dLagr_dabs_P_Pij_rule)
+
+    def dLagr_dPij_sq_signed_rule(m, i, j, t):
+        return (m.mu_FL2[i, j, t]
+                - sum(m.mu_pw_tan_Pij[i, j, t, k] for k in m.Y_set_Pij_abs)
+               ) == 0
+    m.dLagr_dPij_sq_signed = Constraint(m.l, m.t, rule=dLagr_dPij_sq_signed_rule)
+
+    # For Qij
+    def dLagr_dP_plus_Qij_rule(m, i, j, t):
+        return m.lambda_p_decomp_Qij[i, j, t] + m.lambda_abs_p_Qij[i, j, t] == 0
+    m.dLagr_dP_plus_Qij = Constraint(m.l, m.t, rule=dLagr_dP_plus_Qij_rule)
+
+    def dLagr_dP_minus_Qij_rule(m, i, j, t):
+        return -m.lambda_p_decomp_Qij[i, j, t] + m.lambda_abs_p_Qij[i, j, t] == 0
+    m.dLagr_dP_minus_Qij = Constraint(m.l, m.t, rule=dLagr_dP_minus_Qij_rule)
+
+    def dLagr_dabs_P_Qij_rule(m, i, j, t):
+        return (-m.lambda_abs_p_Qij[i, j, t]
+                - sum(m.mu_pw_tan_Qij[i, j, t, k] * m.slope_Qij_abs[i, j, t, k] for k in m.Y_set_Qij_abs)
+               ) == 0
+    m.dLagr_dabs_P_Qij = Constraint(m.l, m.t, rule=dLagr_dabs_P_Qij_rule)
+
+    def dLagr_dQij_sq_signed_rule(m, i, j, t):
+        return (m.mu_FL2[i, j, t]
+                - sum(m.mu_pw_tan_Qij[i, j, t, k] for k in m.Y_set_Qij_abs)
+               ) == 0
+    m.dLagr_dQij_sq_signed = Constraint(m.l, m.t, rule=dLagr_dQij_sq_signed_rule)
 
     #################################################################
     # 3. COMPLEMENTARY SLACKNESS & DUAL FEASIBILITY
