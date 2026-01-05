@@ -183,7 +183,7 @@ param scenario;
 var VM {N, T};
 var I  {L, T};
 
-var Trans_Flow{Trans_Lines, T};
+var Trans_Flow{Trans_Lines, T}; # PF ?
 var Trans_Theta{Trans_Nodes, T};
 
 
