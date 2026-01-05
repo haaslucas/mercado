@@ -220,27 +220,27 @@ var Carbon_D{G_D,T};
 var Carbon_SE{T} ;
 
 #Dual Variables
-var lambda{Trans_Nodes, T};
-var omega_U{Trans_Lines, T};
-var omega_L{Trans_Lines, T};	
+var lambda{Trans_Nodes, T};  # Trans_Power_Balance
+var omega_U{Trans_Lines, T}; # Trans_Flow_Upper
+var omega_L{Trans_Lines, T}; # Trans_Flow_Lower
 
-var kappa_U{T};
-var kappa_L{T};
-var alpha_U{G_T, T};
-var alpha_L{G_T, T};
+var kappa_U{T};              # MAXIMUM_SE_LIMIT
+var kappa_L{T};              # MINIMUM_SE_LIMIT
+var alpha_U{G_T, T};         # Trans_Gen_Upper
+var alpha_L{G_T, T};         # Trans_Gen_Lower
 var ramp_up{G_T, T};
 var ramp_low{G_T, T};
-var rho_U{G_T, B, T};
-var rho_L{G_T, B, T};
-var varphi{G_T,T};
+var rho_U{G_T, B, T};        # Calculate_Block_Upper_Trans
+var rho_L{G_T, B, T};        # Calculate_Block_Lower_Trans
+var varphi{G_T,T};           # Calculate_Total_Dispatch_Trans
 
-var mu{Trans_Lines, T};
-var phi{G_T, T};
-var psi{T};
+var mu{Trans_Lines, T};      # Calculate_Trans_PowerFlow
+var phi{G_T, T};             # Calculate_Footprint_Trans
+var psi{T};                  # Carbon_Balance_Trans
 #var psi_L{T};
 #var epsilon{G_T, T};
-var Xi_U{T};
-var Xi_L{T};
+var Xi_U{T};                 # Carbon_Upper_Limits_Trans
+var Xi_L{T};                 # Carbon_Lower_Limits_Trans
 #var eta_U{T};
 #var eta_L{T};
 
@@ -527,40 +527,29 @@ s.t. Carbon_Limits_Trans {t in T}:
 
 
 
-# Lagrangian of the TSO's problem (Lower-Level):
-# L = sum{t in T, g in G_T, b in B} (Price_block_t[g,b] * Block_Dispatch_t[g,b,t])
-#
-#     + sum{l in Trans_Lines, t in T} mu[l,t] * (Trans_Flow[l,t] - Trans_Status[l] * 1/Trans_Reactance[l] * sum{n in Trans_Nodes}(Trans_Incidencia[n,l]*Trans_Theta[n,t]))
-#
-#     + sum{n in Trans_Nodes, t in T} lambda[n,t] * (
-#           Trans_Load[n,t] * load2[scenario,t]
-#           - (sum{g in G_T : G_Node[g] == n}(P_thermal_trans[g,t])
-#           - sum{l in Trans_Lines}(Trans_Incidencia[n,l]*Trans_Flow[l,t])
-#           - (if 5 == n then P_DSO[t])
-#           + sum{g in RES_T:RES_Node_t[g] == n and RES_type_t[g]=="SOLAR"} (Trans_Solar_Inj[g,t])
-#           + sum{g in RES_T:RES_Node_t[g] == n and RES_type_t[g]=="WIND"} (Trans_Wind_Inj[g,t]))
-#       )
-#
-#     + sum{l in Trans_Lines, t in T} omega_U[l,t] * (Trans_Flow[l,t] - Trans_Capacity[l])
-#     + sum{l in Trans_Lines, t in T} omega_L[l,t] * (-Trans_Flow[l,t] - Trans_Capacity[l])
-#
-#     + sum{g in G_T, b in B, t in T} rho_U[g,b,t] * (Block_Dispatch_t[g,b,t] - P_block_t[g,b])
-#     + sum{g in G_T, b in B, t in T} rho_L[g,b,t] * (-Block_Dispatch_t[g,b,t])
-#
-#     + sum{g in G_T, t in T} varphi[g,t] * (P_thermal_trans[g,t] - sum{b in B} Block_Dispatch_t[g,b,t])
-#
-#     + sum{g in G_T, t in T} alpha_U[g,t] * (P_thermal_trans[g,t] - Pmax_t[g])
-#     + sum{g in G_T, t in T} alpha_L[g,t] * (-P_thermal_trans[g,t] + Pmin_t[g])
-#
-#     + sum{t in T} kappa_U[t] * (P_DSO[t] - SE_Capacity)
-#     + sum{t in T} kappa_L[t] * (-P_DSO[t] - SE_Capacity)
-#
-#     + sum{g in G_T, t in T} phi[g,t] * (Footprint_trans[g,t] - Carbon_Cost_t[g] * P_thermal_trans[g,t])
-#
-#     + sum{t in T} psi[t] * (sum{g in G_T} (Carbon_T[g,t]) - Carbon_SE[t])
-#
-#     + sum{t in T} Xi_U[t] * (sum{g in G_T} (Footprint_trans[g,t] + Carbon_T[g,t]) - Carbon_Limit_Trans[t])
-#
+#Lagrangian of the TSO's problem (Lower-Level):
+L = sum{t in T, g in G_T, b in B} (Price_block_t[g,b] * Block_Dispatch_t[g,b,t])
+    + sum{l in Trans_Lines, t in T} mu[l,t] * (Trans_Flow[l,t] - Trans_Status[l] * 1/Trans_Reactance[l] * sum{n in Trans_Nodes}(Trans_Incidencia[n,l]*Trans_Theta[n,t]))
+    + sum{n in Trans_Nodes, t in T} lambda[n,t] * (
+          Trans_Load[n,t] * load2[scenario,t]
+          - (sum{g in G_T : G_Node[g] == n}(P_thermal_trans[g,t])
+          - sum{l in Trans_Lines}(Trans_Incidencia[n,l]*Trans_Flow[l,t])
+          - (if 5 == n then P_DSO[t])
+          + sum{g in RES_T:RES_Node_t[g] == n and RES_type_t[g]=="SOLAR"} (Trans_Solar_Inj[g,t])
+          + sum{g in RES_T:RES_Node_t[g] == n and RES_type_t[g]=="WIND"} (Trans_Wind_Inj[g,t]))
+      )
+    + sum{l in Trans_Lines, t in T} omega_U[l,t] * (Trans_Flow[l,t] - Trans_Capacity[l])
+    + sum{l in Trans_Lines, t in T} omega_L[l,t] * (-Trans_Flow[l,t] - Trans_Capacity[l])
+    + sum{g in G_T, b in B, t in T} rho_U[g,b,t] * (Block_Dispatch_t[g,b,t] - P_block_t[g,b])
+    + sum{g in G_T, b in B, t in T} rho_L[g,b,t] * (-Block_Dispatch_t[g,b,t])
+    + sum{g in G_T, t in T} varphi[g,t] * (P_thermal_trans[g,t] - sum{b in B} Block_Dispatch_t[g,b,t])
+    + sum{g in G_T, t in T} alpha_U[g,t] * (P_thermal_trans[g,t] - Pmax_t[g])
+    + sum{g in G_T, t in T} alpha_L[g,t] * (-P_thermal_trans[g,t] + Pmin_t[g])
+    + sum{t in T} kappa_U[t] * (P_DSO[t] - SE_Capacity)
+    + sum{t in T} kappa_L[t] * (-P_DSO[t] - SE_Capacity)
+    + sum{g in G_T, t in T} phi[g,t] * (Footprint_trans[g,t] - Carbon_Cost_t[g] * P_thermal_trans[g,t])
+    + sum{t in T} psi[t] * (sum{g in G_T} (Carbon_T[g,t]) - Carbon_SE[t])
+    + sum{t in T} Xi_U[t] * (sum{g in G_T} (Footprint_trans[g,t] + Carbon_T[g,t]) - Carbon_Limit_Trans[t])
 
 ##									TRANSMISSION DUAL CONSTRAINTS
 # Stationarity condition for TSO primal variable P_thermal_trans
@@ -570,7 +559,7 @@ s.t. Deriv_Potencia_with_Ramp {g in G_T, t in T}:
 	-phi[g,t]*Carbon_Cost_t[g] 
 	- alpha_L[g,t] + alpha_U[g,t] 
 	+varphi[g,t]
-	= 0;
+	= 0;            													# P_thermal_trans ?
 	
 # Stationarity condition for TSO primal variable Block_Dispatch_t
 s.t. Deriv_Blocos_Potencia {g in G_T, b in B, t in T}:
