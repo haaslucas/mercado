@@ -553,43 +553,43 @@ L = sum{t in T, g in G_T, b in B} (Price_block_t[g,b] * Block_Dispatch_t[g,b,t])
 
 ##									TRANSMISSION DUAL CONSTRAINTS
 # Stationarity condition for TSO primal variable P_thermal_trans
-s.t. Deriv_Potencia_with_Ramp {g in G_T, t in T}:
+s.t. Deriv_Potencia_with_Ramp {g in G_T, t in T}: # dL/dP_thermal_trans
 	#(2*a_t[g] * P_thermal_trans[g,t] + b_t[g]) 
 	- lambda[G_Node[g],t] 
 	-phi[g,t]*Carbon_Cost_t[g] 
 	- alpha_L[g,t] + alpha_U[g,t] 
 	+varphi[g,t]
-	= 0;            													# P_thermal_trans ?
+	= 0;
 	
 # Stationarity condition for TSO primal variable Block_Dispatch_t
-s.t. Deriv_Blocos_Potencia {g in G_T, b in B, t in T}:
+s.t. Deriv_Blocos_Potencia {g in G_T, b in B, t in T}: # dL/dBlock_Dispatch_t
 	Price_block_t[g,b] -varphi[g,t] + rho_U[g,b,t] - rho_L[g,b,t] = 0;
 	
 # Stationarity condition for TSO primal variable Trans_Theta
-s.t. Deriv_Teta{n in Trans_Nodes, t in T}: 
+s.t. Deriv_Teta{n in Trans_Nodes, t in T}: # dL/dTrans_Theta
 	-sum{l in Trans_Lines}(-Trans_Status[l] * (1/Trans_Reactance[l]) * Trans_Incidencia[n,l]*mu[l,t]) = 0;
 
 # Stationarity condition for TSO primal variable Trans_Flow
-s.t. Deriv_Fluxo{l in Trans_Lines, t in T}: 
+s.t. Deriv_Fluxo{l in Trans_Lines, t in T}: # dL/dTrans_Flow
 	mu[l,t] - omega_L[l,t] + omega_U[l,t] 
 	-sum{n in Trans_Nodes}(Trans_Incidencia[n,l] * lambda[n,t]) = 0;
 
 # Stationarity condition for TSO primal variable P_DSO
-s.t. Deriv_PDSO{t in T}:  
+s.t. Deriv_PDSO{t in T}: # dL/dP_DSO
 	-Bid[t] + lambda[5,t] + kappa_U[t] - kappa_L[t] = 0;
 
 # Stationarity condition for TSO primal variable Footprint_trans
-s.t. Deriv_Footprint{g in G_T, t in T}:
+s.t. Deriv_Footprint{g in G_T, t in T}: # dL/dFootprint_trans
 	+phi[g,t] + Xi_U[t] 
 	= 0;
 
 # Stationarity condition for TSO primal variable Carbon_T
-s.t. Deriv_Carbon_T {g in G_T, t in T}:
+s.t. Deriv_Carbon_T {g in G_T, t in T}: # dL/dCarbon_T
 	+ psi[t] + Xi_U[t]
 	 = 0;
 	
 # Stationarity condition for TSO primal variable Carbon_SE
-s.t. Deriv_Carbon_SE {t in T}:
+s.t. Deriv_Carbon_SE {t in T}: # dL/dCarbon_SE
 	 -Carbon_Price[t] -psi[t] = 0;
 
 
