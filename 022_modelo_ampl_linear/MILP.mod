@@ -180,66 +180,66 @@ param scenario;
 #---- DECLARE VARIABLES, WITH UPPER AND LOWER BOUNDS.
 
 # Primal variables
-var VM {N, T};
-var I  {L, T};
+var VM {N, T}; # V_i,t,s^SQ
+var I  {L, T}; # I_ij,t,s^SQ
 
-var Trans_Flow{Trans_Lines, T}; # PF ?
-var Trans_Theta{Trans_Nodes, T};
+var Trans_Flow{Trans_Lines, T}; # PF_l,t,s
+var Trans_Theta{Trans_Nodes, T}; # δ_i,t,s
 
 
-var Dist_Shift{LS, T};
-var Dist_P_ESS{ESS, T};
-var Dist_SOC{ESS,T};
+var Dist_Shift{LS, T}; # P_i,t,s^LS
+var Dist_P_ESS{ESS, T}; # P_i,t,s^ESS
+var Dist_SOC{ESS,T}; # SOC_i,t,s
 var Dist_Flow {L, T};
 var Dist_Pfm{L, T};
 var Dist_Pto{L, T};
 #var Dist_Qfm{L, T};
 #var Dist_Qto{L, T};
-var P{L, T};
-var Q{L, T};
+var P{L, T}; # P_ij,t,s
+var Q{L, T}; # Q_ij,t,s
 
 
-var P_thermal_dist{G_D, T} >= 0;
-var Q_thermal_dist{G_D, T};
+var P_thermal_dist{G_D, T} >= 0; # P_g,t,s^D
+var Q_thermal_dist{G_D, T}; # Q_g,t,s^D
 var P_renewable_dist{RES_D, T};
 var Q_renewable_dist{RES_D, T};
-var P_thermal_trans{G_T, T} >= 0;
+var P_thermal_trans{G_T, T} >= 0; # P_g,t,s^T
 
-var Block_Dispatch_t{G_T, B, T};
-var Block_Dispatch_d{G_D, B, T};
-
-
-var P_DSO{T};
-var Q_DSO{T};
+var Block_Dispatch_t{G_T, B, T}; # p_g,b,t,s^T
+var Block_Dispatch_d{G_D, B, T}; # p_g,b,t,s^D
 
 
-var Footprint_trans{G_T,T};
-var Footprint_dist{G_D,T};
-var Carbon_T{G_T,T};
-var Carbon_D{G_D,T};
-var Carbon_SE{T} ;
+var P_DSO{T}; # P_i,t,s^SE
+var Q_DSO{T}; # Q_i,t,s^SE
+
+
+var Footprint_trans{G_T,T}; # V_g,t,s^T
+var Footprint_dist{G_D,T}; # V_g,t,s^D
+var Carbon_T{G_T,T}; # O_g,t,s^T
+var Carbon_D{G_D,T}; # O_g,t,s^D
+var Carbon_SE{T} ; # O_t,s^SE
 
 #Dual Variables
-var lambda{Trans_Nodes, T};  # Trans_Power_Balance
-var omega_U{Trans_Lines, T}; # Trans_Flow_Upper
-var omega_L{Trans_Lines, T}; # Trans_Flow_Lower
+var lambda{Trans_Nodes, T};  # λ_i,t,s
+var omega_U{Trans_Lines, T}; # ω_l,t,s (overbar)
+var omega_L{Trans_Lines, T}; # ω_l,t,s (underline)
 
-var kappa_U{T};              # MAXIMUM_SE_LIMIT
-var kappa_L{T};              # MINIMUM_SE_LIMIT
-var alpha_U{G_T, T};         # Trans_Gen_Upper
-var alpha_L{G_T, T};         # Trans_Gen_Lower
+var kappa_U{T};              # κ_i,t,s (overbar)
+var kappa_L{T};              # κ_i,t,s (underline)
+var alpha_U{G_T, T};         # α_g,t,s (overbar)
+var alpha_L{G_T, T};         # α_g,t,s (underline)
 var ramp_up{G_T, T};
 var ramp_low{G_T, T};
-var rho_U{G_T, B, T};        # Calculate_Block_Upper_Trans
-var rho_L{G_T, B, T};        # Calculate_Block_Lower_Trans
-var varphi{G_T,T};           # Calculate_Total_Dispatch_Trans
+var rho_U{G_T, B, T};        # ρ_g,b,t,s (overbar)
+var rho_L{G_T, B, T};        # ρ_g,b,t,s (underline)
+var varphi{G_T,T};           # φ_g,t,s
 
-var mu{Trans_Lines, T};      # Calculate_Trans_PowerFlow
-var phi{G_T, T};             # Calculate_Footprint_Trans
-var psi{T};                  # Carbon_Balance_Trans
+var mu{Trans_Lines, T};      # μ_l,t,s
+var phi{G_T, T};             # Φ_g,t,s
+var psi{T};                  # ψ_t,s
 #var psi_L{T};
 #var epsilon{G_T, T};
-var Xi_U{T};                 # Carbon_Upper_Limits_Trans
+var Xi_U{T};                 # ζ_t,s
 var Xi_L{T};                 # Carbon_Lower_Limits_Trans
 #var eta_U{T};
 #var eta_L{T};
@@ -261,8 +261,8 @@ var z_Xi_U{T} binary;
 var z_Xi_L{T} binary;
 
 
-var Bid{T};
-var Carbon_Price{T};# >= 1e-3;
+var Bid{T}; # π_t,s^E
+var Carbon_Price{T}; # π_t,s^C
 var DSO_MKT{T};
 
 
