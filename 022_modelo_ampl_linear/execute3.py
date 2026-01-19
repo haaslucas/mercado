@@ -31,7 +31,7 @@ set_names   = get_names(ampl.getSets())
 # 1) Arquivo com todas as variáveis expandidas
 with open('Variables.txt', 'w', encoding='utf-8') as f, redirect_stdout(f):
     for name in var_names:
-        ampl.eval(f"expand {name};")
+        ampl.eval(f"display {name};")
 
 # 2) Arquivo com todos os parâmetros expandidos
 with open('Parameters.txt', 'w', encoding='utf-8') as f, redirect_stdout(f):
