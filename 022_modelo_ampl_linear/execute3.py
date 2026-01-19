@@ -5,7 +5,7 @@ import pathlib
 # (1) Onde estão Novo.mod, input.dat, etc…
 basedir = pathlib.Path(".")
 ampl = AMPL()
-ampl.setOption('solver', 'ipopt')
+ampl.setOption('solver', 'gurobi')
 
 ampl.eval('include execute_linear.run;')             # chama o .run
 
