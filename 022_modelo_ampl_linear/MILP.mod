@@ -544,7 +544,7 @@ s.t. Deriv_Teta{n in Trans_Nodes, t in T}:
 
 s.t. Deriv_Fluxo{l in Trans_Lines, t in T}: 
 	mu[l,t] - omega_L[l,t] + omega_U[l,t] 
-	-sum{n in Trans_Nodes}(Trans_Incidencia[n,l] * lambda[n,t]) = 0;
+	-	sum{n in Trans_Nodes}(Trans_Incidencia[n,l] * lambda[n,t]) = 0;
 
 s.t. Deriv_PDSO{t in T}:  
 	-Bid[t] + lambda[5,t] + kappa_U[t] - kappa_L[t] = 0;
