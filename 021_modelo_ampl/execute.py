@@ -1,14 +1,15 @@
 from amplpy import AMPL, Environment
 import pathlib
 import amplpy
-
-
+import os
+#cd 021_modelo_ampl
+os.chdir('021_modelo_ampl') 
 # (1) Onde estão Novo.mod, input.dat, execute.run, *.inc…?
 basedir = pathlib.Path(".")   # ajuste o caminho
 
 # (2) Cria objeto AMPL; baixa o binário community se não existir
 ampl = AMPL()             # o cwd do AMPL vira basedir
-ampl.setOption('solver', 'ipopt')            # ou ipopt, cplex, gurobi…
+ampl.setOption('solver', 'gurobi')            # ou ipopt, cplex, gurobi…
 
 # (3) EXECUTA exatamente o que você faria no prompt AMPL ↓↓↓
 ampl.eval('include execute.run;')             # chama o .run

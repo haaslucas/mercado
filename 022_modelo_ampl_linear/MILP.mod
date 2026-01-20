@@ -180,67 +180,67 @@ param scenario;
 #---- DECLARE VARIABLES, WITH UPPER AND LOWER BOUNDS.
 
 # Primal variables
-var VM {N, T};
-var I  {L, T};
+var VM {N, T}; # V_i,t,s^SQ
+var I  {L, T}; # I_ij,t,s^SQ
 
-var Trans_Flow{Trans_Lines, T};
-var Trans_Theta{Trans_Nodes, T};
+var Trans_Flow{Trans_Lines, T}; # PF_l,t,s
+var Trans_Theta{Trans_Nodes, T}; # δ_i,t,s
 
 
-var Dist_Shift{LS, T};
-var Dist_P_ESS{ESS, T};
-var Dist_SOC{ESS,T};
+var Dist_Shift{LS, T}; # P_i,t,s^LS
+var Dist_P_ESS{ESS, T}; # P_i,t,s^ESS
+var Dist_SOC{ESS,T}; # SOC_i,t,s
 var Dist_Flow {L, T};
 var Dist_Pfm{L, T};
 var Dist_Pto{L, T};
 #var Dist_Qfm{L, T};
 #var Dist_Qto{L, T};
-var P{L, T};
-var Q{L, T};
+var P{L, T}; # P_ij,t,s
+var Q{L, T}; # Q_ij,t,s
 
 
-var P_thermal_dist{G_D, T} >= 0;
-var Q_thermal_dist{G_D, T};
+var P_thermal_dist{G_D, T} >= 0; # P_g,t,s^D
+var Q_thermal_dist{G_D, T}; # Q_g,t,s^D
 var P_renewable_dist{RES_D, T};
 var Q_renewable_dist{RES_D, T};
-var P_thermal_trans{G_T, T} >= 0;
+var P_thermal_trans{G_T, T} >= 0; # P_g,t,s^T
 
-var Block_Dispatch_t{G_T, B, T};
-var Block_Dispatch_d{G_D, B, T};
-
-
-var P_DSO{T};
-var Q_DSO{T};
+var Block_Dispatch_t{G_T, B, T}; # p_g,b,t,s^T
+var Block_Dispatch_d{G_D, B, T}; # p_g,b,t,s^D
 
 
-var Footprint_trans{G_T,T};
-var Footprint_dist{G_D,T};
-var Carbon_T{G_T,T};
-var Carbon_D{G_D,T};
-var Carbon_SE{T} ;
+var P_DSO{T}; # P_i,t,s^SE
+var Q_DSO{T}; # Q_i,t,s^SE
+
+
+var Footprint_trans{G_T,T}; # V_g,t,s^T
+var Footprint_dist{G_D,T}; # V_g,t,s^D
+var Carbon_T{G_T,T}; # O_g,t,s^T
+var Carbon_D{G_D,T}; # O_g,t,s^D
+var Carbon_SE{T} ; # O_t,s^SE
 
 #Dual Variables
-var lambda{Trans_Nodes, T};
-var omega_U{Trans_Lines, T};
-var omega_L{Trans_Lines, T};	
+var lambda{Trans_Nodes, T};  # λ_i,t,s
+var omega_U{Trans_Lines, T}; # ω_l,t,s (overbar)
+var omega_L{Trans_Lines, T}; # ω_l,t,s (underline)
 
-var kappa_U{T};
-var kappa_L{T};
-var alpha_U{G_T, T};
-var alpha_L{G_T, T};
+var kappa_U{T};              # κ_i,t,s (overbar)
+var kappa_L{T};              # κ_i,t,s (underline)
+var alpha_U{G_T, T};         # α_g,t,s (overbar)
+var alpha_L{G_T, T};         # α_g,t,s (underline)
 var ramp_up{G_T, T};
 var ramp_low{G_T, T};
-var rho_U{G_T, B, T};
-var rho_L{G_T, B, T};
-var varphi{G_T,T};
+var rho_U{G_T, B, T};        # ρ_g,b,t,s (overbar)
+var rho_L{G_T, B, T};        # ρ_g,b,t,s (underline)
+var varphi{G_T,T};           # φ_g,t,s
 
-var mu{Trans_Lines, T};
-var phi{G_T, T};
-var psi{T};
+var mu{Trans_Lines, T};      # μ_l,t,s
+var phi{G_T, T};             # Φ_g,t,s
+var psi{T};                  # ψ_t,s
 #var psi_L{T};
 #var epsilon{G_T, T};
-var Xi_U{T};
-var Xi_L{T};
+var Xi_U{T};                 # ζ_t,s
+var Xi_L{T};                 # Carbon_Lower_Limits_Trans
 #var eta_U{T};
 #var eta_L{T};
 
@@ -261,8 +261,8 @@ var z_Xi_U{T} binary;
 var z_Xi_L{T} binary;
 
 
-var Bid{T};
-var Carbon_Price{T};# >= 1e-3;
+var Bid{T}; # π_t,s^E
+var Carbon_Price{T}; # π_t,s^C
 var DSO_MKT{T};
 
 
@@ -362,7 +362,7 @@ s.t. new {(i,j) in L, t in T}:
 	VM[i,t] - VM[j,t] = 2*(R[i,j]*P[i,j,t] +X[i,j]*Q[i,j,t]) + Z[i,j]^2*I[i,j,t];
 	
 s.t. new2{(i,j) in L, t in T}:
-	P[i,j,t]^2 + Q[i,j,t]^2 <= I[i,j,t]*VM[j,t];
+	P[ i,j,t]^2 + Q[i,j,t]^2 <= I[i,j,t]*VM[j,t];
 	
 #s.t. new2{(i,j) in L, t in T}:
 #	P[i,j,t]^2  <= I[i,j,t]*VM[j,t];
@@ -527,8 +527,33 @@ s.t. Carbon_Limits_Trans {t in T}:
 
 
 
+#Lagrangian of the TSO's problem (Lower-Level):
+L = sum{t in T, g in G_T, b in B} (Price_block_t[g,b] * Block_Dispatch_t[g,b,t])
+    + sum{l in Trans_Lines, t in T} mu[l,t] * (Trans_Flow[l,t] - Trans_Status[l] * 1/Trans_Reactance[l] * sum{n in Trans_Nodes}(Trans_Incidencia[n,l]*Trans_Theta[n,t]))
+    + sum{n in Trans_Nodes, t in T} lambda[n,t] * (
+          Trans_Load[n,t] * load2[scenario,t]
+          - (sum{g in G_T : G_Node[g] == n}(P_thermal_trans[g,t])
+          - sum{l in Trans_Lines}(Trans_Incidencia[n,l]*Trans_Flow[l,t])
+          - (if 5 == n then P_DSO[t])
+          + sum{g in RES_T:RES_Node_t[g] == n and RES_type_t[g]=="SOLAR"} (Trans_Solar_Inj[g,t])
+          + sum{g in RES_T:RES_Node_t[g] == n and RES_type_t[g]=="WIND"} (Trans_Wind_Inj[g,t]))
+      )
+    + sum{l in Trans_Lines, t in T} omega_U[l,t] * (Trans_Flow[l,t] - Trans_Capacity[l])
+    + sum{l in Trans_Lines, t in T} omega_L[l,t] * (-Trans_Flow[l,t] - Trans_Capacity[l])
+    + sum{g in G_T, b in B, t in T} rho_U[g,b,t] * (Block_Dispatch_t[g,b,t] - P_block_t[g,b])
+    + sum{g in G_T, b in B, t in T} rho_L[g,b,t] * (-Block_Dispatch_t[g,b,t])
+    + sum{g in G_T, t in T} varphi[g,t] * (P_thermal_trans[g,t] - sum{b in B} Block_Dispatch_t[g,b,t])
+    + sum{g in G_T, t in T} alpha_U[g,t] * (P_thermal_trans[g,t] - Pmax_t[g])
+    + sum{g in G_T, t in T} alpha_L[g,t] * (-P_thermal_trans[g,t] + Pmin_t[g])
+    + sum{t in T} kappa_U[t] * (P_DSO[t] - SE_Capacity)
+    + sum{t in T} kappa_L[t] * (-P_DSO[t] - SE_Capacity)
+    + sum{g in G_T, t in T} phi[g,t] * (Footprint_trans[g,t] - Carbon_Cost_t[g] * P_thermal_trans[g,t])
+    + sum{t in T} psi[t] * (sum{g in G_T} (Carbon_T[g,t]) - Carbon_SE[t])
+    + sum{t in T} Xi_U[t] * (sum{g in G_T} (Footprint_trans[g,t] + Carbon_T[g,t]) - Carbon_Limit_Trans[t])
+
 ##									TRANSMISSION DUAL CONSTRAINTS
-s.t. Deriv_Potencia_with_Ramp {g in G_T, t in T}:
+# Stationarity condition for TSO primal variable P_thermal_trans
+s.t. Deriv_Potencia_with_Ramp {g in G_T, t in T}: # dL/dP_thermal_trans
 	#(2*a_t[g] * P_thermal_trans[g,t] + b_t[g]) 
 	- lambda[G_Node[g],t] 
 	-phi[g,t]*Carbon_Cost_t[g] 
@@ -536,28 +561,35 @@ s.t. Deriv_Potencia_with_Ramp {g in G_T, t in T}:
 	+varphi[g,t]
 	= 0;
 	
-s.t. Deriv_Blocos_Potencia {g in G_T, b in B, t in T}:
+# Stationarity condition for TSO primal variable Block_Dispatch_t
+s.t. Deriv_Blocos_Potencia {g in G_T, b in B, t in T}: # dL/dBlock_Dispatch_t
 	Price_block_t[g,b] -varphi[g,t] + rho_U[g,b,t] - rho_L[g,b,t] = 0;
 	
-s.t. Deriv_Teta{n in Trans_Nodes, t in T}: 
+# Stationarity condition for TSO primal variable Trans_Theta
+s.t. Deriv_Teta{n in Trans_Nodes, t in T}: # dL/dTrans_Theta
 	-sum{l in Trans_Lines}(-Trans_Status[l] * (1/Trans_Reactance[l]) * Trans_Incidencia[n,l]*mu[l,t]) = 0;
 
-s.t. Deriv_Fluxo{l in Trans_Lines, t in T}: 
+# Stationarity condition for TSO primal variable Trans_Flow
+s.t. Deriv_Fluxo{l in Trans_Lines, t in T}: # dL/dTrans_Flow
 	mu[l,t] - omega_L[l,t] + omega_U[l,t] 
 	-	sum{n in Trans_Nodes}(Trans_Incidencia[n,l] * lambda[n,t]) = 0;
 
-s.t. Deriv_PDSO{t in T}:  
+# Stationarity condition for TSO primal variable P_DSO
+s.t. Deriv_PDSO{t in T}: # dL/dP_DSO
 	-Bid[t] + lambda[5,t] + kappa_U[t] - kappa_L[t] = 0;
 
-s.t. Deriv_Footprint{g in G_T, t in T}:
+# Stationarity condition for TSO primal variable Footprint_trans
+s.t. Deriv_Footprint{g in G_T, t in T}: # dL/dFootprint_trans
 	+phi[g,t] + Xi_U[t] 
 	= 0;
 
-s.t. Deriv_Carbon_T {g in G_T, t in T}:
+# Stationarity condition for TSO primal variable Carbon_T
+s.t. Deriv_Carbon_T {g in G_T, t in T}: # dL/dCarbon_T
 	+ psi[t] + Xi_U[t]
 	 = 0;
 	
-s.t. Deriv_Carbon_SE {t in T}:
+# Stationarity condition for TSO primal variable Carbon_SE
+s.t. Deriv_Carbon_SE {t in T}: # dL/dCarbon_SE
 	 -Carbon_Price[t] -psi[t] = 0;
 
 
