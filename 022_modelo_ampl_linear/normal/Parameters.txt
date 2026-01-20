@@ -1,0 +1,1360 @@
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Average_CarbonPrice; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Average_CarbonPrice: line 1 offset 7
+syntax error
+context:  expand  >>> Average_CarbonPrice; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Average_CarbonSE; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Average_CarbonSE: line 1 offset 7
+syntax error
+context:  expand  >>> Average_CarbonSE; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Average_DSO_Carbon_Emission; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Average_DSO_Carbon_Emission: line 1 offset 7
+syntax error
+context:  expand  >>> Average_DSO_Carbon_Emission; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Average_DSO_Carbon_Market; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Average_DSO_Carbon_Market: line 1 offset 7
+syntax error
+context:  expand  >>> Average_DSO_Carbon_Market; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Average_DSO_Energy_Market; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Average_DSO_Energy_Market: line 1 offset 7
+syntax error
+context:  expand  >>> Average_DSO_Energy_Market; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Average_EnergyPrice; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Average_EnergyPrice: line 1 offset 7
+syntax error
+context:  expand  >>> Average_EnergyPrice; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Average_GenCosts_dist; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Average_GenCosts_dist: line 1 offset 7
+syntax error
+context:  expand  >>> Average_GenCosts_dist; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Average_GenCosts_trans; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Average_GenCosts_trans: line 1 offset 7
+syntax error
+context:  expand  >>> Average_GenCosts_trans; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Average_Generation_dist; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Average_Generation_dist: line 1 offset 7
+syntax error
+context:  expand  >>> Average_Generation_dist; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Average_Generation_trans; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Average_Generation_trans: line 1 offset 7
+syntax error
+context:  expand  >>> Average_Generation_trans; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Average_ISO_Carbon_Emission; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Average_ISO_Carbon_Emission: line 1 offset 7
+syntax error
+context:  expand  >>> Average_ISO_Carbon_Emission; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Average_ISO_Carbon_Market; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Average_ISO_Carbon_Market: line 1 offset 7
+syntax error
+context:  expand  >>> Average_ISO_Carbon_Market; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Average_ISO_Energy_Market; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Average_ISO_Energy_Market: line 1 offset 7
+syntax error
+context:  expand  >>> Average_ISO_Energy_Market; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Average_PDSO; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Average_PDSO: line 1 offset 7
+syntax error
+context:  expand  >>> Average_PDSO; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Average_Renewable_dist; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Average_Renewable_dist: line 1 offset 7
+syntax error
+context:  expand  >>> Average_Renewable_dist; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Average_Renewable_trans; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Average_Renewable_trans: line 1 offset 7
+syntax error
+context:  expand  >>> Average_Renewable_trans; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Carbon_Cost_d; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Carbon_Cost_d: line 1 offset 7
+syntax error
+context:  expand  >>> Carbon_Cost_d; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Carbon_Cost_t; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Carbon_Cost_t: line 1 offset 7
+syntax error
+context:  expand  >>> Carbon_Cost_t; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Carbon_Limit_Dist; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Carbon_Limit_Dist: line 1 offset 7
+syntax error
+context:  expand  >>> Carbon_Limit_Dist; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Carbon_Limit_Trans; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Carbon_Limit_Trans: line 1 offset 7
+syntax error
+context:  expand  >>> Carbon_Limit_Trans; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Dist_Inst_Cap; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Dist_Inst_Cap: line 1 offset 7
+syntax error
+context:  expand  >>> Dist_Inst_Cap; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Dist_Load; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Dist_Load: line 1 offset 7
+syntax error
+context:  expand  >>> Dist_Load; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Dist_P_ESS_max; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Dist_P_ESS_max: line 1 offset 7
+syntax error
+context:  expand  >>> Dist_P_ESS_max; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Dist_P_ESS_min; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Dist_P_ESS_min: line 1 offset 7
+syntax error
+context:  expand  >>> Dist_P_ESS_min; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Dist_R; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Dist_R: line 1 offset 7
+syntax error
+context:  expand  >>> Dist_R; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Dist_SOC_initial; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Dist_SOC_initial: line 1 offset 7
+syntax error
+context:  expand  >>> Dist_SOC_initial; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Dist_SOC_max; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Dist_SOC_max: line 1 offset 7
+syntax error
+context:  expand  >>> Dist_SOC_max; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Dist_SOC_min; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Dist_SOC_min: line 1 offset 7
+syntax error
+context:  expand  >>> Dist_SOC_min; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Dist_Shift_Max; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Dist_Shift_Max: line 1 offset 7
+syntax error
+context:  expand  >>> Dist_Shift_Max; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Dist_Shift_Min; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Dist_Shift_Min: line 1 offset 7
+syntax error
+context:  expand  >>> Dist_Shift_Min; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Dist_Solar_Inj; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Dist_Solar_Inj: line 1 offset 7
+syntax error
+context:  expand  >>> Dist_Solar_Inj; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Dist_Status; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Dist_Status: line 1 offset 7
+syntax error
+context:  expand  >>> Dist_Status; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Dist_Type; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Dist_Type: line 1 offset 7
+syntax error
+context:  expand  >>> Dist_Type; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Dist_Wind_Inj; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Dist_Wind_Inj: line 1 offset 7
+syntax error
+context:  expand  >>> Dist_Wind_Inj; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Dist_X; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Dist_X: line 1 offset 7
+syntax error
+context:  expand  >>> Dist_X; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Dist_Z; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Dist_Z: line 1 offset 7
+syntax error
+context:  expand  >>> Dist_Z; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> ESS_Node; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir ESS_Node: line 1 offset 7
+syntax error
+context:  expand  >>> ESS_Node; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Emission_Weighted_Average; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Emission_Weighted_Average: line 1 offset 7
+syntax error
+context:  expand  >>> Emission_Weighted_Average; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> From; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir From: line 1 offset 7
+syntax error
+context:  expand  >>> From; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> G_LDA; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir G_LDA: line 1 offset 7
+syntax error
+context:  expand  >>> G_LDA; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> G_LDA_Node; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir G_LDA_Node: line 1 offset 7
+syntax error
+context:  expand  >>> G_LDA_Node; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> G_Node; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir G_Node: line 1 offset 7
+syntax error
+context:  expand  >>> G_Node; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> G_Owner_d; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir G_Owner_d: line 1 offset 7
+syntax error
+context:  expand  >>> G_Owner_d; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> G_Owner_t; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir G_Owner_t: line 1 offset 7
+syntax error
+context:  expand  >>> G_Owner_t; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> IBASE; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir IBASE: line 1 offset 7
+syntax error
+context:  expand  >>> IBASE; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Imax; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Imax: line 1 offset 7
+syntax error
+context:  expand  >>> Imax; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> L2; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir L2: line 1 offset 7
+syntax error
+context:  expand  >>> L2; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> L3; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir L3: line 1 offset 7
+syntax error
+context:  expand  >>> L3; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> L4; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir L4: line 1 offset 7
+syntax error
+context:  expand  >>> L4; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> L6; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir L6: line 1 offset 7
+syntax error
+context:  expand  >>> L6; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> L8; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir L8: line 1 offset 7
+syntax error
+context:  expand  >>> L8; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> LS_Node; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir LS_Node: line 1 offset 7
+syntax error
+context:  expand  >>> LS_Node; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> M; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir M: line 1 offset 7
+syntax error
+context:  expand  >>> M; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> NBUS; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir NBUS: line 1 offset 7
+syntax error
+context:  expand  >>> NBUS; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> OF_DSO; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir OF_DSO: line 1 offset 7
+syntax error
+context:  expand  >>> OF_DSO; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> OF_ISO; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir OF_ISO: line 1 offset 7
+syntax error
+context:  expand  >>> OF_ISO; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> PCC; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir PCC: line 1 offset 7
+syntax error
+context:  expand  >>> PCC; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> PWmax_g; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir PWmax_g: line 1 offset 7
+syntax error
+context:  expand  >>> PWmax_g; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> P_block_d; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir P_block_d: line 1 offset 7
+syntax error
+context:  expand  >>> P_block_d; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> P_block_t; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir P_block_t: line 1 offset 7
+syntax error
+context:  expand  >>> P_block_t; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Pgmn; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Pgmn: line 1 offset 7
+syntax error
+context:  expand  >>> Pgmn; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Pgmx; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Pgmx: line 1 offset 7
+syntax error
+context:  expand  >>> Pgmx; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Pmax_d; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Pmax_d: line 1 offset 7
+syntax error
+context:  expand  >>> Pmax_d; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Pmax_t; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Pmax_t: line 1 offset 7
+syntax error
+context:  expand  >>> Pmax_t; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Pmin_d; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Pmin_d: line 1 offset 7
+syntax error
+context:  expand  >>> Pmin_d; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Pmin_t; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Pmin_t: line 1 offset 7
+syntax error
+context:  expand  >>> Pmin_t; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Price_block_d; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Price_block_d: line 1 offset 7
+syntax error
+context:  expand  >>> Price_block_d; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Price_block_t; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Price_block_t: line 1 offset 7
+syntax error
+context:  expand  >>> Price_block_t; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> R; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir R: line 1 offset 7
+syntax error
+context:  expand  >>> R; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> RES_Cap_d; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir RES_Cap_d: line 1 offset 7
+syntax error
+context:  expand  >>> RES_Cap_d; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> RES_Cap_t; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir RES_Cap_t: line 1 offset 7
+syntax error
+context:  expand  >>> RES_Cap_t; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> RES_Node_d; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir RES_Node_d: line 1 offset 7
+syntax error
+context:  expand  >>> RES_Node_d; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> RES_Node_t; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir RES_Node_t: line 1 offset 7
+syntax error
+context:  expand  >>> RES_Node_t; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> RES_type_d; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir RES_type_d: line 1 offset 7
+syntax error
+context:  expand  >>> RES_type_d; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> RES_type_t; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir RES_type_t: line 1 offset 7
+syntax error
+context:  expand  >>> RES_type_t; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Remove_Carbon_Limit; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Remove_Carbon_Limit: line 1 offset 7
+syntax error
+context:  expand  >>> Remove_Carbon_Limit; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Remove_Carbon_Mkt; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Remove_Carbon_Mkt: line 1 offset 7
+syntax error
+context:  expand  >>> Remove_Carbon_Mkt; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Remove_Energy_Mkt; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Remove_Energy_Mkt: line 1 offset 7
+syntax error
+context:  expand  >>> Remove_Energy_Mkt; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Remove_Ramp; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Remove_Ramp: line 1 offset 7
+syntax error
+context:  expand  >>> Remove_Ramp; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Remove_Renewable; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Remove_Renewable: line 1 offset 7
+syntax error
+context:  expand  >>> Remove_Renewable; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> SBASE; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir SBASE: line 1 offset 7
+syntax error
+context:  expand  >>> SBASE; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> SE_Capacity; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir SE_Capacity: line 1 offset 7
+syntax error
+context:  expand  >>> SE_Capacity; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> TBUS; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir TBUS: line 1 offset 7
+syntax error
+context:  expand  >>> TBUS; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> To; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir To: line 1 offset 7
+syntax error
+context:  expand  >>> To; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Trans_Capacity; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Trans_Capacity: line 1 offset 7
+syntax error
+context:  expand  >>> Trans_Capacity; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Trans_Incidencia; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Trans_Incidencia: line 1 offset 7
+syntax error
+context:  expand  >>> Trans_Incidencia; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Trans_Inst_Cap; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Trans_Inst_Cap: line 1 offset 7
+syntax error
+context:  expand  >>> Trans_Inst_Cap; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Trans_Load; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Trans_Load: line 1 offset 7
+syntax error
+context:  expand  >>> Trans_Load; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Trans_P_ESS_max; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Trans_P_ESS_max: line 1 offset 7
+syntax error
+context:  expand  >>> Trans_P_ESS_max; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Trans_P_ESS_min; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Trans_P_ESS_min: line 1 offset 7
+syntax error
+context:  expand  >>> Trans_P_ESS_min; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Trans_Reactance; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Trans_Reactance: line 1 offset 7
+syntax error
+context:  expand  >>> Trans_Reactance; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Trans_SOC_initial; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Trans_SOC_initial: line 1 offset 7
+syntax error
+context:  expand  >>> Trans_SOC_initial; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Trans_SOC_max; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Trans_SOC_max: line 1 offset 7
+syntax error
+context:  expand  >>> Trans_SOC_max; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Trans_SOC_min; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Trans_SOC_min: line 1 offset 7
+syntax error
+context:  expand  >>> Trans_SOC_min; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Trans_Shift_Max; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Trans_Shift_Max: line 1 offset 7
+syntax error
+context:  expand  >>> Trans_Shift_Max; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Trans_Shift_Min; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Trans_Shift_Min: line 1 offset 7
+syntax error
+context:  expand  >>> Trans_Shift_Min; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Trans_Solar_Inj; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Trans_Solar_Inj: line 1 offset 7
+syntax error
+context:  expand  >>> Trans_Solar_Inj; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Trans_Status; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Trans_Status: line 1 offset 7
+syntax error
+context:  expand  >>> Trans_Status; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Trans_Type; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Trans_Type: line 1 offset 7
+syntax error
+context:  expand  >>> Trans_Type; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Trans_Wind_Inj; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Trans_Wind_Inj: line 1 offset 7
+syntax error
+context:  expand  >>> Trans_Wind_Inj; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> U; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir U: line 1 offset 7
+syntax error
+context:  expand  >>> U; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> VBASE; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir VBASE: line 1 offset 7
+syntax error
+context:  expand  >>> VBASE; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Variable_U; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Variable_U: line 1 offset 7
+syntax error
+context:  expand  >>> Variable_U; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Ve; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Ve: line 1 offset 7
+syntax error
+context:  expand  >>> Ve; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Vmax; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Vmax: line 1 offset 7
+syntax error
+context:  expand  >>> Vmax; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Vmin; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Vmin: line 1 offset 7
+syntax error
+context:  expand  >>> Vmin; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Vnom; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Vnom: line 1 offset 7
+syntax error
+context:  expand  >>> Vnom; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Wind_max_d; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Wind_max_d: line 1 offset 7
+syntax error
+context:  expand  >>> Wind_max_d; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Wind_max_t; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Wind_max_t: line 1 offset 7
+syntax error
+context:  expand  >>> Wind_max_t; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Wind_min_d; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Wind_min_d: line 1 offset 7
+syntax error
+context:  expand  >>> Wind_min_d; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Wind_min_t; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Wind_min_t: line 1 offset 7
+syntax error
+context:  expand  >>> Wind_min_t; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Wind_nom_d; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Wind_nom_d: line 1 offset 7
+syntax error
+context:  expand  >>> Wind_nom_d; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Wind_nom_t; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Wind_nom_t: line 1 offset 7
+syntax error
+context:  expand  >>> Wind_nom_t; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> X; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir X: line 1 offset 7
+syntax error
+context:  expand  >>> X; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> Z; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir Z: line 1 offset 7
+syntax error
+context:  expand  >>> Z; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> a_d; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir a_d: line 1 offset 7
+syntax error
+context:  expand  >>> a_d; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> a_t; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir a_t: line 1 offset 7
+syntax error
+context:  expand  >>> a_t; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> b_d; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir b_d: line 1 offset 7
+syntax error
+context:  expand  >>> b_d; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> b_t; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir b_t: line 1 offset 7
+syntax error
+context:  expand  >>> b_t; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> c_d; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir c_d: line 1 offset 7
+syntax error
+context:  expand  >>> c_d; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> c_t; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir c_t: line 1 offset 7
+syntax error
+context:  expand  >>> c_t; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> ind1; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir ind1: line 1 offset 7
+syntax error
+context:  expand  >>> ind1; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> ind2; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir ind2: line 1 offset 7
+syntax error
+context:  expand  >>> ind2; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> ind3; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir ind3: line 1 offset 7
+syntax error
+context:  expand  >>> ind3; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> load1; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir load1: line 1 offset 7
+syntax error
+context:  expand  >>> load1; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> load2; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir load2: line 1 offset 7
+syntax error
+context:  expand  >>> load2; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> off1; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir off1: line 1 offset 7
+syntax error
+context:  expand  >>> off1; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> off4; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir off4: line 1 offset 7
+syntax error
+context:  expand  >>> off4; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> probability; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir probability: line 1 offset 7
+syntax error
+context:  expand  >>> probability; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> res1; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir res1: line 1 offset 7
+syntax error
+context:  expand  >>> res1; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> res4; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir res4: line 1 offset 7
+syntax error
+context:  expand  >>> res4; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> res5; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir res5: line 1 offset 7
+syntax error
+context:  expand  >>> res5; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> scenario; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir scenario: line 1 offset 7
+syntax error
+context:  expand  >>> scenario; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> solar; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir solar: line 1 offset 7
+syntax error
+context:  expand  >>> solar; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> wind1; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir wind1: line 1 offset 7
+syntax error
+context:  expand  >>> wind1; <<< 
+Error:
+	line 1 offset 7
+	syntax error
+	context:  expand  >>> wind2; <<< 
+
+For support/feedback go to https://discuss.ampl.com or e-mail <support@ampl.com>
+
+Erro ao expandir wind2: line 1 offset 7
+syntax error
+context:  expand  >>> wind2; <<< 
